@@ -6,3 +6,8 @@ http://www.assettocorsa.net/forum/index.php?threads/about-that-maybe-server-api.
 
 This project is done to share all kinds of prototyping, preparation and testing stuff in multiple projects and languages.
 I don't really know but I think "real" projects (e.g. a distinct plugin) should get it's own project.
+
+
+R&amp;D Contents
+
+acplugins4net contains several playgrounds for implementations inside .net: Stefano's initial sample code, a shared library for future plugins, a fake acServer for testing purposes
