@@ -1,0 +1,42 @@
+﻿<UserControl x:Class="acServerFake.view.messages.CarInfoView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:msg="clr-namespace:acServerFake.viemodel.messages"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <msg:CarInfoViewModel x:Key="sampleViewModel" />
+    </UserControl.Resources>
+    <Grid d:DataContext="{StaticResource ResourceKey=sampleViewModel}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="80"/>
+            <ColumnDefinition Width="120"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Label Content="CarId" Height="28" VerticalAlignment="Top" />
+        <TextBox Grid.Column="1" Text="{Binding Message.CarId}" VerticalAlignment="Top" Height="24" />
+
+        <Label Content="CarModel" Height="28" Margin="0,25,0,0" VerticalAlignment="Top" />
+        <TextBox Grid.Column="1" Text="{Binding Message.CarModel}" Margin="0,29,0,0" Height="24" VerticalAlignment="Top" />
+
+        <Label Content="CarSkin" Height="28" Margin="0,54,0,0" VerticalAlignment="Top" />
+        <TextBox Grid.Column="1" Text="{Binding Message.CarSkin}" Margin="0,58,0,0" Height="24" VerticalAlignment="Top" />
+
+        <Label Content="DriverGuid" Height="28" Margin="0,83,0,0" VerticalAlignment="Top" />
+        <TextBox Grid.Column="1" Text="{Binding Message.DriverGuid}" Margin="0,87,0,0" Height="24" VerticalAlignment="Top" />
+
+        <Label Content="DriverName" Height="28" Margin="0,112,0,0" VerticalAlignment="Top" />
+        <TextBox Grid.Column="1" Text="{Binding Message.DriverName}" Margin="0,116,0,0" Height="24" VerticalAlignment="Top" />
+
+        <Label Content="DriverTeam" Height="28" Margin="0,141,0,0" VerticalAlignment="Top" />
+        <TextBox Grid.Column="1" Text="{Binding Message.DriverTeam}" Margin="0,145,0,0" Height="24" VerticalAlignment="Top" />
+
+        <Label Content="IsConnected" Height="28" Margin="0,170,0,0" VerticalAlignment="Top" />
+        <TextBox Grid.Column="1" Text="{Binding Message.IsConnected}" Margin="0,174,0,0" Height="24" VerticalAlignment="Top" />
+
+        <Button Content="Send" Command="{Binding SendCommand}" Margin="10,183,0,0" Grid.Column="2" HorizontalAlignment="Left" Width="75" Height="20" VerticalAlignment="Top"/>
+    </Grid>
+
+</UserControl>

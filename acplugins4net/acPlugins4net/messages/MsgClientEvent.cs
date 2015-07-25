@@ -16,14 +16,10 @@ namespace acPlugins4net.messages
         public Vector3f WorldPosition { get; set; }
         public Vector3f RelativePosition { get; set; }
 
-        public MsgClientEvent(ACSProtocol.MessageType type)
-            : base(type)
+        public MsgClientEvent()
+            : base(ACSProtocol.MessageType.ACSP_CLIENT_EVENT)
         {
             
-        }
-        public override string StringRepresentation
-        {
-            get { return "Car=4" + NL + "OtherCar=2" + NL + "some further values I won't mock now"; }
         }
 
         protected internal override void Serialize(System.IO.BinaryWriter bw)

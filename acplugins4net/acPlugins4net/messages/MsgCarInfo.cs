@@ -21,10 +21,6 @@ namespace acPlugins4net.messages
             : base(ACSProtocol.MessageType.ACSP_CAR_INFO)
         {
         }
-        public override string StringRepresentation
-        {
-            get { throw new NotImplementedException(); }
-        }
 
         protected internal override void Serialize(System.IO.BinaryWriter bw)
         {

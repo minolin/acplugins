@@ -35,31 +35,14 @@ namespace acPlugins4net.messages
         }
 
         [Obsolete("Not obsolete, but the values are just guesses. Need to check that")]
-        public enum SessionTypeEnum : byte { Practise = 0, Qualifying = 1, Race = 2, Drag = 3, Drift = 4 }
+        public enum SessionTypeEnum : byte { Practice = 0, Qualifying = 1, Race = 2, Drag = 3, Drift = 4 }
 
         #endregion
 
-        public MsgNewSession(ACSProtocol.MessageType type)
-            : base(type)
+        public MsgNewSession()
+            : base(ACSProtocol.MessageType.ACSP_NEW_SESSION)
         {
 
-        }
-
-
-        public override string StringRepresentation
-        {
-            get
-            {
-                return
-                    "Name=" + Name + NL +
-                    "Type=" + SessionType + NL +
-                    "Time=" + TimeOfDay + NL +
-                    "Laps=" + Laps + NL +
-                    "WaitTime=" + WaitTime + NL +
-                    "Ambient=" + AmbientTemp + NL +
-                    "Road=" + RoadTemp + NL +
-                    "Weather=" + Weather;
-            }
         }
 
         protected internal override void Serialize(System.IO.BinaryWriter bw)

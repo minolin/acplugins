@@ -33,18 +33,14 @@ namespace acPlugins4net.helpers
             });
         }
 
-        public void TrySend(byte[] typeByte)
+        public bool TrySend(byte[] typeByte)
         {
             if (_plugin == null)
                 throw new Exception("TrySend: UdpClient missing, please open first");
             {
                 _plugin.SendAsync(typeByte, typeByte.Length);
+                return true;
             }
-        }
-
-        public void TrySend(PluginMessage msg)
-        {
-            TrySend(msg.ToBinary());
         }
     }
 }

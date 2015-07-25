@@ -1,6 +1,8 @@
-﻿using System;
+﻿using acPlugins4net;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,17 +15,17 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace acServerFake.view.logviewer
 {
     /// <summary>
-    /// Wonderful piece of code from HighCore: http://stackoverflow.com/questions/16743804/implementing-a-log-viewer-with-wpf
+    /// Wonderful piece of code by HighCore: http://stackoverflow.com/questions/16743804/implementing-a-log-viewer-with-wpf
     /// </summary>
     public partial class AwesomeViewerStolenFromTheInternet : UserControl
     {
         public ObservableCollection<LogEntry> LogEntries { get; set; }
         private static AwesomeViewerStolenFromTheInternet _sLastCreatedLogviewer = null;
-        private static int currentIndex = 0;
         public static bool ReadyToShowErrorMessages { get { return _sLastCreatedLogviewer != null; } }
 
         public AwesomeViewerStolenFromTheInternet()
@@ -36,12 +38,21 @@ namespace acServerFake.view.logviewer
 
         public void Append(LogEntry entry)
         {
-            LogEntries.Add(entry);
+            Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() => LogEntries.Add(entry)));
         }
 
         public void Clear()
         {
-            LogEntries.Clear();
+            Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() => LogEntries.Clear()));
+        }
+
+        public static void Log(PluginMessage msg)
+        {
+            if (_sLastCreatedLogviewer != null)
+            {
+                var entry = new PluginMessageEntry(msg);
+                _sLastCreatedLogviewer.Append(entry);
+            }
         }
 
         public static void CreateOutgoingLog(string msgType, string content, byte[] binary)
@@ -50,18 +61,16 @@ namespace acServerFake.view.logviewer
             {
                 var entry = new CollapsibleLogEntry()
                 {
-                    Index = currentIndex++,
                     DateTime = DateTime.Now,
                     Message = Convert.ToString(msgType) + ": " + content
                 };
 
                 entry.Contents = new List<LogEntry>();
                 entry.Contents.Add(new LogEntry()
-                    {
-                        Index = currentIndex++,
-                        DateTime = DateTime.Now,
-                        Message = BitConverter.ToString(binary)
-                    });
+                {
+                    DateTime = DateTime.Now,
+                    Message = BitConverter.ToString(binary)
+                });
 
                 _sLastCreatedLogviewer.Append(entry);
             }
@@ -73,16 +82,12 @@ namespace acServerFake.view.logviewer
                 LogWithInner(ex);
             else
                 LogAsSingleEntry(ex);
-
-
-
         }
 
         private static void LogAsSingleEntry(Exception ex)
         {
             var entry = new LogEntry()
             {
-                Index = currentIndex++,
                 DateTime = DateTime.Now,
                 Message = "" + ex.GetType().Name + ": " + ex.Message
             };
@@ -94,7 +99,6 @@ namespace acServerFake.view.logviewer
         {
             var entry = new CollapsibleLogEntry()
             {
-                Index = currentIndex++,
                 DateTime = DateTime.Now,
                 Message = "" + ex.GetType().Name + ": " + ex.Message
             };
@@ -112,7 +116,6 @@ namespace acServerFake.view.logviewer
                 entry.Contents = new List<LogEntry>();
                 entry.Contents.Add(new LogEntry()
                 {
-                    Index = currentIndex++,
                     DateTime = DateTime.Now,
                     Message = errMsg
                 });

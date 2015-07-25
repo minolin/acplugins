@@ -1,4 +1,5 @@
-﻿using System;
+﻿using acPlugins4net;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -12,9 +13,15 @@ namespace acServerFake.view.logviewer
     {
         public DateTime DateTime { get; set; }
 
-        public int Index { get; set; }
+        private static int _indexCnter = 0;
+        public int Index { get; private set; }
 
         public string Message { get; set; }
+
+        public LogEntry()
+        {
+            Index = _indexCnter++;
+        }
     }
 
     public class CollapsibleLogEntry : LogEntry
@@ -33,6 +40,20 @@ namespace acServerFake.view.logviewer
                 PropertyChangedEventHandler handler = PropertyChanged;
                 if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
             }));
+        }
+    }
+
+    public class PluginMessageEntry : LogEntry
+    {
+        private PluginMessage _message = null;
+        public string MsgType { get { return _message.Type.ToString(); } }
+        public string DisplayShort { get { return _message.ToString().Replace(Environment.NewLine, "|"); } }
+        public string DisplayMultiline { get { return _message.ToString(); } }
+        public string Binary { get { return BitConverter.ToString(_message.ToBinary()); } }
+
+        public PluginMessageEntry(PluginMessage msg)
+        {
+            _message = msg;
         }
     }
 }

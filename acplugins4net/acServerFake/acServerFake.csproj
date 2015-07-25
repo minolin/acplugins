@@ -59,13 +59,14 @@
     <Compile Include="MessageControl.xaml.cs">
       <DependentUpon>MessageControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="netcode\ACSProtocol.cs" />
     <Compile Include="ServerStatus.xaml.cs">
       <DependentUpon>ServerStatus.xaml</DependentUpon>
     </Compile>
     <Compile Include="viemodel\MainViewModel.cs" />
     <Compile Include="viemodel\messages\BaseMessageViewModel.cs" />
+    <Compile Include="viemodel\messages\CarInfoViewModel.cs" />
     <Compile Include="viemodel\messages\CollisionWithCarViewModel.cs" />
+    <Compile Include="viemodel\messages\CollisionWithEnvironmentViewModel.cs" />
     <Compile Include="viemodel\messages\NewSessionViewModel.cs" />
     <Compile Include="viemodel\NotifiableViewModel.cs" />
     <Compile Include="viemodel\RelayCommand.cs" />
@@ -75,8 +76,14 @@
       <DependentUpon>AwesomeViewerStolenFromTheInternet.xaml</DependentUpon>
     </Compile>
     <Compile Include="view\logviewer\LogEntry.cs" />
+    <Compile Include="view\messages\CarInfoView.xaml.cs">
+      <DependentUpon>CarInfoView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="view\messages\CollisionWithCarView.xaml.cs">
       <DependentUpon>CollisionWithCarView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="view\messages\CollisionWithEnvView.xaml.cs">
+      <DependentUpon>CollisionWithEnvView.xaml</DependentUpon>
     </Compile>
     <Compile Include="view\messages\NewSessionView.xaml.cs">
       <DependentUpon>NewSessionView.xaml</DependentUpon>
@@ -105,7 +112,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="view\messages\CarInfoView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="view\messages\CollisionWithCarView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="view\messages\CollisionWithEnvView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

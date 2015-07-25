@@ -1,26 +1,24 @@
-﻿using acPlugins4net.helpers;
+﻿using acPlugins4net;
+using acPlugins4net.helpers;
 using acPlugins4net.kunos;
 using acPlugins4net.messages;
-using acServerFake.netcode;
 using acServerFake.view.logviewer;
 using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace acServerFake.viemodel
 {
-    class ServerViewModel
+    public class ServerViewModel
     {
         public DuplexUDPClient UDPServer { get; set; }
         public RelayCommand OpenUDPConnection { get; set; }
+        public static ServerViewModel Instance { get; set; }
 
         public ServerViewModel()
         {
             UDPServer = new DuplexUDPClient();
+            Instance = this;
         }
 
         public void Init()
@@ -34,10 +32,21 @@ namespace acServerFake.viemodel
             });
         }
 
+        public void SendMessage(PluginMessage msg)
+        {
+            var success = UDPServer.TrySend(msg.ToBinary());
+            AwesomeViewerStolenFromTheInternet.Log(msg);
+        }
+
         private void MessageReceived(byte[] data)
         {
             // The plugin did send us a Message, how nice :)
             // It will be raw data and needs to be decoded by the type (first byte)
+            // Using the acPlugins4net library we can directly receive a PluginMessage
+            var msg = AcMessageParser.Parse(data);
+            AwesomeViewerStolenFromTheInternet.Log(msg);
+
+            /*
             // Currently we only have two very simple messages, so we're do it here:
             try
             { 
@@ -68,7 +77,7 @@ namespace acServerFake.viemodel
             catch(Exception ex)
             {
                 System.Windows.MessageBox.Show(ex.Message);
-            }
+            }*/
         }
     }
 }

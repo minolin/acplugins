@@ -1,20 +1,17 @@
-﻿using acPlugins4net.helpers;
-using acServerFake.netcode;
+﻿using acPlugins4net;
+using acPlugins4net.helpers;
 using acServerFake.viemodel.messages;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace acServerFake.viemodel
 {
     class SessionViewModel : NotifiableViewModel
     {
-        private DuplexUDPClient UDPServer { get; set; }
-        public List<BaseMessageViewModel> Messages { get; set; }
-        private BaseMessageViewModel _ActiveMessage;
-        public BaseMessageViewModel ActiveMessage
+        private ServerViewModel Server { get; set; }
+        public List<object> Messages { get; set; }
+        private object _ActiveMessage;
+        public object ActiveMessage
         {
             get
             {
@@ -27,17 +24,19 @@ namespace acServerFake.viemodel
             }
         }
 
-        public SessionViewModel(DuplexUDPClient bidirectionalUDPServer)
+        public SessionViewModel(ServerViewModel serverVM)
         {
-            UDPServer = bidirectionalUDPServer;
+            Server = serverVM;
             Messages = InitMessages();
         }
 
-        private List<BaseMessageViewModel> InitMessages()
+        private List<object> InitMessages()
         {
-            return new BaseMessageViewModel[] {
-                new NewSessionViewModel(UDPServer),
-                new CollisionWithCarViewModel(UDPServer),
+            return new object[] {
+                new NewSessionViewModel(),
+                new CollisionWithEnvironmentViewModel(),
+                new CollisionWithCarViewModel(),
+                new CarInfoViewModel(),
             }.ToList();
         }
     }

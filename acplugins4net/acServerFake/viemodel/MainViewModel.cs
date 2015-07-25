@@ -16,7 +16,7 @@ namespace acServerFake.viemodel
         {
             ServerViewModel = new ServerViewModel();
             ServerViewModel.Init();
-            MessagesViewModel = new SessionViewModel(ServerViewModel.UDPServer);
+            MessagesViewModel = new SessionViewModel(ServerViewModel);
         }
     }
 }

@@ -14,6 +14,12 @@
         <DataTemplate DataType="{x:Type msg:CollisionWithCarViewModel}">
             <msgview:CollisionWithCarView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type msg:CollisionWithEnvironmentViewModel}">
+            <msgview:CollisionWithEnvView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type msg:CarInfoViewModel}">
+            <msgview:CarInfoView />
+        </DataTemplate>
     </UserControl.Resources>
     <GroupBox Header="Events and Messages">
         <Grid>
@@ -21,7 +27,7 @@
                 <ColumnDefinition Width="180"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <ListBox Name="messagesListBox" ItemsSource="{Binding Messages}" SelectedItem="{Binding ActiveMessage}" DisplayMemberPath="MsgName" />
+            <ListBox Name="messagesListBox" ItemsSource="{Binding Messages}" SelectedItem="{Binding ActiveMessage}" DisplayMemberPath="MsgCaption" />
             <ContentControl Grid.Column="1" Content="{Binding ElementName=messagesListBox, Path=SelectedItem}" />
         </Grid>
     </GroupBox>

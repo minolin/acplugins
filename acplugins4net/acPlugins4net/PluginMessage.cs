@@ -1,22 +1,28 @@
 ﻿using acPlugins4net.kunos;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace acPlugins4net
 {
     public abstract class PluginMessage
     {
-        protected internal string NL = Environment.NewLine;
         public ACSProtocol.MessageType Type { get; private set; }
-        public abstract string StringRepresentation { get; }
 
         public PluginMessage(ACSProtocol.MessageType type)
         {
             Type = type;
+        }
+
+        public override string ToString()
+        {
+            var s = "";
+            foreach (var prop in this.GetType().GetProperties())
+            {
+                if(prop.Name != "StringRepresentation")
+                    s += prop.Name + "=" + prop.GetValue(this) + Environment.NewLine;
+            }
+            return s;
         }
 
         protected internal abstract void Serialize(BinaryWriter bw);
@@ -51,6 +57,27 @@ namespace acPlugins4net
         public struct Vector3f
         {
             public float x, y, z;
+            private static Random R = new Random();
+
+            public static Vector3f RandomSmall()
+            {
+                return new Vector3f()
+                {
+                    x = (float)(R.NextDouble() - 0.5) * 10,
+                    y = (float)(R.NextDouble() - 0.5),
+                    z = (float)(R.NextDouble() - 0.5) * 10,
+                };
+            }
+
+            public static Vector3f RandomBig()
+            {
+                return new Vector3f()
+                {
+                    x = (float)(R.NextDouble() - 0.5) * 1000,
+                    y = (float)(R.NextDouble() - 0.5) * 20,
+                    z = (float)(R.NextDouble() - 0.5) * 1000,
+                };
+            }
 
             public override string ToString()
             {

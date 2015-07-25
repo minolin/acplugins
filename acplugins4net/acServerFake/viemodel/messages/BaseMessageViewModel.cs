@@ -1,35 +1,24 @@
-﻿using acPlugins4net.helpers;
-using acServerFake.netcode;
+﻿using acPlugins4net;
+using acPlugins4net.helpers;
 using acServerFake.view.logviewer;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace acServerFake.viemodel.messages
 {
-    abstract class BaseMessageViewModel : NotifiableViewModel
+    public abstract class BaseMessageViewModel<T> : NotifiableViewModel where T : PluginMessage
     {
-        protected string nl = Environment.NewLine;
-        public DuplexUDPClient UDP { get; set; }
-        public abstract string MsgName { get; }
+        public T Message { get; private set; }
+
+        public abstract string MsgCaption { get; }
         public RelayCommand SendCommand { get; private set; }
 
-        public abstract byte[] GenerateBinaryCommand();
-        public abstract string CreateStringRepresentation();
-
-        public BaseMessageViewModel(DuplexUDPClient udp)
+        public BaseMessageViewModel()
         {
-            UDP = udp;
+            Message = (T)Activator.CreateInstance(typeof(T));
 
             SendCommand = new RelayCommand("Send", (p) =>
             {
-                var binary = GenerateBinaryCommand();
-                var s = CreateStringRepresentation();
-                UDP.TrySend(binary);
-
-                AwesomeViewerStolenFromTheInternet.CreateOutgoingLog(MsgName, s, binary);
+                ServerViewModel.Instance.SendMessage(Message);
             });
         }
     }
