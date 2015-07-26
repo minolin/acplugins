@@ -19,7 +19,7 @@ namespace acPlugins4net
             var s = "";
             foreach (var prop in this.GetType().GetProperties())
             {
-                if(prop.Name != "StringRepresentation")
+                if (prop.Name != "StringRepresentation")
                     s += prop.Name + "=" + prop.GetValue(this) + Environment.NewLine;
             }
             return s;
@@ -41,7 +41,7 @@ namespace acPlugins4net
 
         public void FromBinary(byte[] data)
         {
-            using(var m = new MemoryStream(data))
+            using (var m = new MemoryStream(data))
             using (var br = new BinaryReader(m))
             {
                 var type = br.Read();
@@ -113,9 +113,9 @@ namespace acPlugins4net
 
         protected static void writeString(BinaryWriter bw, string message)
         {
-            var b = Encoding.ASCII.GetBytes(message);
-            bw.Write((byte)(b.Length));
-            bw.Write(b);
+            var array = message.ToCharArray();
+            bw.Write((byte)array.Length);
+            bw.Write(array);
         }
 
         protected static Vector3f readVector3f(BinaryReader br)

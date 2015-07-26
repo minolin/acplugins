@@ -31,6 +31,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -39,8 +40,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="configuration\AppConfigConfigurator.cs" />
+    <Compile Include="configuration\IConfigManager.cs" />
     <Compile Include="helpers\AcMessageParser.cs" />
+    <Compile Include="helpers\ConsoleLogger.cs" />
     <Compile Include="helpers\DuplexUDPClient.cs" />
+    <Compile Include="AcServerPlugin.cs" />
+    <Compile Include="helpers\ILog.cs" />
+    <Compile Include="helpers\WorkaroundHelper.cs" />
     <Compile Include="messages\MsgCarInfo.cs" />
     <Compile Include="messages\MsgCarUpdate.cs" />
     <Compile Include="messages\MsgClientEvent.cs" />

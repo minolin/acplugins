@@ -30,12 +30,53 @@ namespace acPlugins4net.helpers
 
             PluginMessage newMsg = CreateInstance(msgType);
             using (var m = new MemoryStream(rawData))
-            using (var br= new BinaryReader(m))
+            using (var br = new BinaryReader(m))
             {
+                if (br.ReadByte() != (byte)newMsg.Type)
+                    throw new Exception("Error in parsing the message, just because Minolin is dumb and you can't do anything about it");
                 newMsg.Deserialize(br);
             }
 
             return newMsg;
+        }
+
+        internal static void Activate(AcServerPlugin acServerPlugin, byte[] data)
+        {
+            var msg = Parse(data);
+            switch (msg.Type)
+            {
+                case ACSProtocol.MessageType.ACSP_NEW_SESSION:
+                    acServerPlugin.OnNewSession(msg as MsgNewSession);
+                    break;
+                case ACSProtocol.MessageType.ACSP_NEW_CONNECTION:
+                    acServerPlugin.OnNewConnection(msg as MsgNewConnection);
+                    break;
+                case ACSProtocol.MessageType.ACSP_CONNECTION_CLOSED:
+                    acServerPlugin.OnConnectionClosed(msg as MsgConnectionClosed);
+                    break;
+                case ACSProtocol.MessageType.ACSP_CAR_UPDATE:
+                    acServerPlugin.OnCarUpdate(msg as MsgCarUpdate);
+                    break;
+                case ACSProtocol.MessageType.ACSP_CAR_INFO:
+                    acServerPlugin.OnCarInfo(msg as MsgCarInfo);
+                    break;
+                case ACSProtocol.MessageType.ACSP_LAP_COMPLETED:
+                    acServerPlugin.OnLapCompleted(msg as MsgLapCompleted);
+                    break;
+                case ACSProtocol.MessageType.ACSP_CLIENT_EVENT:
+                    acServerPlugin.OnCollision(msg as MsgClientEvent);
+                    break;
+                case ACSProtocol.MessageType.ACSP_REALTIMEPOS_INTERVAL:
+                case ACSProtocol.MessageType.ACSP_GET_CAR_INFO:
+                case ACSProtocol.MessageType.ACSP_SEND_CHAT:
+                case ACSProtocol.MessageType.ACSP_BROADCAST_CHAT:
+                    throw new Exception("Received unexpected MessageType (for a plugin): " + msg.Type);
+                case ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_CAR:
+                case ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_ENV:
+                case ACSProtocol.MessageType.ERROR:
+                default:
+                    throw new Exception("Received wrong or unknown MessageType: " + msg.Type);
+            }
         }
 
         private static PluginMessage CreateInstance(ACSProtocol.MessageType msgType)

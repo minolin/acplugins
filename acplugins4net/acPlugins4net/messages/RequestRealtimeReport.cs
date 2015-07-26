@@ -13,7 +13,7 @@ namespace acPlugins4net.messages
         public UInt16 Interval { get; set; }
 
         public RequestRealtimeInfo()
-            : base(kunos.ACSProtocol.MessageType.ACSP_GET_CAR_INFO)
+            : base(kunos.ACSProtocol.MessageType.ACSP_REALTIMEPOS_INTERVAL)
         {
 
         }

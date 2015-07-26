@@ -28,8 +28,14 @@ namespace acServerFake.viemodel
 
             OpenUDPConnection = new RelayCommand("Open UDP", (p) => 
             {
-                UDPServer.Open(serverPort, pluginPort, MessageReceived);
+                UDPServer.Open(serverPort, pluginPort, MessageReceived, OnError);
             });
+        }
+
+        private void OnError(Exception ex)
+        {
+            AwesomeViewerStolenFromTheInternet.LogException(ex);
+            Console.WriteLine("Error: " + ex.Message);
         }
 
         public void SendMessage(PluginMessage msg)
