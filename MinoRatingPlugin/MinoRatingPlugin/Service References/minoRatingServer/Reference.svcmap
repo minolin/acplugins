@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="f1683c31-b587-4687-ad73-1d37129f41bb" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+  <ClientOptions>
+    <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
+    <GenerateTaskBasedAsynchronousMethod>true</GenerateTaskBasedAsynchronousMethod>
+    <EnableDataBinding>true</EnableDataBinding>
+    <ExcludedTypes />
+    <ImportXmlTypes>false</ImportXmlTypes>
+    <GenerateInternalTypes>false</GenerateInternalTypes>
+    <GenerateMessageContracts>false</GenerateMessageContracts>
+    <NamespaceMappings />
+    <CollectionMappings />
+    <GenerateSerializableTypes>true</GenerateSerializableTypes>
+    <Serializer>Auto</Serializer>
+    <UseSerializerForFaults>true</UseSerializerForFaults>
+    <ReferenceAllAssemblies>true</ReferenceAllAssemblies>
+    <ReferencedAssemblies />
+    <ReferencedDataContractTypes />
+    <ServiceContractMappings />
+  </ClientOptions>
+  <MetadataSources>
+    <MetadataSource Address="http://localhost:805/testing" Protocol="http" SourceId="1" />
+  </MetadataSources>
+  <Metadata>
+    <MetadataFile FileName="testing.xsd" MetadataType="Schema" ID="8d29b49d-1b30-469e-a6fa-d707984a6d67" SourceId="1" SourceUrl="http://localhost:805/testing?xsd=xsd0" />
+    <MetadataFile FileName="testing.disco" MetadataType="Disco" ID="f0fc1803-88b2-49bb-8467-cce27d488c7e" SourceId="1" SourceUrl="http://localhost:805/testing?disco" />
+    <MetadataFile FileName="LiveDataDump1.wsdl" MetadataType="Wsdl" ID="b160028c-38db-40f2-ad1a-f32cda36a5a8" SourceId="1" SourceUrl="http://localhost:805/testing?wsdl" />
+    <MetadataFile FileName="testing1.xsd" MetadataType="Schema" ID="a160c9aa-a264-4f22-814a-0611f8d2a0f4" SourceId="1" SourceUrl="http://localhost:805/testing?xsd=xsd2" />
+    <MetadataFile FileName="testing2.xsd" MetadataType="Schema" ID="36e7bb1b-8f3f-4882-8145-69849ce85362" SourceId="1" SourceUrl="http://localhost:805/testing?xsd=xsd1" />
+  </Metadata>
+  <Extensions>
+    <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />
+    <ExtensionFile FileName="configuration.svcinfo" Name="configuration.svcinfo" />
+  </Extensions>
+</ReferenceGroup>

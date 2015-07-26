@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinoRatingPlugin", "MinoRatingPlugin\MinoRatingPlugin.csproj", "{DDD7D021-4CF5-49B7-A536-AEA324F7234A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "acPlugins4net", "..\acplugins4net\acPlugins4net\acPlugins4net.csproj", "{755C6B0D-3ED5-45D3-A06F-1575D26DA4D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "acServerFake", "..\acplugins4net\acServerFake\acServerFake.csproj", "{0E3EEA9D-A980-4797-A3BC-B7E35102ABFF}"
+EndProject
+Global
+	GlobalSection(SubversionScc) = preSolution
+		Svn-Managed = True
+		Manager = AnkhSVN - Subversion Support for Visual Studio
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DDD7D021-4CF5-49B7-A536-AEA324F7234A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDD7D021-4CF5-49B7-A536-AEA324F7234A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDD7D021-4CF5-49B7-A536-AEA324F7234A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDD7D021-4CF5-49B7-A536-AEA324F7234A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{755C6B0D-3ED5-45D3-A06F-1575D26DA4D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{755C6B0D-3ED5-45D3-A06F-1575D26DA4D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{755C6B0D-3ED5-45D3-A06F-1575D26DA4D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{755C6B0D-3ED5-45D3-A06F-1575D26DA4D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E3EEA9D-A980-4797-A3BC-B7E35102ABFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E3EEA9D-A980-4797-A3BC-B7E35102ABFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E3EEA9D-A980-4797-A3BC-B7E35102ABFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E3EEA9D-A980-4797-A3BC-B7E35102ABFF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
