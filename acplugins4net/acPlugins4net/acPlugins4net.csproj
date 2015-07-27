@@ -47,6 +47,7 @@
     <Compile Include="helpers\DuplexUDPClient.cs" />
     <Compile Include="AcServerPlugin.cs" />
     <Compile Include="helpers\ILog.cs" />
+    <Compile Include="helpers\MD5Hashable.cs" />
     <Compile Include="helpers\WorkaroundHelper.cs" />
     <Compile Include="messages\MsgCarInfo.cs" />
     <Compile Include="messages\MsgCarUpdate.cs" />

@@ -25,6 +25,7 @@
         <xs:element minOccurs="0" name="ambient" type="xs:int" />
         <xs:element minOccurs="0" name="road" type="xs:int" />
         <xs:element minOccurs="0" name="token" nillable="true" type="xs:string" />
+        <xs:element minOccurs="0" name="fingerprint" nillable="true" type="xs:base64Binary" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

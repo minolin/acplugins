@@ -9,12 +9,13 @@ using System.Threading.Tasks;
 
 namespace acPlugins4net
 {
-    public abstract class AcServerPlugin
+    public abstract class AcServerPlugin : MD5Hashable
     {
         private DuplexUDPClient _UDP = null;
         public IConfigManager Config { get; private set; }
         private WorkaroundHelper _Workarounds = null;
         private ILog _log = null;
+        protected internal byte[] _fingerprint = null;
 
         #region Cache and Helpers
 
@@ -30,6 +31,7 @@ namespace acPlugins4net
             _log = new ConsoleLogger();
             Config = new AppConfigConfigurator();
             _Workarounds = new WorkaroundHelper(Config);
+            _fingerprint = Hash(Config.GetSetting("ac_server_directory") + Config.GetSetting("acServer_port"));
         }
 
         public void RunUntilAborted()
@@ -50,10 +52,14 @@ namespace acPlugins4net
 
         private void Init()
         {
+#if DEBUG
+            Track = "mugello";
+            TrackLayout = "mugello";
+#else
             Track = _Workarounds.FindServerConfigEntry("TRACK=");
             TrackLayout = _Workarounds.FindServerConfigEntry("CONFIG_TRACK=");
             _log.Log("Track/Layout is " + Track + "[" + TrackLayout + "] (by workaround)");
-
+#endif
             OnInit();
         }
 
