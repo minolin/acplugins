@@ -47,6 +47,13 @@ namespace acPlugins4net
             {
                 // Basically we're blocking the Main Thread until exit.
                 // Ugly, but pretty easy to use by the deriving Plugin
+
+                // To have a bit of functionality we'll let the server admin 
+                // type in commands that can be understood by the deriving plugin
+                if(!string.IsNullOrEmpty(input))
+                    OnConsoleCommand(input);
+
+                input = Console.ReadLine();
             }
         }
 
@@ -86,6 +93,7 @@ namespace acPlugins4net
         #region overridable event handlers
 
         public virtual void OnInit() { }
+        public virtual void OnConsoleCommand(string cmd) { }
         public virtual void OnNewSession(MsgNewSession msg) { }
         public virtual void OnConnectionClosed(MsgConnectionClosed msg) { }
         public virtual void OnNewConnection(MsgNewConnection msg) { }
@@ -93,6 +101,17 @@ namespace acPlugins4net
         public virtual void OnCarUpdate(MsgCarUpdate msg) { }
         public virtual void OnLapCompleted(MsgLapCompleted msg) { }
         public virtual void OnCollision(MsgClientEvent msg) { }
+
+        #endregion
+
+        #region Requests to the AcServer
+
+        protected internal void BroadcastChatMessage(string msg)
+        {
+            var chatRequest = new RequestBroadcastChat() { ChatMessage = msg };
+            _UDP.TrySend(chatRequest.ToBinary());
+            Console.WriteLine("Broadcasted " + chatRequest.ToString());
+        }
 
         #endregion
     }
