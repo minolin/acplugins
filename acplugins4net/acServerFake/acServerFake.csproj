@@ -67,6 +67,7 @@
     <Compile Include="viemodel\messages\CarInfoViewModel.cs" />
     <Compile Include="viemodel\messages\CollisionWithCarViewModel.cs" />
     <Compile Include="viemodel\messages\CollisionWithEnvironmentViewModel.cs" />
+    <Compile Include="viemodel\messages\LapCompletedViewModel.cs" />
     <Compile Include="viemodel\messages\NewSessionViewModel.cs" />
     <Compile Include="viemodel\NotifiableViewModel.cs" />
     <Compile Include="viemodel\RelayCommand.cs" />
@@ -76,6 +77,9 @@
       <DependentUpon>AwesomeViewerStolenFromTheInternet.xaml</DependentUpon>
     </Compile>
     <Compile Include="view\logviewer\LogEntry.cs" />
+    <Compile Include="view\logviewer\PluginMessageEntryDisplayer.xaml.cs">
+      <DependentUpon>PluginMessageEntryDisplayer.xaml</DependentUpon>
+    </Compile>
     <Compile Include="view\messages\CarInfoView.xaml.cs">
       <DependentUpon>CarInfoView.xaml</DependentUpon>
     </Compile>
@@ -84,6 +88,9 @@
     </Compile>
     <Compile Include="view\messages\CollisionWithEnvView.xaml.cs">
       <DependentUpon>CollisionWithEnvView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="view\messages\LapCompletedView.xaml.cs">
+      <DependentUpon>LapCompletedView.xaml</DependentUpon>
     </Compile>
     <Compile Include="view\messages\NewSessionView.xaml.cs">
       <DependentUpon>NewSessionView.xaml</DependentUpon>
@@ -112,6 +119,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="view\logviewer\PluginMessageEntryDisplayer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="view\messages\CarInfoView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -121,6 +132,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="view\messages\CollisionWithEnvView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="view\messages\LapCompletedView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

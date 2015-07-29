@@ -37,6 +37,7 @@ namespace acServerFake.viemodel
                 new CollisionWithEnvironmentViewModel(),
                 new CollisionWithCarViewModel(),
                 new CarInfoViewModel(),
+                new LapCompletedViewModel(),
             }.ToList();
         }
     }

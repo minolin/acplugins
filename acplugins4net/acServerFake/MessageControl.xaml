@@ -20,6 +20,9 @@
         <DataTemplate DataType="{x:Type msg:CarInfoViewModel}">
             <msgview:CarInfoView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type msg:LapCompletedViewModel}">
+            <msgview:LapCompletedView />
+        </DataTemplate>
     </UserControl.Resources>
     <GroupBox Header="Events and Messages">
         <Grid>

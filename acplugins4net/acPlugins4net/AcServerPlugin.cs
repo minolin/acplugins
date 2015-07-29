@@ -113,6 +113,13 @@ namespace acPlugins4net
             Console.WriteLine("Broadcasted " + chatRequest.ToString());
         }
 
+        protected internal void SendChatMessage(byte car_id, string msg)
+        {
+            var chatRequest = new RequestSendChat() { CarId = car_id, ChatMessage = msg };
+            _UDP.TrySend(chatRequest.ToBinary());
+            Console.WriteLine("Broadcasted " + chatRequest.ToString());
+        }
+
         #endregion
     }
 }

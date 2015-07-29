@@ -83,6 +83,11 @@
                 </Trigger>
             </DataTemplate.Triggers>
         </DataTemplate>
+
+        <DataTemplate DataType="{x:Type local:PluginMessageEntry}">
+            <local:PluginMessageEntryDisplayer />
+        </DataTemplate>
+
     </UserControl.Resources>
 
     <DockPanel>
