@@ -87,8 +87,8 @@ class NewConnection(GenericPacket):
         ('driverName', UTF32),
         ('driverGuid', UTF32),
         ('carId', Uint8),
-        ('carModel', Ascii), # this is different type than CarUpdate
-        ('carSkin', Ascii),  # this is different type than CarUpdate
+        ('carModel', Ascii), # this is different type than CarInfo
+        ('carSkin', Ascii),  # this is different type than CarInfo
     )
     
 class ConnectionClosed(GenericPacket):
@@ -97,8 +97,8 @@ class ConnectionClosed(GenericPacket):
         ('driverName', UTF32),
         ('driverGuid', UTF32),
         ('carId', Uint8),
-        ('carModel', Ascii), # this is different type than CarUpdate
-        ('carSkin', Ascii),  # this is different type than CarUpdate
+        ('carModel', Ascii), # this is different type than CarInfo
+        ('carSkin', Ascii),  # this is different type than CarInfo
     )
     
 class LeaderboardEntry(GenericPacket):
