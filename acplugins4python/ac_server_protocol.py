@@ -23,7 +23,7 @@ class NewSession(GenericPacket):
     packetId = ACSP_NEW_SESSION
     _content = (
         ('name', Ascii),
-        ('type', Uint8),
+        ('sessionType', Uint8),
         ('timeOfDay', Uint16),
         ('laps', Uint16),
         ('waittime', Uint16),
@@ -158,7 +158,8 @@ for e in [NewSession,
           CarUpdate, 
           NewConnection, 
           ConnectionClosed, 
-          LapCompleted]:
+          LapCompleted,
+          EnableRealtimeReport]:
     eventMap[e.packetId] = e
 
 def parse(buffer):
