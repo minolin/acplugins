@@ -159,7 +159,8 @@ for e in [NewSession,
           NewConnection, 
           ConnectionClosed, 
           LapCompleted,
-          EnableRealtimeReport]:
+          EnableRealtimeReport,
+          BroadcastChat]:
     eventMap[e.packetId] = e
 
 def parse(buffer):

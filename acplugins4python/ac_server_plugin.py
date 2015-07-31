@@ -27,33 +27,27 @@ class ACServerPlugin:
             callbacks = [callbacks]
         self.callbacks = callbacks 
         
-        self.sendSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sendSocket.connect( (serverIP, sendPort) )
-        
-        self.rcvSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.rcvSocket.bind( (serverIP, rcvPort) )
+        self.host = serverIP
+        self.sendPort = sendPort
+        self.acSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.acSocket.bind( (serverIP, rcvPort) )
         # set up a 0.5s pulse, need this to be able to Ctrl-C the python apps
-        self.rcvSocket.settimeout(0.5)
+        self.acSocket.settimeout(0.5)
         
-        if not proxyRcvPort is None:
-            self.proxyRcvSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self.proxyRcvSocket.connect( (serverIP, proxyRcvPort) )
+        if not proxyRcvPort is None and not proxySendPort is None:
+            self.proxyRcvPort = proxyRcvPort
+            self.proxySocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.proxySocket.bind( (serverIP, proxySendPort) )
+            # set up a 0.5s pulse, need this to be able to Ctrl-C the python apps
+            self.proxySocket.settimeout(0.5)
+            self.proxySocket = Thread(target=self._performProxy)
+            self.proxySocket.daemon=True
+            self.proxySocket.start()
         else:
-            self.proxyRcvSocket = None
+            self.proxySocket = None
             
         self.realtimeReport = None
-            
-        if not proxySendPort is None:
-            self.proxySendSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self.proxySendSocket.bind( (serverIP, proxySendPort) )
-            # set up a 0.5s pulse, need this to be able to Ctrl-C the python apps
-            self.proxySendSocket.settimeout(0.5)
-            self.proxySendThread = Thread(target=self._performProxy)
-            self.proxySendThread.daemon=True
-            self.proxySendThread.start()
-        else:
-            self.proxySendSocket = None            
-        
+                    
     def processServerPackets(self, timeout=None):
         """
         call this function to process server packets for a given
@@ -62,9 +56,9 @@ class ACServerPlugin:
         t = time.time()
         while 1:
             try:
-                data, addr = self.rcvSocket.recvfrom(2048)
-                if not self.proxyRcvSocket is None:
-                    self.proxyRcvSocket.send(data)
+                data, addr = self.acSocket.recvfrom(2048)
+                if not self.proxySocket is None:
+                    self.proxySocket.sendto(data, ("127.0.0.1", self.proxyRcvPort))
                 r = ac_server_protocol.parse(data)
                 for c in self.callbacks:
                     c(r)
@@ -79,7 +73,7 @@ class ACServerPlugin:
         request the car info packet from the server
         """
         p = ac_server_protocol.GetCarInfo(carId=carId)
-        self.sendSocket.send(p.to_buffer())
+        self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
     
     def enableRealtimeReport(self, intervalMS):
         """
@@ -87,36 +81,54 @@ class ACServerPlugin:
         """
         if self.realtimeReport is None or intervalMS < self.realtimeReport:
             p = ac_server_protocol.EnableRealtimeReport(intervalMS=intervalMS)
-            self.sendSocket.send(p.to_buffer())
+            self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
         
     def sendChat(self, carId, message):
         """
         send chat message to a specific car
         """
         p = ac_server_protocol.SendChat(carId=carId, message=message)
-        self.sendSocket.send(p.to_buffer())
+        self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
         
     def broadcastChat(self, message):
         """
         broadcast chat message to all cars
         """
         p = ac_server_protocol.BroadcastChat(message=message)
-        self.sendSocket.send(p.to_buffer())
+        d = p.to_buffer()
+        self.acSocket.sendto(d, (self.host,self.sendPort))
         
     def _performProxy(self):
         while 1:
             try:
-                data, addr = self.proxySendSocket.recvfrom(2048)
-                r = ac_server_protocol.parse(data)
-                if type(r) == ac_server_protocol.EnableRealtimeReport:
-                    if not (self.realtimeReport is None or r.intervalMS < self.realtimeReport):
-                        # do not pass the request, stay at higher frequency
-                        continue
-                self.sendSocket.send(data)
+                data, addr = self.proxySocket.recvfrom(2048)
+                if addr == "127.0.0.1":
+                    r = ac_server_protocol.parse(data)
+                    if type(r) == ac_server_protocol.EnableRealtimeReport:
+                        if not (self.realtimeReport is None or r.intervalMS < self.realtimeReport):
+                            # do not pass the request, stay at higher frequency
+                            continue
+                    self.acSocket.sendto(data, (self.host, self.sendPort))
             except socket.timeout:
                 pass
-        
-    
+            
+# just print all attributes of the event
+def print_event(x, v = None, indent = "  "):
+    if hasattr(x, "__dict__"):
+        for a in x.__dict__:
+            print_event(a, getattr(x,a, None), indent + "  ")
+    else:
+        s = indent + str(x) + " = "
+        if type(v) in [tuple, list] and len(v) > 0 and type(v[0]) not in [float, int, str]:
+            print(s)
+            indent += "  "
+            for e in v:
+                print(indent+"-")
+                print_event(e, None, indent)
+        else:
+            if not v is None: s += str(v)
+            print(s)
+                
 if __name__ == "__main__":
     # example usage
     import sys, time
@@ -125,25 +137,9 @@ if __name__ == "__main__":
     # this callback will be called after receiving an AC event
     def callback(event):
     
-        # just print all attributes of the event
-        def print_event(x, v = None, indent = "  "):
-            if hasattr(x, "__dict__"):
-                for a in x.__dict__:
-                    print_event(a, getattr(x,a, None), indent + "  ")
-            else:
-                s = indent + str(x) + " = "
-                if type(v) in [tuple, list] and len(v) > 0 and type(v[0]) not in [float, int, str]:
-                    print(s)
-                    indent += "  "
-                    for e in v:
-                        print(indent+"-")
-                        print_event(e, None, indent)
-                else:
-                    if not v is None: s += str(v)
-                    print(s)
-                        
         if type(event) == NewSession:
             print("NewSession:")
+            s.enableRealtimeReport(1000)
             # access the event data with 
             # event.name, event.laps, etc. see the ac_server_protocol.py for the event definitions
             # in this example we print all available attributes of the received events

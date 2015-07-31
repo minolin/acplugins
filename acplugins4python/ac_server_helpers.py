@@ -52,7 +52,7 @@ Ascii = GenericArrayParser(
 UTF32 = GenericArrayParser(
     'B', 4,
     lambda x: codecs.decode(x, 'utf-32', 'replace'),
-    lambda x: codecs.encode(x, 'utf-32', 'strict'),
+    lambda x: codecs.encode(x, 'utf-32', 'strict')[4:], # first 4 bytes are ignored?
 )
 
 class GenericPacket:
