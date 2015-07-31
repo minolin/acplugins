@@ -78,6 +78,5 @@ namespace MinoRatingPlugin
 
             return array;
         }
-
     }
 }

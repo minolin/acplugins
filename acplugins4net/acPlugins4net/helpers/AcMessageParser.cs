@@ -46,19 +46,19 @@ namespace acPlugins4net.helpers
             switch (msg.Type)
             {
                 case ACSProtocol.MessageType.ACSP_NEW_SESSION:
-                    acServerPlugin.OnNewSession(msg as MsgNewSession);
+                    acServerPlugin.OnNewSessionBase(msg as MsgNewSession);
                     break;
                 case ACSProtocol.MessageType.ACSP_NEW_CONNECTION:
-                    acServerPlugin.OnNewConnection(msg as MsgNewConnection);
+                    acServerPlugin.OnNewConnectionBase(msg as MsgNewConnection);
                     break;
                 case ACSProtocol.MessageType.ACSP_CONNECTION_CLOSED:
-                    acServerPlugin.OnConnectionClosed(msg as MsgConnectionClosed);
+                    acServerPlugin.OnConnectionClosedBase(msg as MsgConnectionClosed);
                     break;
                 case ACSProtocol.MessageType.ACSP_CAR_UPDATE:
                     acServerPlugin.OnCarUpdate(msg as MsgCarUpdate);
                     break;
                 case ACSProtocol.MessageType.ACSP_CAR_INFO:
-                    acServerPlugin.OnCarInfo(msg as MsgCarInfo);
+                    acServerPlugin.OnCarInfoBase(msg as MsgCarInfo);
                     break;
                 case ACSProtocol.MessageType.ACSP_LAP_COMPLETED:
                     acServerPlugin.OnLapCompleted(msg as MsgLapCompleted);

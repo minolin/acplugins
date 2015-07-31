@@ -52,6 +52,23 @@ namespace acServerFake.viemodel
             var msg = AcMessageParser.Parse(data);
             AwesomeViewerStolenFromTheInternet.Log(msg);
 
+            // if there is a Request, we'll have to send the corresponding answer.
+            if(msg.Type == ACSProtocol.MessageType.ACSP_GET_CAR_INFO)
+            {
+                var request = msg as RequestCarInfo;
+                var response = new MsgCarInfo()
+                {
+                    CarId = request.CarId,
+                    CarModel = "rnd_car_model",
+                    CarSkin = "rnd_car_skin",
+                    DriverGuid = "rnd_steam_id",
+                    DriverName = "rnd_driver_name",
+                    DriverTeam = "rnd_driver_team",
+                    IsConnected = false,
+                };
+                UDPServer.TrySend(response.ToBinary());
+            }
+
             /*
             // Currently we only have two very simple messages, so we're do it here:
             try
