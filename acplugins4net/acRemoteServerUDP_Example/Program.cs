@@ -9,11 +9,6 @@ using System.Threading.Tasks;
 
 namespace acRemoteServerUDP_Example {
 
-    // Observations:
-    // 1. It's maybe difficult to tell when we're talking ASCII and when UTF-32. The reasons for the mix are good, so we just have to take care
-    // 2. UDP is tricky, it's difficult to tell wether there is a connection or not. Can we talk about a simple, 1 byte PING-PINGBACK that can 
-    //      be sent randomly on both sides? Like plugin starts and says "hey, here I am?"
-
     struct Vector3f {
         public float x, y, z;
 
@@ -132,8 +127,8 @@ namespace acRemoteServerUDP_Example {
 
         }
 
-        static void Main(string[] args)
-        {
+        static void Main(string[] args) {
+
             IPEndPoint ep = new IPEndPoint(IPAddress.Any, 12000);
             var client = new UdpClient(ep);
 
@@ -150,8 +145,6 @@ namespace acRemoteServerUDP_Example {
                 switch (packet_id) {
                     case ACSProtocol.ACSP_NEW_SESSION:
                         Console.WriteLine("New session started");
-                        var welcomeMsgstring = Encoding.UTF32.GetString(bytes, 0, bytes.Length);
-
                         var name = readString(br);
                         var type = br.ReadByte();
                         var time = br.ReadUInt16();
@@ -176,6 +169,13 @@ namespace acRemoteServerUDP_Example {
 
                         sendChat(client, 0, "CIAO BELLO!");
                         broadcastChat(client, "E' arrivat' 'o pirit'");
+                        break;
+                    case ACSProtocol.ACSP_END_SESSION:
+                        Console.WriteLine("ACSP_END_SESSION");
+                        var filename = readStringW(br);
+
+                        Console.WriteLine("REPORT JSON AVAILABLE AT:" + filename);
+
                         break;
                     case ACSProtocol.ACSP_CLIENT_EVENT: {
                         var ev_type = br.ReadByte();
@@ -232,7 +232,7 @@ namespace acRemoteServerUDP_Example {
                         var engine_rpm = br.ReadUInt16();
                         var normalized_spline_pos = br.ReadSingle();
 
-                        Console.Write("CAR:" + car_id + " POS:" + pos.ToString() + " VEL:" + velocity.ToString() + " GEAR:" + gear + " RPM:" + engine_rpm + " NSP:" + normalized_spline_pos);
+                        Console.Write("CAR:" + car_id + " POS:" + pos.ToString() + " VEL:" + velocity.ToString() + " GEAR:" + gear + " RPM:" + engine_rpm+" NSP:"+normalized_spline_pos);
 
                         }
                         break;
