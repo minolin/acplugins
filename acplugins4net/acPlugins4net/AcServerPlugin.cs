@@ -72,17 +72,25 @@ namespace acPlugins4net
             Track = _Workarounds.FindServerConfigEntry("TRACK=");
             TrackLayout = _Workarounds.FindServerConfigEntry("CONFIG_TRACK=");
             _log.Log("Track/Layout is " + Track + "[" + TrackLayout + "] (by workaround)");
-            CarCount = _Workarounds.FindServerConfigEntry("MAX_CLIENTS=");
+            MaxClients = int.Parse(_Workarounds.FindServerConfigEntry("MAX_CLIENTS="));
 #endif
             OnInit();
         }
 
-        private void Connect()
+        public void Connect()
         {
             // First we're getting the configured ports (app.config)
             var acServerPort = Config.GetSettingAsInt("acServer_port");
+            if (acServerPort == 0)
+            {
+                acServerPort = 11000;
+            }
             var pluginPort = Config.GetSettingAsInt("plugin_port");
-            
+            if (pluginPort == 0)
+            {
+                pluginPort = 12000;
+            }
+
             _UDP = new DuplexUDPClient();
             _UDP.Open(pluginPort, acServerPort, MessageReceived, OnError);
         }
@@ -178,6 +186,13 @@ namespace acPlugins4net
             var chatRequest = new RequestSendChat() { CarId = car_id, ChatMessage = msg };
             _UDP.TrySend(chatRequest.ToBinary());
             Console.WriteLine("Broadcasted " + chatRequest.ToString());
+        }
+
+        protected internal void EnableRealtimeReport(UInt16 interval)
+        {
+            var enableRealtimeReportRequest = new RequestRealtimeInfo { Interval = interval };
+            _UDP.TrySend(enableRealtimeReportRequest.ToBinary());
+            Console.WriteLine("Realtime pos interval now set to: {0} ms", interval);
         }
 
         #endregion
