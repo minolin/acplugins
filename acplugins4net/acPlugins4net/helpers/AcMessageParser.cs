@@ -63,6 +63,9 @@ namespace acPlugins4net.helpers
                 case ACSProtocol.MessageType.ACSP_LAP_COMPLETED:
                     acServerPlugin.OnLapCompleted(msg as MsgLapCompleted);
                     break;
+                case ACSProtocol.MessageType.ACSP_END_SESSION:
+                    acServerPlugin.OnSessionEnded(msg as MsgSessionEnded);
+                    break;
                 case ACSProtocol.MessageType.ACSP_CLIENT_EVENT:
                     acServerPlugin.OnCollision(msg as MsgClientEvent);
                     break;
@@ -89,6 +92,7 @@ namespace acPlugins4net.helpers
                 case ACSProtocol.MessageType.ACSP_CAR_UPDATE: return new MsgCarUpdate();
                 case ACSProtocol.MessageType.ACSP_CAR_INFO: return new MsgCarInfo();
                 case ACSProtocol.MessageType.ACSP_LAP_COMPLETED: return new MsgLapCompleted();
+                case ACSProtocol.MessageType.ACSP_END_SESSION: return new MsgSessionEnded();
                 case ACSProtocol.MessageType.ACSP_CLIENT_EVENT: return new MsgClientEvent();
                 case ACSProtocol.MessageType.ACSP_REALTIMEPOS_INTERVAL: return new RequestRealtimeInfo();
                 case ACSProtocol.MessageType.ACSP_GET_CAR_INFO: return new RequestCarInfo();

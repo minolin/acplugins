@@ -163,6 +163,7 @@ namespace acPlugins4net
         public virtual void OnInit() { }
         public virtual void OnConsoleCommand(string cmd) { }
         public virtual void OnNewSession(MsgNewSession msg) { }
+        public virtual void OnSessionEnded(MsgSessionEnded msg) { }
         public virtual void OnConnectionClosed(MsgConnectionClosed msg) { }
         public virtual void OnNewConnection(MsgNewConnection msg) { }
         public virtual void OnCarInfo(MsgCarInfo msg) { }
