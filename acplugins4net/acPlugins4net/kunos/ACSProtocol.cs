@@ -15,6 +15,7 @@ namespace acPlugins4net.kunos
             ACSP_CONNECTION_CLOSED = 52,
             ACSP_CAR_UPDATE = 53,
             ACSP_CAR_INFO = 54, // Sent as response to ACSP_GET_CAR_INFO command
+            ACSP_END_SESSION = 55,
             ACSP_LAP_COMPLETED = 73,
 
             // EVENTS

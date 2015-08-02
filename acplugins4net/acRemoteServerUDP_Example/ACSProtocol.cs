@@ -11,6 +11,7 @@ namespace acRemoteServerUDP_Example {
         public const byte ACSP_CONNECTION_CLOSED = 52;
         public const byte ACSP_CAR_UPDATE = 53;
         public const byte ACSP_CAR_INFO = 54; // Sent as response to ACSP_GET_CAR_INFO command
+        public const byte ACSP_END_SESSION = 55;
         public const byte ACSP_LAP_COMPLETED = 73;
 
         // EVENTS

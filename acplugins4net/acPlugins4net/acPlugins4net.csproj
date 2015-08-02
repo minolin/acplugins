@@ -56,6 +56,7 @@
     <Compile Include="messages\MsgLapCompleted.cs" />
     <Compile Include="messages\MsgLapCompletedLeaderboardEnty.cs" />
     <Compile Include="messages\MsgNewConnection.cs" />
+    <Compile Include="messages\MsgSessionEnded.cs" />
     <Compile Include="messages\RequestBroadcastChat.cs" />
     <Compile Include="messages\RequestCarInfo.cs" />
     <Compile Include="messages\RequestRealtimeReport.cs" />
