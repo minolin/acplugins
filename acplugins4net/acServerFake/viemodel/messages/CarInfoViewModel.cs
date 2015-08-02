@@ -13,13 +13,11 @@ namespace acServerFake.viemodel.messages
 
         public CarInfoViewModel()
         {
-            Message.CarId = 7;
-            Message.CarModel = "ks_porsche_997_cup";
-            Message.CarSkin = "flying_horse_2015";
-            Message.DriverGuid = "96561198021090313"; // sorry I can't plug my real one, otherwise I have the feeling to be blacklisted everywhere
-            Message.DriverName = "Minolin";
-            Message.DriverTeam = "Laserscanned incorporated";
-            Message.IsConnected = true;
+        }
+
+        public override string ToString()
+        {
+            return "CarId=" + Message.CarId + "|Model=" + Message.CarModel + "|DriverName=" + Message.DriverName + "|Guid=" + Message.DriverGuid;
         }
     }
 }

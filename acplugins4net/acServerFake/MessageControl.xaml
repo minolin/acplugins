@@ -23,6 +23,9 @@
         <DataTemplate DataType="{x:Type msg:LapCompletedViewModel}">
             <msgview:LapCompletedView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type msg:CarInfoCollection}" >
+            <msgview:CarInfoCollectionView />
+        </DataTemplate>
     </UserControl.Resources>
     <GroupBox Header="Events and Messages">
         <Grid>

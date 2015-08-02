@@ -55,16 +55,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="Service References\minoRatingServer\LiveDataDump1.wsdl" />
-    <None Include="Service References\minoRatingServer\testing.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\minoRatingServer\testing1.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\minoRatingServer\testing2.xsd">
-      <SubType>Designer</SubType>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
@@ -79,19 +69,29 @@
     <None Include="Service References\minoRatingServer\configuration.svcinfo" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Service References\minoRatingServer\LiveDataDump.wsdl" />
+    <None Include="Service References\minoRatingServer\minorating.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\minoRatingServer\minorating1.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\minoRatingServer\minorating2.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Service References\minoRatingServer\Reference.svcmap">
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Service References\minoRatingServer\testing.disco" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\acplugins4net\acPlugins4net\acPlugins4net.csproj">
       <Project>{755c6b0d-3ed5-45d3-a06f-1575d26da4d9}</Project>
       <Name>acPlugins4net</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\minoRatingServer\minorating.disco" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -23,6 +23,8 @@ namespace acServerFake.viemodel
                 OnPropertyChanged("ActiveMessage");
             }
         }
+        public CarInfoCollection CurrentCarConfiguration { get; internal set; }
+
 
         public SessionViewModel(ServerViewModel serverVM)
         {
@@ -32,12 +34,13 @@ namespace acServerFake.viemodel
 
         private List<object> InitMessages()
         {
+            CurrentCarConfiguration = new CarInfoCollection();
             return new object[] {
                 new NewSessionViewModel(),
                 new CollisionWithEnvironmentViewModel(),
                 new CollisionWithCarViewModel(),
-                new CarInfoViewModel(),
                 new LapCompletedViewModel(),
+                CurrentCarConfiguration,
             }.ToList();
         }
     }

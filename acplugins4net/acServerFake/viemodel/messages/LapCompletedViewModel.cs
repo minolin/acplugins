@@ -27,7 +27,7 @@ namespace acServerFake.viemodel.messages
             Message.Leaderboard.AddRange(new MsgLapCompletedLeaderboardEnty[]
             {
                 new MsgLapCompletedLeaderboardEnty() { CarId = 7, Laptime = Message.Laptime, Laps = 4 },
-                new MsgLapCompletedLeaderboardEnty() { CarId = 12, Laptime = 930353, Laps = 2 },
+                new MsgLapCompletedLeaderboardEnty() { CarId = 3, Laptime = 930353, Laps = 2 },
                 new MsgLapCompletedLeaderboardEnty() { CarId = 0, Laptime = 119652, Laps = 1 }
             });
         }

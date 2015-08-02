@@ -62,6 +62,8 @@
     <Compile Include="ServerStatus.xaml.cs">
       <DependentUpon>ServerStatus.xaml</DependentUpon>
     </Compile>
+    <Compile Include="viemodel\messages\CarInfoCollection.cs" />
+    <Compile Include="viemodel\messages\DriverConnectedViewModel.cs" />
     <Compile Include="viemodel\MainViewModel.cs" />
     <Compile Include="viemodel\messages\BaseMessageViewModel.cs" />
     <Compile Include="viemodel\messages\CarInfoViewModel.cs" />
@@ -79,6 +81,9 @@
     <Compile Include="view\logviewer\LogEntry.cs" />
     <Compile Include="view\logviewer\PluginMessageEntryDisplayer.xaml.cs">
       <DependentUpon>PluginMessageEntryDisplayer.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="view\messages\CarInfoCollectionView.xaml.cs">
+      <DependentUpon>CarInfoCollectionView.xaml</DependentUpon>
     </Compile>
     <Compile Include="view\messages\CarInfoView.xaml.cs">
       <DependentUpon>CarInfoView.xaml</DependentUpon>
@@ -123,6 +128,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="view\messages\CarInfoCollectionView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="view\messages\CarInfoView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -162,6 +171,12 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="data\entry_list.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="data\server_cfg.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

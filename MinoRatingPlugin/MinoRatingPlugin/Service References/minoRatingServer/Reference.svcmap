@@ -19,14 +19,14 @@
     <ServiceContractMappings />
   </ClientOptions>
   <MetadataSources>
-    <MetadataSource Address="http://localhost:805/testing" Protocol="http" SourceId="1" />
+    <MetadataSource Address="http://localhost:805/minorating" Protocol="http" SourceId="1" />
   </MetadataSources>
   <Metadata>
-    <MetadataFile FileName="testing.xsd" MetadataType="Schema" ID="8d29b49d-1b30-469e-a6fa-d707984a6d67" SourceId="1" SourceUrl="http://localhost:805/testing?xsd=xsd0" />
-    <MetadataFile FileName="testing.disco" MetadataType="Disco" ID="f0fc1803-88b2-49bb-8467-cce27d488c7e" SourceId="1" SourceUrl="http://localhost:805/testing?disco" />
-    <MetadataFile FileName="LiveDataDump1.wsdl" MetadataType="Wsdl" ID="b160028c-38db-40f2-ad1a-f32cda36a5a8" SourceId="1" SourceUrl="http://localhost:805/testing?wsdl" />
-    <MetadataFile FileName="testing1.xsd" MetadataType="Schema" ID="a160c9aa-a264-4f22-814a-0611f8d2a0f4" SourceId="1" SourceUrl="http://localhost:805/testing?xsd=xsd2" />
-    <MetadataFile FileName="testing2.xsd" MetadataType="Schema" ID="36e7bb1b-8f3f-4882-8145-69849ce85362" SourceId="1" SourceUrl="http://localhost:805/testing?xsd=xsd1" />
+    <MetadataFile FileName="LiveDataDump.wsdl" MetadataType="Wsdl" ID="e8bd5f60-1a45-4306-83ad-61ab70c6e4f2" SourceId="1" SourceUrl="http://localhost:805/minorating?wsdl" />
+    <MetadataFile FileName="minorating.xsd" MetadataType="Schema" ID="9c3de79a-1380-44fc-8364-9541113473aa" SourceId="1" SourceUrl="http://localhost:805/minorating?xsd=xsd0" />
+    <MetadataFile FileName="minorating1.xsd" MetadataType="Schema" ID="92b28ec9-7e85-4e77-806b-8b265abdd8e2" SourceId="1" SourceUrl="http://localhost:805/minorating?xsd=xsd2" />
+    <MetadataFile FileName="minorating2.xsd" MetadataType="Schema" ID="075926d3-71fb-4845-ab7b-67ddd918f784" SourceId="1" SourceUrl="http://localhost:805/minorating?xsd=xsd1" />
+    <MetadataFile FileName="minorating.disco" MetadataType="Disco" ID="750de7f6-e21b-453c-9980-b71d71551add" SourceId="1" SourceUrl="http://localhost:805/minorating?disco" />
   </Metadata>
   <Extensions>
     <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />

@@ -25,6 +25,11 @@ namespace MinoRatingPlugin
             base.OnInit();
             LiveDataServer = new LiveDataDumpClient();
             TrustToken = Config.GetSetting("server_trust_token");
+            if (string.IsNullOrEmpty(TrustToken))
+            {
+                TrustToken = Guid.NewGuid().ToString();
+                Config.SetSetting("server_trust_token", TrustToken);
+            }
             CurrentSessionGuid = Guid.Empty;
         }
 
@@ -44,15 +49,22 @@ namespace MinoRatingPlugin
             LiveDataServer.NewConnection(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, TrustToken);
         }
 
+        public override void OnConnectionClosed(MsgConnectionClosed msg)
+        {
+            Console.WriteLine("OnConnectionClosed: " + msg.DriverName + "@" + msg.CarModel);
+            LiveDataServer.ClosedConnection(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.CarSkin, msg.DriverGuid, TrustToken);
+        }
+
         public override void OnLapCompleted(MsgLapCompleted msg)
         {
-#if DEBUG
-            var driver = new MsgNewConnection() { DriverName = "Minodev", CarModel = "VW Polo", CarSkin = "dirty_silver", CarId = 2, DriverGuid = "21341094812" };
-#else
-            var driver = CarInfo[msg.CarId];
-#endif
-            Console.WriteLine("LapCompleted by " + driver.DriverName + ": " + TimeSpan.FromMilliseconds(msg.Laptime));
-            var result = LiveDataServer.LapCompleted(CurrentSessionGuid, msg.CarId, driver.DriverGuid, msg.Laptime, msg.Cuts, msg.GripLevel, ConvertLB(msg.Leaderboard), TrustToken);
+            MsgCarInfo driver;
+            if (!CarInfo.TryGetValue(msg.CarId, out driver))
+                Console.WriteLine("Error; car_id " + msg.CarId + " was not known by the CarInfo Dictionary :(");
+            else
+            {
+                Console.WriteLine("LapCompleted by " + driver.DriverName + ": " + TimeSpan.FromMilliseconds(msg.Laptime));
+                var result = LiveDataServer.LapCompleted(CurrentSessionGuid, msg.CarId, driver.DriverGuid, msg.Laptime, msg.Cuts, msg.GripLevel, ConvertLB(msg.Leaderboard), TrustToken);
+            }
         }
 
         public override void OnCollision(MsgClientEvent msg)
@@ -77,6 +89,12 @@ namespace MinoRatingPlugin
             };
 
             return array;
+        }
+
+        public override void OnCarInfo(MsgCarInfo msg)
+        {
+            Console.WriteLine("CarInfo: " + msg.CarId + ", " + msg.DriverName + "@" + msg.CarModel);
+            LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, TrustToken);
         }
     }
 }

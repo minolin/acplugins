@@ -6,6 +6,7 @@ using acServerFake.view.logviewer;
 using System;
 using System.Configuration;
 using System.IO;
+using acServerFake.viemodel.messages;
 
 namespace acServerFake.viemodel
 {
@@ -14,6 +15,7 @@ namespace acServerFake.viemodel
         public DuplexUDPClient UDPServer { get; set; }
         public RelayCommand OpenUDPConnection { get; set; }
         public static ServerViewModel Instance { get; set; }
+        public CarInfoCollection CarInfoConfiguration { get; internal set; }
 
         public ServerViewModel()
         {
@@ -56,16 +58,7 @@ namespace acServerFake.viemodel
             if(msg.Type == ACSProtocol.MessageType.ACSP_GET_CAR_INFO)
             {
                 var request = msg as RequestCarInfo;
-                var response = new MsgCarInfo()
-                {
-                    CarId = request.CarId,
-                    CarModel = "rnd_car_model",
-                    CarSkin = "rnd_car_skin",
-                    DriverGuid = "rnd_steam_id",
-                    DriverName = "rnd_driver_name",
-                    DriverTeam = "rnd_driver_team",
-                    IsConnected = false,
-                };
+                var response = CarInfoConfiguration.GetMessage(request.CarId);
                 UDPServer.TrySend(response.ToBinary());
             }
 

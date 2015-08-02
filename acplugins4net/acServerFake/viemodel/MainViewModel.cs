@@ -17,6 +17,7 @@ namespace acServerFake.viemodel
             ServerViewModel = new ServerViewModel();
             ServerViewModel.Init();
             MessagesViewModel = new SessionViewModel(ServerViewModel);
+            ServerViewModel.CarInfoConfiguration = MessagesViewModel.CurrentCarConfiguration;
         }
     }
 }

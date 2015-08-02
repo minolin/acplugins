@@ -34,7 +34,10 @@ namespace acPlugins4net.helpers
                     try
                     {
                         UdpReceiveResult data = await _plugin.ReceiveAsync();
-                        MessageReceived(data.Buffer);
+                        Task.Factory.StartNew(() =>
+                        {
+                            MessageReceived(data.Buffer);
+                        });
                     }
                     catch (Exception ex)
                     {

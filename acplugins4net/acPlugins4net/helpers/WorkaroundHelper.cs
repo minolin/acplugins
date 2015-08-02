@@ -33,7 +33,7 @@ namespace acPlugins4net.helpers
 
         internal string FindServerConfigEntry(string key)
         {
-            var line = ConfigIni.First(x => x.StartsWith("TRACK="));
+            var line = ConfigIni.First(x => x.StartsWith(key));
             return line.Substring(line.IndexOf("=")+1).Trim();
         }
     }
