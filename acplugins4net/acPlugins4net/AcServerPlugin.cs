@@ -18,6 +18,8 @@ namespace acPlugins4net
         private ILog _log = null;
         protected internal byte[] _fingerprint = null;
 
+        public string PluginName { get; set; }
+
         #region Cache and Helpers
 
         public string Track { get; private set; }
@@ -32,6 +34,7 @@ namespace acPlugins4net
 
         public AcServerPlugin()
         {
+            PluginName = "Unnamed plugin";
             _log = new ConsoleLogger();
             Config = new AppConfigConfigurator();
             _Workarounds = new WorkaroundHelper(Config);
@@ -41,7 +44,7 @@ namespace acPlugins4net
 
         public void RunUntilAborted()
         {
-            _log.Log("AcServerPlugin starting up...");
+            _log.Log(PluginName + " starting up...");
             Init();
             _log.Log("Initialized, start UDP connection...");
             Connect();
@@ -55,7 +58,7 @@ namespace acPlugins4net
 
                 // To have a bit of functionality we'll let the server admin 
                 // type in commands that can be understood by the deriving plugin
-                if(!string.IsNullOrEmpty(input))
+                if (!string.IsNullOrEmpty(input))
                     OnConsoleCommand(input);
 
                 input = Console.ReadLine();
@@ -64,35 +67,22 @@ namespace acPlugins4net
 
         private void Init()
         {
-#if DEBUG
-            Track = "mugello";
-            TrackLayout = "mugello";
-            MaxClients = 24;
-#else
             Track = _Workarounds.FindServerConfigEntry("TRACK=");
             TrackLayout = _Workarounds.FindServerConfigEntry("CONFIG_TRACK=");
             _log.Log("Track/Layout is " + Track + "[" + TrackLayout + "] (by workaround)");
-            MaxClients = int.Parse(_Workarounds.FindServerConfigEntry("MAX_CLIENTS="));
-#endif
+            MaxClients = Convert.ToInt32(_Workarounds.FindServerConfigEntry("MAX_CLIENTS="));
+
             OnInit();
         }
 
         public void Connect()
         {
             // First we're getting the configured ports (app.config)
-            var acServerPort = Config.GetSettingAsInt("acServer_port");
-            if (acServerPort == 0)
-            {
-                acServerPort = 11000;
-            }
-            var pluginPort = Config.GetSettingAsInt("plugin_port");
-            if (pluginPort == 0)
-            {
-                pluginPort = 12000;
-            }
+            var acServerPort = Config.GetSettingAsInt("acServer_port", 11000);
+            var pluginPort = Config.GetSettingAsInt("plugin_port", 1200);
 
             _UDP = new DuplexUDPClient();
-            _UDP.Open(pluginPort, acServerPort, MessageReceived, OnError);
+            _UDP.Open(acServerPort, pluginPort, MessageReceived, OnError);
         }
 
         protected virtual void OnError(Exception ex)
@@ -110,7 +100,7 @@ namespace acPlugins4net
         internal void OnNewSessionBase(MsgNewSession msg)
         {
             // If we're empty on a NewSession, we'll need to ask for all current car definitions
-            if(CarInfo.Count == 0)
+            if (CarInfo.Count == 0)
             {
                 for (byte i = 0; i < MaxClients; i++)
                 {
@@ -122,7 +112,8 @@ namespace acPlugins4net
 
         internal void OnCarInfoBase(MsgCarInfo msg)
         {
-            _CarInfo.AddOrUpdate(msg.CarId, msg, (key,val) => val);
+            _CarInfo.AddOrUpdate(msg.CarId, msg, (key, val) => val);
+            Console.WriteLine("CarInfo: " + msg.CarId);
             OnCarInfo(msg);
         }
 
@@ -130,12 +121,12 @@ namespace acPlugins4net
         {
             var carInfo = new MsgCarInfo()
             {
-               CarId = msg.CarId,
-               CarModel = msg.CarModel,
-               CarSkin = msg.CarSkin, 
-               DriverGuid = msg.DriverGuid,
-               DriverName = msg.DriverName,
-               IsConnected = true,
+                CarId = msg.CarId,
+                CarModel = msg.CarModel,
+                CarSkin = msg.CarSkin,
+                DriverGuid = msg.DriverGuid,
+                DriverName = msg.DriverName,
+                IsConnected = true,
             };
             _CarInfo.AddOrUpdate(msg.CarId, carInfo, (key, val) => val);
             OnNewConnection(msg);
@@ -155,6 +146,7 @@ namespace acPlugins4net
             _CarInfo.AddOrUpdate(msg.CarId, carInfo, (key, val) => val);
             OnConnectionClosed(msg);
         }
+
 
         #endregion
 
@@ -196,6 +188,6 @@ namespace acPlugins4net
             Console.WriteLine("Realtime pos interval now set to: {0} ms", interval);
         }
 
-        #endregion
-    }
+    #endregion
+}
 }

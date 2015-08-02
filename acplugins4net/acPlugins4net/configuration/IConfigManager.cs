@@ -10,6 +10,7 @@ namespace acPlugins4net.configuration
     {
         string GetSetting(string key, string notnullmessage = "");
         int GetSettingAsInt(string key, string notnullmessage = "");
+        int GetSettingAsInt(string key, int defaultValue);
         void SetSetting(string key, string newvalue);
     }
 }

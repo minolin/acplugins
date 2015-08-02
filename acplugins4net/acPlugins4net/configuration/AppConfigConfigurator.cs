@@ -22,6 +22,14 @@ namespace acPlugins4net.configuration
             return value;
         }
 
+        public int GetSettingAsInt(string key, int defaultValue)
+        {
+            var value = GetSetting(key, null);
+            if (string.IsNullOrEmpty(value))
+                return defaultValue;
+            return Convert.ToInt32(value);
+        }
+
         public int GetSettingAsInt(string key, string notnullmessage)
         {
             return Convert.ToInt32(GetSetting(key, notnullmessage));
