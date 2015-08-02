@@ -59,7 +59,7 @@
     <Compile Include="messages\MsgSessionEnded.cs" />
     <Compile Include="messages\RequestBroadcastChat.cs" />
     <Compile Include="messages\RequestCarInfo.cs" />
-    <Compile Include="messages\RequestRealtimeReport.cs" />
+    <Compile Include="messages\RequestRealtimeInfo.cs" />
     <Compile Include="messages\RequestSendChat.cs" />
     <Compile Include="PluginMessage.cs" />
     <Compile Include="kunos\ACSProtocol.cs" />
