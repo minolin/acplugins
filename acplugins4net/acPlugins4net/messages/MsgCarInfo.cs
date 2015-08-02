@@ -39,6 +39,7 @@ namespace acPlugins4net.messages
             IsConnected = br.ReadBoolean();
             
             CarModel = readStringW(br);
+            CarSkin = readStringW(br);
             DriverName = readStringW(br);
             DriverTeam = readStringW(br);
             DriverGuid = readStringW(br);
