@@ -78,11 +78,11 @@ namespace acPlugins4net
         public void Connect()
         {
             // First we're getting the configured ports (app.config)
-            var acServerPort = Config.GetSettingAsInt("acServer_port", 11000);
-            var pluginPort = Config.GetSettingAsInt("plugin_port", 1200);
+            var acServerPort = Config.GetSettingAsInt("acServer_port", 12000);
+            var pluginPort = Config.GetSettingAsInt("plugin_port", 1100);
 
             _UDP = new DuplexUDPClient();
-            _UDP.Open(acServerPort, pluginPort, MessageReceived, OnError);
+            _UDP.Open(pluginPort, acServerPort, MessageReceived, OnError);
         }
 
         protected virtual void OnError(Exception ex)
