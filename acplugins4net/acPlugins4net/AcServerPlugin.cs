@@ -99,13 +99,10 @@ namespace acPlugins4net
 
         internal void OnNewSessionBase(MsgNewSession msg)
         {
-            // If we're empty on a NewSession, we'll need to ask for all current car definitions
-            if (CarInfo.Count == 0)
+            CarInfo.Clear();
+            for (byte i = 0; i < MaxClients; i++)
             {
-                for (byte i = 0; i < MaxClients; i++)
-                {
-                    _UDP.TrySend(new RequestCarInfo() { CarId = i }.ToBinary());
-                }
+                _UDP.TrySend(new RequestCarInfo() { CarId = i }.ToBinary());
             }
             OnNewSession(msg);
         }
@@ -113,7 +110,6 @@ namespace acPlugins4net
         internal void OnCarInfoBase(MsgCarInfo msg)
         {
             _CarInfo.AddOrUpdate(msg.CarId, msg, (key, val) => val);
-            Console.WriteLine("CarInfo: " + msg.CarId);
             OnCarInfo(msg);
         }
 
@@ -188,6 +184,6 @@ namespace acPlugins4net
             Console.WriteLine("Realtime pos interval now set to: {0} ms", interval);
         }
 
-    #endregion
-}
+        #endregion
+    }
 }

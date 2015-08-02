@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace acPlugins4net.helpers
@@ -15,6 +16,7 @@ namespace acPlugins4net.helpers
         private MessageReceivedDelegate MessageReceived;
         public delegate void ErrorHandlerDelegate(Exception ex);
         private ErrorHandlerDelegate ErrorHandler;
+        private IPEndPoint RemoteIpEndPoint = null;
 
         public void Open(int listeningPort, int remotePort, MessageReceivedDelegate callback, ErrorHandlerDelegate errorhandler)
         {
@@ -26,25 +28,26 @@ namespace acPlugins4net.helpers
 
             _plugin = new UdpClient(listeningPort);
             _plugin.Connect("127.0.0.1", remotePort);
+            RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, remotePort);
 
-            Task.Factory.StartNew(async () =>
+            _plugin.BeginReceive(ReceiveData, null);
+        }
+
+        private void ReceiveData(IAsyncResult ar)
+        {
+            var bytesReceived = _plugin.EndReceive(ar, ref RemoteIpEndPoint);
+            _plugin.BeginReceive(ReceiveData, null);
+            new Thread(() =>
             {
-                while (true)
+                try
                 {
-                    try
-                    {
-                        UdpReceiveResult data = await _plugin.ReceiveAsync();
-                        Task.Factory.StartNew(() =>
-                        {
-                            MessageReceived(data.Buffer);
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        ErrorHandler(ex);
-                    }
+                    MessageReceived(bytesReceived);
                 }
-            });
+                catch (Exception ex)
+                {
+                    ErrorHandler(ex);
+                }
+            }).Start();
         }
 
         public bool TrySend(byte[] typeByte)
