@@ -15,7 +15,7 @@ namespace acPlugins4net.messages
         public Vector3f WorldPosition { get; set; }
         public Vector3f Velocity { get; set; }
         public byte Gear { get; set; }
-        public byte EngineRPM { get; set; }
+        public ushort EngineRPM { get; set; }
         public float NormalizedSplinePosition { get; set; }
 
         #endregion
@@ -32,7 +32,7 @@ namespace acPlugins4net.messages
             WorldPosition = readVector3f(br);
             Velocity = readVector3f(br);
             Gear = br.ReadByte();
-            EngineRPM = br.ReadByte();
+            EngineRPM = br.ReadUInt16();
             NormalizedSplinePosition = br.ReadSingle();
         }
 
