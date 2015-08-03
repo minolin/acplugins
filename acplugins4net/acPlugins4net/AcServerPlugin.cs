@@ -63,6 +63,8 @@ namespace acPlugins4net
 
                 input = Console.ReadLine();
             }
+
+            Disconnect();
         }
 
         private void Init()
@@ -78,11 +80,16 @@ namespace acPlugins4net
         public void Connect()
         {
             // First we're getting the configured ports (app.config)
-            var acServerPort = Config.GetSettingAsInt("acServer_port", 12000);
-            var pluginPort = Config.GetSettingAsInt("plugin_port", 1100);
+            var acServerPort = Config.GetSettingAsInt("acServer_port", 11000);
+            var pluginPort = Config.GetSettingAsInt("plugin_port", 12000);
 
             _UDP = new DuplexUDPClient();
             _UDP.Open(pluginPort, acServerPort, MessageReceived, OnError);
+        }
+
+        public void Disconnect()
+        {
+            _UDP.Close();
         }
 
         protected virtual void OnError(Exception ex)
