@@ -107,8 +107,11 @@ namespace acPlugins4net.helpers
             }
             catch (Exception ex)
             {
-                // something has gone wrong badly
-                ErrorHandler(ex);
+                if (Opened)
+                {
+                    // something has gone wrong badly
+                    ErrorHandler(ex);
+                }
             }
         }
 
