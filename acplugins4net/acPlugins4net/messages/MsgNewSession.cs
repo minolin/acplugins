@@ -34,8 +34,10 @@ namespace acPlugins4net.messages
             }
         }
 
-        [Obsolete("Not obsolete, but the values are just guesses. Need to check that")]
-        public enum SessionTypeEnum : byte { Practice = 0, Qualifying = 1, Race = 2, Drag = 3, Drift = 4 }
+        /// <summary>
+        /// Not sure about Drag and Drift, but those probably don't exist in multiplayer.
+        /// </summary>
+        public enum SessionTypeEnum : byte { Practice = 1, Qualifying = 2, Race = 3, Drag = 4, Drift = 5 }
 
         #endregion
 
