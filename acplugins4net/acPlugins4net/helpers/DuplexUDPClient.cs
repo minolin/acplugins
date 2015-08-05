@@ -12,11 +12,16 @@ namespace acPlugins4net.helpers
     public class DuplexUDPClient
     {
         private UdpClient _plugin = null;
+        private readonly Queue<byte[]> _messageQueue = new Queue<byte[]>();
         public delegate void MessageReceivedDelegate(byte[] data);
         private MessageReceivedDelegate MessageReceived;
         public delegate void ErrorHandlerDelegate(Exception ex);
         private ErrorHandlerDelegate ErrorHandler;
         private IPEndPoint RemoteIpEndPoint = null;
+        private Thread _processMessagesThread;
+        private Thread _receiveMessagesThread;
+
+        public bool Opened { get; private set; }
 
         public void Open(int listeningPort, int remotePort, MessageReceivedDelegate callback, ErrorHandlerDelegate errorhandler)
         {
@@ -29,25 +34,85 @@ namespace acPlugins4net.helpers
             _plugin = new UdpClient(listeningPort);
             _plugin.Connect("127.0.0.1", remotePort);
             RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, remotePort);
+            Opened = true;
 
-            _plugin.BeginReceive(ReceiveData, null);
+            _processMessagesThread = new Thread(ProcessMessages) { Name = "ProcessMessages" };
+            _processMessagesThread.Start();
+
+            _receiveMessagesThread = new Thread(ReceiveMessages) { Name = "ReceiveMessages" };
+            _receiveMessagesThread.Start();
         }
 
-        private void ReceiveData(IAsyncResult ar)
+        public void Close()
         {
-            var bytesReceived = _plugin.EndReceive(ar, ref RemoteIpEndPoint);
-            _plugin.BeginReceive(ReceiveData, null);
-            new Thread(() =>
+            if (_plugin != null)
             {
+                lock (_messageQueue)
+                {
+                    Opened = false;
+                    Monitor.Pulse(_messageQueue); // if the ProcessMessages thread is waiting, wake it up
+                }
+
+                _plugin.Close(); // _plugin.Receive in ReceiveMessages thread should return at this point
+
+                _processMessagesThread.Join(); // make sure thread has terminated
+                _receiveMessagesThread.Join(); // make sure thread has terminated
+
+                _plugin = null;
+                _messageQueue.Clear();
+            }
+        }
+
+        private void ProcessMessages()
+        {
+            while (Opened)
+            {
+                byte[] msgData;
+                lock (_messageQueue)
+                {
+                    if (_messageQueue.Count == 0)
+                    {
+                        if (!Opened) break; // don't start waiting and exit loop if closed
+                        Monitor.Wait(_messageQueue);
+                        if (!Opened) break; // exit loop if closed
+                    }
+
+                    msgData = _messageQueue.Dequeue();
+                }
+
                 try
                 {
-                    MessageReceived(bytesReceived);
+                    MessageReceived(msgData);
                 }
                 catch (Exception ex)
                 {
                     ErrorHandler(ex);
                 }
-            }).Start();
+            }
+        }
+
+        private void ReceiveMessages()
+        {
+            try
+            {
+                while (Opened)
+                {
+                    var bytesReceived = _plugin.Receive(ref RemoteIpEndPoint);
+                    lock (_messageQueue)
+                    {
+                        _messageQueue.Enqueue(bytesReceived);
+                        Monitor.Pulse(_messageQueue);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (Opened)
+                {
+                    // something has gone wrong badly
+                    ErrorHandler(ex);
+                }
+            }
         }
 
         public bool TrySend(byte[] typeByte)

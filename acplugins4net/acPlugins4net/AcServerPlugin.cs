@@ -12,7 +12,7 @@ namespace acPlugins4net
 {
     public abstract class AcServerPlugin : MD5Hashable
     {
-        private DuplexUDPClient _UDP = null;
+        private readonly DuplexUDPClient _UDP;
         public IConfigManager Config { get; private set; }
         private WorkaroundHelper _Workarounds = null;
         private ILog _log = null;
@@ -34,6 +34,7 @@ namespace acPlugins4net
 
         public AcServerPlugin()
         {
+            _UDP = new DuplexUDPClient();
             PluginName = "Unnamed plugin";
             _log = new ConsoleLogger();
             Config = new AppConfigConfigurator();
@@ -63,6 +64,8 @@ namespace acPlugins4net
 
                 input = Console.ReadLine();
             }
+
+            Disconnect();
         }
 
         private void Init()
@@ -75,14 +78,18 @@ namespace acPlugins4net
             OnInit();
         }
 
-        public void Connect()
+        public virtual void Connect()
         {
             // First we're getting the configured ports (app.config)
-            var acServerPort = Config.GetSettingAsInt("acServer_port", 12000);
-            var pluginPort = Config.GetSettingAsInt("plugin_port", 1100);
+            var acServerPort = Config.GetSettingAsInt("acServer_port", 11000);
+            var pluginPort = Config.GetSettingAsInt("plugin_port", 12000);
 
-            _UDP = new DuplexUDPClient();
             _UDP.Open(pluginPort, acServerPort, MessageReceived, OnError);
+        }
+
+        public virtual void Disconnect()
+        {
+            _UDP.Close();
         }
 
         protected virtual void OnError(Exception ex)

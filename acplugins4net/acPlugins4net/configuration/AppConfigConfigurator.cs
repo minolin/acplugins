@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace acPlugins4net.configuration
 {
-    class AppConfigConfigurator : IConfigManager
+    public class AppConfigConfigurator : IConfigManager
     {
         public string GetSetting(string key, string notnullmessage)
         {
