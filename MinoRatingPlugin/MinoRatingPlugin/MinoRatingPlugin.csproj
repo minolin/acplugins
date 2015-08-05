@@ -59,9 +59,12 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.svcmap</DependentUpon>
     </Compile>
+    <Compile Include="CollisionBag.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
@@ -88,6 +91,9 @@
     </None>
     <None Include="Service References\minoRatingServer\minorating3.xsd">
       <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\minoRatingServer\MinoRatingPlugin.minoRatingServer.CollisionReaction.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\minoRatingServer\Reference.svcmap">
       <Generator>WCF Proxy Generator</Generator>

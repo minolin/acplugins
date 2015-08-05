@@ -122,6 +122,141 @@ namespace MinoRatingPlugin.minoRatingServer {
         }
     }
     
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+    [System.Runtime.Serialization.DataContractAttribute(Name="CollisionReaction", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy")]
+    [System.SerializableAttribute()]
+    public partial class CollisionReaction : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
+        
+        [System.NonSerializedAttribute()]
+        private System.Runtime.Serialization.ExtensionDataObject extensionDataField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private byte CarIdField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string NameField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private MinoRatingPlugin.minoRatingServer.CollisionReaction.ReactionType ReactionField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string SteamIdField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string TextField;
+        
+        [global::System.ComponentModel.BrowsableAttribute(false)]
+        public System.Runtime.Serialization.ExtensionDataObject ExtensionData {
+            get {
+                return this.extensionDataField;
+            }
+            set {
+                this.extensionDataField = value;
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public byte CarId {
+            get {
+                return this.CarIdField;
+            }
+            set {
+                if ((this.CarIdField.Equals(value) != true)) {
+                    this.CarIdField = value;
+                    this.RaisePropertyChanged("CarId");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string Name {
+            get {
+                return this.NameField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.NameField, value) != true)) {
+                    this.NameField = value;
+                    this.RaisePropertyChanged("Name");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public MinoRatingPlugin.minoRatingServer.CollisionReaction.ReactionType Reaction {
+            get {
+                return this.ReactionField;
+            }
+            set {
+                if ((this.ReactionField.Equals(value) != true)) {
+                    this.ReactionField = value;
+                    this.RaisePropertyChanged("Reaction");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string SteamId {
+            get {
+                return this.SteamIdField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.SteamIdField, value) != true)) {
+                    this.SteamIdField = value;
+                    this.RaisePropertyChanged("SteamId");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string Text {
+            get {
+                return this.TextField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.TextField, value) != true)) {
+                    this.TextField = value;
+                    this.RaisePropertyChanged("Text");
+                }
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+        
+        [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+        [System.Runtime.Serialization.DataContractAttribute(Name="CollisionReaction.ReactionType", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy")]
+        public enum ReactionType : int {
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            None = 0,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            Whisper = 1,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            Broadcast = 2,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            Ballast = 3,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            Pit = 4,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            Kick = 5,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            Ban = 6,
+        }
+    }
+    
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
     [System.ServiceModel.ServiceContractAttribute(ConfigurationName="minoRatingServer.ILiveDataDump")]
     public interface ILiveDataDump {
@@ -167,6 +302,12 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/Collision", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionResponse")]
         System.Threading.Tasks.Task<byte[]> CollisionAsync(System.Guid sessionId, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z, string token);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/CollisionTreeEnded", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionTreeEndedResponse")]
+        MinoRatingPlugin.minoRatingServer.CollisionReaction[] CollisionTreeEnded(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended, string token);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/CollisionTreeEnded", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionTreeEndedResponse")]
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.CollisionReaction[]> CollisionTreeEndedAsync(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended, string token);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/RandomCarInfo", ReplyAction="http://tempuri.org/ILiveDataDump/RandomCarInfoResponse")]
         void RandomCarInfo(System.Guid sessionId, int carId, string car, string name, string driverId, string token);
@@ -262,6 +403,14 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         public System.Threading.Tasks.Task<byte[]> CollisionAsync(System.Guid sessionId, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z, string token) {
             return base.Channel.CollisionAsync(sessionId, car, otherCar, speed, splinepos, relativeX, relativeZ, x, z, token);
+        }
+        
+        public MinoRatingPlugin.minoRatingServer.CollisionReaction[] CollisionTreeEnded(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended, string token) {
+            return base.Channel.CollisionTreeEnded(sessionId, car, otherCar, count, started, ended, token);
+        }
+        
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.CollisionReaction[]> CollisionTreeEndedAsync(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended, string token) {
+            return base.Channel.CollisionTreeEndedAsync(sessionId, car, otherCar, count, started, ended, token);
         }
         
         public void RandomCarInfo(System.Guid sessionId, int carId, string car, string name, string driverId, string token) {

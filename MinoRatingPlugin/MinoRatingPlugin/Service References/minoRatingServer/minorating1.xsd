@@ -16,4 +16,32 @@
     </xs:sequence>
   </xs:complexType>
   <xs:element name="LeaderboardEntry" nillable="true" type="tns:LeaderboardEntry" />
+  <xs:complexType name="ArrayOfCollisionReaction">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="CollisionReaction" nillable="true" type="tns:CollisionReaction" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfCollisionReaction" nillable="true" type="tns:ArrayOfCollisionReaction" />
+  <xs:complexType name="CollisionReaction">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="CarId" type="xs:unsignedByte" />
+      <xs:element minOccurs="0" name="Name" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Reaction" type="tns:CollisionReaction.ReactionType" />
+      <xs:element minOccurs="0" name="SteamId" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Text" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="CollisionReaction" nillable="true" type="tns:CollisionReaction" />
+  <xs:simpleType name="CollisionReaction.ReactionType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="None" />
+      <xs:enumeration value="Whisper" />
+      <xs:enumeration value="Broadcast" />
+      <xs:enumeration value="Ballast" />
+      <xs:enumeration value="Pit" />
+      <xs:enumeration value="Kick" />
+      <xs:enumeration value="Ban" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="CollisionReaction.ReactionType" nillable="true" type="tns:CollisionReaction.ReactionType" />
 </xs:schema>

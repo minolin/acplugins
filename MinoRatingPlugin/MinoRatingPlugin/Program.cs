@@ -43,28 +43,28 @@ namespace MinoRatingPlugin
             }
             CurrentSessionGuid = Guid.Empty;
 
-           new Thread(() =>
-           {
-               try
-               { 
-               Console.WriteLine("Plugin Version " + PluginVersion);
-               var serverVersion = LiveDataServer.GetVersion();
-               Console.WriteLine("Connection to server with version: " + serverVersion);
+            new Thread(() =>
+            {
+                try
+                {
+                    Console.WriteLine("Plugin Version " + PluginVersion);
+                    var serverVersion = LiveDataServer.GetVersion();
+                    Console.WriteLine("Connection to server with version: " + serverVersion);
 
-               if (serverVersion > PluginVersion)
-               {
-                   Console.WriteLine("================================");
-                   Console.WriteLine("================================");
-                   Console.WriteLine("Version missmatch, your plugin seems to be outdated. Please consider downloading a new one from the forums");
-                   Console.WriteLine("For the moment we'll do our best and try to go on.");
-                   Console.WriteLine("================================");
-               }
-               }
-               catch(Exception ex)
-               {
-                   Console.WriteLine("Error connecting to the remote server :(");
-               }
-           }).Start();
+                    if (serverVersion > PluginVersion)
+                    {
+                        Console.WriteLine("================================");
+                        Console.WriteLine("================================");
+                        Console.WriteLine("Version missmatch, your plugin seems to be outdated. Please consider downloading a new one from the forums");
+                        Console.WriteLine("For the moment we'll do our best and try to go on.");
+                        Console.WriteLine("================================");
+                    }
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("Error connecting to the remote server :(");
+                }
+            }).Start();
 
 
         }
@@ -115,11 +115,35 @@ namespace MinoRatingPlugin
             }
         }
 
+        private List<CollisionBag> contactTrees = new List<CollisionBag>();
+
         public override void OnCollision(MsgClientEvent msg)
         {
             WaitForCleanSessionId();
-            if(msg.Subtype == (byte)ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_CAR)
+            if (msg.Subtype == (byte)ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_CAR)
             {
+                // TODO: Messy code. Needs rewrite as soon as I know where I'm heading.
+                // We'll check if the contact partners are part of an contact tree
+                bool partOfATree = false;
+                lock (contactTrees)
+                {
+                    foreach (var ct in contactTrees)
+                    {
+                        // If both can't be put into the contact tree, we'll treat this as new
+                        if (ct.TryAdd(msg.CarId, msg.OtherCarId))
+                        {
+                            partOfATree = true;
+                            break;
+                        }
+                    }
+
+                    if (!partOfATree)
+                    {
+                        // Then we'll start a new one
+                        contactTrees.Add(CollisionBag.StartNew(msg.CarId, msg.OtherCarId, EvaluateContactTree));
+                    }
+                }
+
                 Console.WriteLine("Collision occured!!! " + msg.CarId + " vs. " + msg.OtherCarId);
                 var result = LiveDataServer.Collision(CurrentSessionGuid, msg.CarId, msg.OtherCarId, msg.RelativeVelocity, 0.667234f, msg.RelativePosition.x, msg.RelativePosition.z, msg.WorldPosition.x, msg.WorldPosition.z, TrustToken);
             }
@@ -127,6 +151,19 @@ namespace MinoRatingPlugin
             {
                 Console.WriteLine("Collision occured!!! " + msg.CarId + " vs. wall");
                 var result = LiveDataServer.Collision(CurrentSessionGuid, msg.CarId, -1, msg.RelativeVelocity, 0.667234f, msg.RelativePosition.x, msg.RelativePosition.z, msg.WorldPosition.x, msg.WorldPosition.z, TrustToken);
+            }
+        }
+
+        private void EvaluateContactTree(CollisionBag bag)
+        {
+            lock (contactTrees)
+                contactTrees.Remove(bag);
+
+            var actions = LiveDataServer.CollisionTreeEnded(CurrentSessionGuid, bag.First, bag.Second, bag.Count, bag.Started, bag.LastCollision, TrustToken);
+            foreach (var a in actions)
+            {
+                // TODO switch (a.Reaction)
+                Console.WriteLine("Action for car " + a.CarId + ": " + a.Reaction + " " + a.Text);
             }
         }
 
@@ -152,7 +189,7 @@ namespace MinoRatingPlugin
         {
             WaitForCleanSessionId();
             Console.WriteLine("CarInfo: " + msg.CarId + ", " + msg.DriverName + "@" + msg.CarModel);
-            if(msg.IsConnected)
+            if (msg.IsConnected)
                 LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, TrustToken);
             else
                 LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, "", "", TrustToken);
