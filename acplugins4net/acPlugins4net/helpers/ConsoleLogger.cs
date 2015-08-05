@@ -18,11 +18,19 @@ namespace acPlugins4net.helpers
                 iex = iex.InnerException;
             }
             Console.WriteLine(msg);
+            using (var writer = System.IO.File.AppendText("minoratingplugin.txt"))
+            {
+                writer.WriteLine(msg);
+            }
         }
 
         void ILog.Log(string message)
         {
             Console.WriteLine(message);
+            using (var writer = System.IO.File.AppendText("minoratingplugin.txt"))
+            {
+                writer.WriteLine(message);
+            }
         }
     }
 }

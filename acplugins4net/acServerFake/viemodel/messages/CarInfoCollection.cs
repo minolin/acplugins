@@ -31,12 +31,12 @@ namespace acServerFake.viemodel.messages
             // We'll expect a entry_list.ini where the car definitions are stored (you can use a real one)
             Cars.Clear();
 
-            if (!File.Exists(@"data\entry_list.ini"))
+            if (!File.Exists(@"cfg\entry_list.ini"))
                 throw new Exception("We'd expect a data/entry_list.ini next to the acServerFake.exe. You can use a real one.");
 
             // Now some ugly ini-parsing, but I didn't want to add a whole lib as dependancy
             CarInfoViewModel currentCarInfo = null;
-            foreach (var line in File.ReadAllLines(@"data\entry_list.ini"))
+            foreach (var line in File.ReadAllLines(@"cfg\entry_list.ini"))
             {
                 if (line.StartsWith("[CAR_"))
                 {

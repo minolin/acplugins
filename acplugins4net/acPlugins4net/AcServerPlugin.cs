@@ -22,6 +22,7 @@ namespace acPlugins4net
 
         #region Cache and Helpers
 
+        public string Servername { get; private set; }
         public string Track { get; private set; }
         public string TrackLayout { get; private set; }
         public int MaxClients { get; private set; }
@@ -70,6 +71,7 @@ namespace acPlugins4net
 
         private void Init()
         {
+            Servername = _Workarounds.FindServerConfigEntry("NAME=");
             Track = _Workarounds.FindServerConfigEntry("TRACK=");
             TrackLayout = _Workarounds.FindServerConfigEntry("CONFIG_TRACK=");
             _log.Log("Track/Layout is " + Track + "[" + TrackLayout + "] (by workaround)");
@@ -80,9 +82,30 @@ namespace acPlugins4net
 
         public virtual void Connect()
         {
-            // First we're getting the configured ports (app.config)
-            var acServerPort = Config.GetSettingAsInt("acServer_port", 11000);
-            var pluginPort = Config.GetSettingAsInt("plugin_port", 12000);
+            // First we're getting the configured ports (read directly from the server_config.ini)
+            string acServerPortString = _Workarounds.FindServerConfigEntry("UDP_PLUGIN_LOCAL_PORT=");
+            string pluginPortString = _Workarounds.FindServerConfigEntry("UDP_PLUGIN_ADDRESS=");
+
+            #region determine the acServerPort with helpful error messages - this *will* be done wrong
+            if (string.IsNullOrWhiteSpace(acServerPortString) || acServerPortString == "0")
+                throw new Exception("There is no UDP_PLUGIN_LOCAL_PORT defined in the server_config.ini - check the file and the path in the <plugin>.exe.config");
+
+            int acServerPort;
+            if(!int.TryParse(acServerPortString, out acServerPort))
+                throw new Exception("Error in server_config.ini: UDP_PLUGIN_LOCAL_PORT=" + acServerPortString + " is not a valid port - check the file and the path in the <plugin>.exe.config");
+            #endregion
+
+            #region the same for the plugin port - including a restriction to localhost (see http://www.assettocorsa.net/forum/index.php?threads/about-that-maybe-server-api.24360/page-8#post-507070)
+            if (string.IsNullOrWhiteSpace(pluginPortString))
+                throw new Exception("There is no UDP_PLUGIN_ADDRESS defined in the server_config.ini - check the file and the path in the <plugin>.exe.config");
+
+            if(!pluginPortString.StartsWith("127.0.0.1:"))
+                throw new Exception("The UDP_PLUGIN_ADDRESS (defined in the server_config.ini) must referenced locally, that is 127.0.0.1:<port> - check the file and the path in the <plugin>.exe.config");
+
+            int pluginPort;
+            if(!int.TryParse(pluginPortString.Replace("127.0.0.1:", ""), out pluginPort))
+                throw new Exception("Error in server_config.ini: UDP_PLUGIN_ADDRESS=" + pluginPortString + " is not a valid port - check the file and the path in the <plugin>.exe.config");
+            #endregion
 
             _UDP.Open(pluginPort, acServerPort, MessageReceived, OnError);
         }

@@ -20,7 +20,7 @@ namespace acPlugins4net
             foreach (var prop in this.GetType().GetProperties())
             {
                 if (prop.Name != "StringRepresentation")
-                    s += prop.Name + "=" + prop.GetValue(this) + Environment.NewLine;
+                    s += prop.Name + "=" + prop.GetValue(this, null) + Environment.NewLine;
             }
             return s;
         }

@@ -120,7 +120,7 @@ namespace acPlugins4net.helpers
             if (_plugin == null)
                 throw new Exception("TrySend: UdpClient missing, please open first");
             {
-                _plugin.SendAsync(typeByte, typeByte.Length);
+                _plugin.Send(typeByte, typeByte.Length);
                 return true;
             }
         }
