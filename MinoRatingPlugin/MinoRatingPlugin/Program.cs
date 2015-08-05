@@ -17,6 +17,7 @@ namespace MinoRatingPlugin
         public string TrustToken { get; set; }
         public Guid CurrentSessionGuid { get; set; }
         private bool _sessionIdPending = false;
+        public static Version PluginVersion = new Version(0, 1, 1);
 
         private void WaitForCleanSessionId()
         {
@@ -26,7 +27,8 @@ namespace MinoRatingPlugin
 
         static void Main(string[] args)
         {
-            new Program().RunUntilAborted();
+            System.IO.File.WriteAllText("minoratingplugin.txt", "Main(): " + DateTime.Now);
+            new Program() { PluginName = "Minorating " + PluginVersion }.RunUntilAborted();
         }
 
         public override void OnInit()
@@ -40,6 +42,31 @@ namespace MinoRatingPlugin
                 Config.SetSetting("server_trust_token", TrustToken);
             }
             CurrentSessionGuid = Guid.Empty;
+
+           new Thread(() =>
+           {
+               try
+               { 
+               Console.WriteLine("Plugin Version " + PluginVersion);
+               var serverVersion = LiveDataServer.GetVersion();
+               Console.WriteLine("Connection to server with version: " + serverVersion);
+
+               if (serverVersion > PluginVersion)
+               {
+                   Console.WriteLine("================================");
+                   Console.WriteLine("================================");
+                   Console.WriteLine("Version missmatch, your plugin seems to be outdated. Please consider downloading a new one from the forums");
+                   Console.WriteLine("For the moment we'll do our best and try to go on.");
+                   Console.WriteLine("================================");
+               }
+               }
+               catch(Exception ex)
+               {
+                   Console.WriteLine("Error connecting to the remote server :(");
+               }
+           }).Start();
+
+
         }
 
         public override void OnNewSession(MsgNewSession msg)
@@ -47,10 +74,10 @@ namespace MinoRatingPlugin
             _sessionIdPending = true;
             Console.WriteLine("===============================");
             Console.WriteLine("===============================");
-            Console.WriteLine("OnNewSession: " + msg.Name);
+            Console.WriteLine("OnNewSession: " + msg.Name + "@" + Servername);
             Console.WriteLine("===============================");
             Console.WriteLine("===============================");
-            CurrentSessionGuid = LiveDataServer.NewSession(CurrentSessionGuid, msg.Name, Track, msg.SessionType, msg.Laps, msg.WaitTime, msg.TimeOfDay, msg.AmbientTemp, msg.RoadTemp, TrustToken, _fingerprint);
+            CurrentSessionGuid = LiveDataServer.NewSession(CurrentSessionGuid, Servername, Track + "[" + TrackLayout + "]", msg.SessionType, msg.Laps, msg.WaitTime, msg.TimeOfDay, msg.AmbientTemp, msg.RoadTemp, TrustToken, _fingerprint);
             _sessionIdPending = false;
         }
 
@@ -60,6 +87,12 @@ namespace MinoRatingPlugin
             Console.WriteLine("OnNewConnection: " + msg.DriverName + "@" + msg.CarModel);
 
             LiveDataServer.NewConnection(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, TrustToken);
+        }
+
+        public override void OnSessionEnded(MsgSessionEnded msg)
+        {
+            LiveDataServer.EndSession(CurrentSessionGuid, TrustToken, _fingerprint);
+            Console.WriteLine("Session ended");
         }
 
         public override void OnConnectionClosed(MsgConnectionClosed msg)
@@ -119,7 +152,10 @@ namespace MinoRatingPlugin
         {
             WaitForCleanSessionId();
             Console.WriteLine("CarInfo: " + msg.CarId + ", " + msg.DriverName + "@" + msg.CarModel);
-            LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, TrustToken);
+            if(msg.IsConnected)
+                LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, TrustToken);
+            else
+                LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, "", "", TrustToken);
         }
     }
 }

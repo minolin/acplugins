@@ -138,6 +138,12 @@ namespace MinoRatingPlugin.minoRatingServer {
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/NewSession", ReplyAction="http://tempuri.org/ILiveDataDump/NewSessionResponse")]
         System.Threading.Tasks.Task<System.Guid> NewSessionAsync(System.Guid lastId, string servername, string track, int sessionType, int laps, int waittime, int timeofday, int ambient, int road, string token, byte[] fingerprint);
         
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/EndSession", ReplyAction="http://tempuri.org/ILiveDataDump/EndSessionResponse")]
+        void EndSession(System.Guid lastId, string token, byte[] fingerprint);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/EndSession", ReplyAction="http://tempuri.org/ILiveDataDump/EndSessionResponse")]
+        System.Threading.Tasks.Task EndSessionAsync(System.Guid lastId, string token, byte[] fingerprint);
+        
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/NewConnection", ReplyAction="http://tempuri.org/ILiveDataDump/NewConnectionResponse")]
         void NewConnection(System.Guid sessionId, int carId, string car, string name, string driverId, string token);
         
@@ -167,6 +173,12 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/RandomCarInfo", ReplyAction="http://tempuri.org/ILiveDataDump/RandomCarInfoResponse")]
         System.Threading.Tasks.Task RandomCarInfoAsync(System.Guid sessionId, int carId, string car, string name, string driverId, string token);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/GetVersion", ReplyAction="http://tempuri.org/ILiveDataDump/GetVersionResponse")]
+        System.Version GetVersion();
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/GetVersion", ReplyAction="http://tempuri.org/ILiveDataDump/GetVersionResponse")]
+        System.Threading.Tasks.Task<System.Version> GetVersionAsync();
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
@@ -212,6 +224,14 @@ namespace MinoRatingPlugin.minoRatingServer {
             return base.Channel.NewSessionAsync(lastId, servername, track, sessionType, laps, waittime, timeofday, ambient, road, token, fingerprint);
         }
         
+        public void EndSession(System.Guid lastId, string token, byte[] fingerprint) {
+            base.Channel.EndSession(lastId, token, fingerprint);
+        }
+        
+        public System.Threading.Tasks.Task EndSessionAsync(System.Guid lastId, string token, byte[] fingerprint) {
+            return base.Channel.EndSessionAsync(lastId, token, fingerprint);
+        }
+        
         public void NewConnection(System.Guid sessionId, int carId, string car, string name, string driverId, string token) {
             base.Channel.NewConnection(sessionId, carId, car, name, driverId, token);
         }
@@ -250,6 +270,14 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         public System.Threading.Tasks.Task RandomCarInfoAsync(System.Guid sessionId, int carId, string car, string name, string driverId, string token) {
             return base.Channel.RandomCarInfoAsync(sessionId, carId, car, name, driverId, token);
+        }
+        
+        public System.Version GetVersion() {
+            return base.Channel.GetVersion();
+        }
+        
+        public System.Threading.Tasks.Task<System.Version> GetVersionAsync() {
+            return base.Channel.GetVersionAsync();
         }
     }
 }

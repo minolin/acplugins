@@ -5,6 +5,7 @@
       <xsd:import schemaLocation="http://localhost:805/minorating?xsd=xsd0" namespace="http://tempuri.org/" />
       <xsd:import schemaLocation="http://localhost:805/minorating?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
       <xsd:import schemaLocation="http://localhost:805/minorating?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" />
+      <xsd:import schemaLocation="http://localhost:805/minorating?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/System" />
     </xsd:schema>
   </wsdl:types>
   <wsdl:message name="ILiveDataDump_Tst_InputMessage">
@@ -18,6 +19,12 @@
   </wsdl:message>
   <wsdl:message name="ILiveDataDump_NewSession_OutputMessage">
     <wsdl:part name="parameters" element="tns:NewSessionResponse" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_EndSession_InputMessage">
+    <wsdl:part name="parameters" element="tns:EndSession" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_EndSession_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EndSessionResponse" />
   </wsdl:message>
   <wsdl:message name="ILiveDataDump_NewConnection_InputMessage">
     <wsdl:part name="parameters" element="tns:NewConnection" />
@@ -49,6 +56,12 @@
   <wsdl:message name="ILiveDataDump_RandomCarInfo_OutputMessage">
     <wsdl:part name="parameters" element="tns:RandomCarInfoResponse" />
   </wsdl:message>
+  <wsdl:message name="ILiveDataDump_GetVersion_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetVersion" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_GetVersion_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetVersionResponse" />
+  </wsdl:message>
   <wsdl:portType name="ILiveDataDump">
     <wsdl:operation name="Tst">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/Tst" message="tns:ILiveDataDump_Tst_InputMessage" />
@@ -57,6 +70,10 @@
     <wsdl:operation name="NewSession">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/NewSession" message="tns:ILiveDataDump_NewSession_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/NewSessionResponse" message="tns:ILiveDataDump_NewSession_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="EndSession">
+      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/EndSession" message="tns:ILiveDataDump_EndSession_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/EndSessionResponse" message="tns:ILiveDataDump_EndSession_OutputMessage" />
     </wsdl:operation>
     <wsdl:operation name="NewConnection">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/NewConnection" message="tns:ILiveDataDump_NewConnection_InputMessage" />
@@ -78,6 +95,10 @@
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/RandomCarInfo" message="tns:ILiveDataDump_RandomCarInfo_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/RandomCarInfoResponse" message="tns:ILiveDataDump_RandomCarInfo_OutputMessage" />
     </wsdl:operation>
+    <wsdl:operation name="GetVersion">
+      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/GetVersion" message="tns:ILiveDataDump_GetVersion_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/GetVersionResponse" message="tns:ILiveDataDump_GetVersion_OutputMessage" />
+    </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="BasicHttpBinding_ILiveDataDump" type="tns:ILiveDataDump">
     <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
@@ -92,6 +113,15 @@
     </wsdl:operation>
     <wsdl:operation name="NewSession">
       <soap:operation soapAction="http://tempuri.org/ILiveDataDump/NewSession" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EndSession">
+      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/EndSession" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>
@@ -137,6 +167,15 @@
     </wsdl:operation>
     <wsdl:operation name="RandomCarInfo">
       <soap:operation soapAction="http://tempuri.org/ILiveDataDump/RandomCarInfo" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetVersion">
+      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/GetVersion" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>
