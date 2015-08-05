@@ -34,6 +34,11 @@ namespace acServerFake.viemodel
             });
         }
 
+        internal void CloseUDPConnection()
+        {
+            UDPServer.Close();
+        }
+
         private void OnError(Exception ex)
         {
             AwesomeViewerStolenFromTheInternet.LogException(ex);
