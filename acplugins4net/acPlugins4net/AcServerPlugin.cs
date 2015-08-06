@@ -42,7 +42,7 @@ namespace acPlugins4net
             Config = new AppConfigConfigurator();
             _Workarounds = new WorkaroundHelper(Config);
             _CarInfo = new ConcurrentDictionary<int, MsgCarInfo>(10, 64);
-            _fingerprint = Hash(Config.GetSetting("ac_server_directory") + Config.GetSetting("acServer_port"));
+            _fingerprint = Hash(Config.GetSetting("ac_server_directory") + Config.GetSetting("ac_server_port"));
         }
 
         public void RunUntilAborted()

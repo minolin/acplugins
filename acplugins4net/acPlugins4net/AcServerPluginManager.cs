@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -43,13 +44,13 @@ namespace acPlugins4net
 
         /// <summary>
         /// Gets or sets the hostname of the AC server.
-        /// Can be set via app.config setting "acServer_host". Default is "127.0.0.1".
+        /// Can be set via app.config setting "ac_server_host". Default is "127.0.0.1".
         /// </summary>
         public string RemostHostname { get; set; }
 
         /// <summary>
         /// Gets or sets the port of the AC server where requests should be send to.
-        /// Can be set via app.config setting "acServer_port". Default is 11000.
+        /// Can be set via app.config setting "ac_server_port". Default is 11000.
         /// </summary>
         public int RemotePort { get; set; }
 
@@ -77,8 +78,10 @@ namespace acPlugins4net
 
             // get the configured ports (app.config)
             ListeningPort = Config.GetSettingAsInt("plugin_port", 12000);
-            RemostHostname = Config.GetSetting("acServer_host", "127.0.0.1");
-            RemotePort = Config.GetSettingAsInt("acServer_port", 11000);
+            RemostHostname = Config.GetSetting("ac_server_host");
+            if (string.IsNullOrWhiteSpace(RemostHostname))
+                RemostHostname = "127.0.0.1";
+            RemotePort = Config.GetSettingAsInt("ac_server_port", 11000);
             LogServerRequests = Config.GetSettingAsInt("log_server_requests", 1);
         }
 
@@ -123,6 +126,69 @@ namespace acPlugins4net
             RemostHostname = "127.0.0.1";
             RemotePort = acServerPort;
         }
+
+        public void LoadPluginsFromAppConfig()
+        {
+            // try to load plugins configured in app.config
+            try
+            {
+                string pluginsStr = Config.GetSetting("internal_plugins");
+                if (!string.IsNullOrWhiteSpace(pluginsStr))
+                {
+                    foreach (string pluginTypeStr in pluginsStr.Split(';'))
+                    {
+                        try
+                        {
+                            string[] typeInfo = pluginTypeStr.Split(',');
+                            Assembly assembly = Assembly.Load(typeInfo[1]);
+                            Type type = assembly.GetType(typeInfo[0]);
+                            AcServerPluginBase plugin = (AcServerPluginBase)Activator.CreateInstance(type);
+                            this.AddPlugin(plugin);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log(ex);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log(ex);
+            }
+
+            // try to load info about external plugins in app.config
+            try
+            {
+                string externalPluginsStr = Config.GetSetting("external_plugins");
+                if (!string.IsNullOrWhiteSpace(externalPluginsStr))
+                {
+                    foreach (string pluginInfoStr in externalPluginsStr.Split(';'))
+                    {
+                        try
+                        {
+                            string[] parts = pluginInfoStr.Split(',');
+                            string[] remotePluginParts = parts[2].Split(':');
+
+                            this.AddExternalPlugin(new ExternalPluginInfo(
+                                parts[0].Trim(),
+                                int.Parse(parts[1]),
+                                remotePluginParts[0].Trim(),
+                                int.Parse(remotePluginParts[1])));
+                        }
+                        catch (Exception ex)
+                        {
+                            Log(ex);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log(ex);
+            }
+        }
+
 
         public void AddPlugin(AcServerPluginBase plugin)
         {
@@ -216,6 +282,11 @@ namespace acPlugins4net
 
         public virtual void Connect()
         {
+            if (IsConnected)
+            {
+                throw new Exception("PluginManager already connected");
+            }
+
             _UDP.Open(ListeningPort, RemostHostname, RemotePort, MessageReceived, Log);
 
             foreach (AcServerPluginBase plugin in _plugins)
@@ -257,6 +328,11 @@ namespace acPlugins4net
 
         public virtual void Disconnect()
         {
+            if (!IsConnected)
+            {
+                throw new Exception("PluginManager is not connected");
+            }
+
             _UDP.Close();
 
             foreach (DuplexUDPClient externalPluginUdp in _openExternalPlugins.Values)

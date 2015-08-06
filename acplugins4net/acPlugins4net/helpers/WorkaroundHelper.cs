@@ -5,10 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using acPlugins4net.configuration;
 using System.IO;
+using System.Reflection;
 
 namespace acPlugins4net.helpers
 {
-    class WorkaroundHelper
+    public class WorkaroundHelper
     {
         private IConfigManager _Config;
         private string[] _ConfigIniLines;
@@ -24,9 +25,16 @@ namespace acPlugins4net.helpers
                     {
                         var acDirectory = _Config.GetSetting("ac_server_directory", "Config-Setting 'ac_server_directory' is mandatory, but not set");
                         if (string.IsNullOrWhiteSpace(acDirectory))
-                            throw new Exception("Config-Setting 'ac_server_directory' is mandatory, but not set (2)");
+                        {
+                            acDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                            configFile = Path.Combine(acDirectory, "cfg", "server_cfg.ini");
 
-                        
+                            if (!File.Exists(configFile))
+                            {
+                                throw new Exception("Config-Setting 'ac_server_directory' is mandatory, but not set (2)");
+                            }
+                        }
+
                         configFile = Path.Combine(acDirectory, "cfg", "server_cfg.ini");
                         _ConfigIniLines = File.ReadAllLines(configFile);
                     }
@@ -44,10 +52,27 @@ namespace acPlugins4net.helpers
             this._Config = _Config;
         }
 
-        internal string FindServerConfigEntry(string key)
+        public string FindServerConfigEntry(string key)
         {
-            var line = ConfigIni.First(x => x.StartsWith(key));
-            return line.Substring(line.IndexOf("=")+1).Trim();
+            string value;
+            if (TryFindServerConfigEntry(key, out value))
+            {
+                return value;
+            }
+
+            throw new Exception("Config entry '" + key + "' not found in server_cfg.ini");
+        }
+
+        public bool TryFindServerConfigEntry(string key, out string value)
+        {
+            var line = ConfigIni.FirstOrDefault(x => x.StartsWith(key, StringComparison.InvariantCultureIgnoreCase));
+            if (line != null)
+            {
+                value = line.Substring(line.IndexOf("=") + 1).Trim();
+                return true;
+            }
+            value = null;
+            return false;
         }
     }
 }
