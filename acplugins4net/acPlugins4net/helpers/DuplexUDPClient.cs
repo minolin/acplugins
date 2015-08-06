@@ -23,7 +23,7 @@ namespace acPlugins4net.helpers
 
         public bool Opened { get; private set; }
 
-        public void Open(int listeningPort, int remotePort, MessageReceivedDelegate callback, ErrorHandlerDelegate errorhandler)
+        public void Open(int listeningPort, string remostHostname, int remotePort, MessageReceivedDelegate callback, ErrorHandlerDelegate errorhandler)
         {
             if (_plugin != null)
                 throw new Exception("UdpServer was already started.");
@@ -32,7 +32,7 @@ namespace acPlugins4net.helpers
             ErrorHandler = errorhandler;
 
             _plugin = new UdpClient(listeningPort);
-            _plugin.Connect("127.0.0.1", remotePort);
+            _plugin.Connect(remostHostname, remotePort);
             RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, remotePort);
             Opened = true;
 

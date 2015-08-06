@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace acPlugins4net
 {
+    [Obsolete("This should be replaced by AcServerPluginNew, rename AcServerPluginNew to AcServerPlugin")]
     public abstract class AcServerPlugin : MD5Hashable
     {
         private readonly DuplexUDPClient _UDP;
@@ -107,7 +108,7 @@ namespace acPlugins4net
                 throw new Exception("Error in server_config.ini: UDP_PLUGIN_ADDRESS=" + pluginPortString + " is not a valid port - check the file and the path in the <plugin>.exe.config");
             #endregion
 
-            _UDP.Open(pluginPort, acServerPort, MessageReceived, OnError);
+            _UDP.Open(pluginPort, "127.0.0.1", acServerPort, MessageReceived, OnError);
         }
 
         public virtual void Disconnect()
