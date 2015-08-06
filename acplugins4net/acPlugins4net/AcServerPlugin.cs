@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace acPlugins4net
 {
-    public abstract class AcServerPluginNew : AcServerPluginBase
+    public abstract class AcServerPlugin : AcServerPluginBase
     {
         public AcServerPluginManager PluginManager { get; private set; }
 
@@ -25,7 +25,7 @@ namespace acPlugins4net
 
         #endregion
 
-        protected AcServerPluginNew(string pluginName = null)
+        protected AcServerPlugin(string pluginName = null)
             : base(pluginName)
         {
         }

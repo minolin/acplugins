@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AcServerPluginManager.cs" />
+    <Compile Include="AcServerPluginOld.cs" />
     <Compile Include="configuration\AppConfigConfigurator.cs" />
     <Compile Include="configuration\IConfigManager.cs" />
     <Compile Include="ExternalPluginInfo.cs" />
@@ -51,7 +52,6 @@
     <Compile Include="helpers\ConsoleLogger.cs" />
     <Compile Include="helpers\DuplexUDPClient.cs" />
     <Compile Include="AcServerPlugin.cs" />
-    <Compile Include="AcServerPluginNew.cs" />
     <Compile Include="helpers\IFileLog.cs" />
     <Compile Include="helpers\ILog.cs" />
     <Compile Include="helpers\FileLogWriter.cs" />

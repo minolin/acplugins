@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace acPlugins4net
 {
     [Obsolete("This should be replaced by AcServerPluginNew, rename AcServerPluginNew to AcServerPlugin")]
-    public abstract class AcServerPlugin : MD5Hashable
+    public abstract class AcServerPluginOld : MD5Hashable
     {
         private readonly DuplexUDPClient _UDP;
         public IConfigManager Config { get; private set; }
@@ -34,7 +34,7 @@ namespace acPlugins4net
 
         #endregion
 
-        public AcServerPlugin()
+        public AcServerPluginOld()
         {
             _UDP = new DuplexUDPClient();
             PluginName = "Unnamed plugin";
