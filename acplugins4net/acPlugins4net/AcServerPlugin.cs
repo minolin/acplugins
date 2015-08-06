@@ -38,7 +38,7 @@ namespace acPlugins4net
         {
             _UDP = new DuplexUDPClient();
             PluginName = "Unnamed plugin";
-            _log = new ConsoleLogger();
+            _log = new ConsoleLogger("minoratingplugin.txt");
             Config = new AppConfigConfigurator();
             _Workarounds = new WorkaroundHelper(Config);
             _CarInfo = new ConcurrentDictionary<int, MsgCarInfo>(10, 64);
@@ -197,21 +197,21 @@ namespace acPlugins4net
         protected internal void BroadcastChatMessage(string msg)
         {
             var chatRequest = new RequestBroadcastChat() { ChatMessage = msg };
-            _UDP.TrySend(chatRequest.ToBinary());
+            _UDP.Send(chatRequest.ToBinary());
             Console.WriteLine("Broadcasted " + chatRequest.ToString());
         }
 
         protected internal void SendChatMessage(byte car_id, string msg)
         {
             var chatRequest = new RequestSendChat() { CarId = car_id, ChatMessage = msg };
-            _UDP.TrySend(chatRequest.ToBinary());
+            _UDP.Send(chatRequest.ToBinary());
             Console.WriteLine("Broadcasted " + chatRequest.ToString());
         }
 
         protected internal void EnableRealtimeReport(UInt16 interval)
         {
             var enableRealtimeReportRequest = new RequestRealtimeInfo { Interval = interval };
-            _UDP.TrySend(enableRealtimeReportRequest.ToBinary());
+            _UDP.Send(enableRealtimeReportRequest.ToBinary());
             Console.WriteLine("Realtime pos interval now set to: {0} ms", interval);
         }
 

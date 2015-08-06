@@ -11,75 +11,120 @@ using System.Threading.Tasks;
 
 namespace acPlugins4net
 {
-
-    public class ExternalPlugin
+    public class AcServerPluginManager : ILog
     {
-        public readonly int ListeningPort;
-        public readonly string RemostHostname;
-        public readonly int RemotePort;
-
-        public ExternalPlugin(int listeningPort, string remostHostname, int remotePort)
-        {
-            ListeningPort = listeningPort;
-            RemostHostname = remostHostname;
-            RemotePort = remotePort;
-        }
-    }
-
-    public class AcServerPluginManager
-    {
-        public readonly IConfigManager Config;
-        public readonly ILog Log;
-
+        #region private fields
         private readonly DuplexUDPClient _UDP;
-        private readonly WorkaroundHelper _Workarounds = null;
+        private readonly WorkaroundHelper _Workarounds;
+        private readonly List<AcServerPluginBase> _plugins;
+        private readonly List<ExternalPluginInfo> _externalPlugins;
+        private readonly Dictionary<ExternalPluginInfo, DuplexUDPClient> _openExternalPlugins;
+        #endregion
 
-        private readonly List<IAcServerPlugin> _plugins;
-        public readonly ReadOnlyCollection<IAcServerPlugin> Plugins;
+        #region public fields/properties
+        public readonly ILog Logger;
+        public readonly IConfigManager Config;
 
-        private readonly List<ExternalPlugin> _externalPlugins;
-        public readonly ReadOnlyCollection<ExternalPlugin> ExternalPlugins;
+        public readonly ReadOnlyCollection<AcServerPluginBase> Plugins;
+        public readonly ReadOnlyCollection<ExternalPluginInfo> ExternalPlugins;
 
-        private readonly Dictionary<ExternalPlugin, DuplexUDPClient> _openExternalPlugins;
+        /// <summary>
+        /// Gets or sets whether requests to the AC server should be logged.
+        /// Can be set via app.config setting "log_server_requests". Default is 1.
+        /// Currently implemented: 0 = Off and 1 = On
+        /// </summary>
+        public int LogServerRequests { get; set; }
+
+        /// <summary>
+        /// Gets or sets the port on which the plugin manager receives messages from the AC server.
+        /// Can be set via app.config setting "plugin_port". Default is 12000.
+        /// </summary>
+        public int ListeningPort { get; set; }
+
+        /// <summary>
+        /// Gets or sets the hostname of the AC server.
+        /// Can be set via app.config setting "acServer_host". Default is "127.0.0.1".
+        /// </summary>
+        public string RemostHostname { get; set; }
+
+        /// <summary>
+        /// Gets or sets the port of the AC server where requests should be send to.
+        /// Can be set via app.config setting "acServer_port". Default is 11000.
+        /// </summary>
+        public int RemotePort { get; set; }
 
         public string ServerName { get; set; }
         public string Track { get; set; }
         public string TrackLayout { get; set; }
         public int MaxClients { get; set; }
+        #endregion
 
         public AcServerPluginManager(ILog log = null, IConfigManager config = null)
         {
-            this.Log = log != null ? log : new ConsoleLogger();
-            this.Config = config != null ? config : new AppConfigConfigurator();
+            Logger = log ?? new ConsoleLogger();
+            Config = config ?? new AppConfigConfigurator();
 
-            _plugins = new List<IAcServerPlugin>();
+            _plugins = new List<AcServerPluginBase>();
             Plugins = _plugins.AsReadOnly();
 
             _UDP = new DuplexUDPClient();
-            _Workarounds = new WorkaroundHelper(this.Config);
+            _Workarounds = new WorkaroundHelper(Config);
 
-            _externalPlugins = new List<ExternalPlugin>();
+            _externalPlugins = new List<ExternalPluginInfo>();
             ExternalPlugins = _externalPlugins.AsReadOnly();
 
-            _openExternalPlugins = new Dictionary<ExternalPlugin, DuplexUDPClient>();
+            _openExternalPlugins = new Dictionary<ExternalPluginInfo, DuplexUDPClient>();
+
+            // get the configured ports (app.config)
+            ListeningPort = Config.GetSettingAsInt("plugin_port", 12000);
+            RemostHostname = Config.GetSetting("acServer_host", "127.0.0.1");
+            RemotePort = Config.GetSettingAsInt("acServer_port", 11000);
+            LogServerRequests = Config.GetSettingAsInt("log_server_requests", 1);
         }
 
+        /// <summary>
+        /// Loads the information from server configuration.
+        /// The following Properties are set: <see cref="ServerName"/>, <see cref="Track"/>, <see cref="TrackLayout"/>, 
+        /// <see cref="MaxClients"/>, <see cref="ListeningPort"/>,  <see cref="RemostHostname"/>, <see cref="RemotePort"/>
+        /// </summary>
         public void LoadInfoFromServerConfig()
         {
-            try
-            {
-                ServerName = _Workarounds.FindServerConfigEntry("NAME=");
-                Track = _Workarounds.FindServerConfigEntry("TRACK=");
-                TrackLayout = _Workarounds.FindServerConfigEntry("CONFIG_TRACK=");
-                MaxClients = Convert.ToInt32(_Workarounds.FindServerConfigEntry("MAX_CLIENTS="));
-            }
-            catch (Exception ex)
-            {
-                this.OnError(ex);
-            }
+            ServerName = _Workarounds.FindServerConfigEntry("NAME=");
+            Track = _Workarounds.FindServerConfigEntry("TRACK=");
+            TrackLayout = _Workarounds.FindServerConfigEntry("CONFIG_TRACK=");
+            MaxClients = Convert.ToInt32(_Workarounds.FindServerConfigEntry("MAX_CLIENTS="));
+
+            // First we're getting the configured ports (read directly from the server_config.ini)
+            string acServerPortString = _Workarounds.FindServerConfigEntry("UDP_PLUGIN_LOCAL_PORT=");
+            string pluginPortString = _Workarounds.FindServerConfigEntry("UDP_PLUGIN_ADDRESS=");
+
+            #region determine the acServerPort with helpful error messages - this *will* be done wrong
+            if (string.IsNullOrWhiteSpace(acServerPortString) || acServerPortString == "0")
+                throw new Exception("There is no UDP_PLUGIN_LOCAL_PORT defined in the server_config.ini - check the file and the path in the <plugin>.exe.config");
+
+            int acServerPort;
+            if (!int.TryParse(acServerPortString, out acServerPort))
+                throw new Exception("Error in server_config.ini: UDP_PLUGIN_LOCAL_PORT=" + acServerPortString + " is not a valid port - check the file and the path in the <plugin>.exe.config");
+            #endregion
+
+            #region the same for the plugin port - including a restriction to localhost (see http://www.assettocorsa.net/forum/index.php?threads/about-that-maybe-server-api.24360/page-8#post-507070)
+            if (string.IsNullOrWhiteSpace(pluginPortString))
+                throw new Exception("There is no UDP_PLUGIN_ADDRESS defined in the server_config.ini - check the file and the path in the <plugin>.exe.config");
+
+            if (!pluginPortString.StartsWith("127.0.0.1:"))
+                throw new Exception("The UDP_PLUGIN_ADDRESS (defined in the server_config.ini) must referenced locally, that is 127.0.0.1:<port> - check the file and the path in the <plugin>.exe.config");
+
+            int pluginPort;
+            if (!int.TryParse(pluginPortString.Replace("127.0.0.1:", ""), out pluginPort))
+                throw new Exception("Error in server_config.ini: UDP_PLUGIN_ADDRESS=" + pluginPortString + " is not a valid port - check the file and the path in the <plugin>.exe.config");
+            #endregion
+
+            ListeningPort = pluginPort;
+            RemostHostname = "127.0.0.1";
+            RemotePort = acServerPort;
         }
 
-        public void AddPlugin(IAcServerPlugin plugin)
+        public void AddPlugin(AcServerPluginBase plugin)
         {
             if (plugin == null)
             {
@@ -98,10 +143,10 @@ namespace acPlugins4net
 
             _plugins.Add(plugin);
 
-            plugin.OnInit(this);
+            plugin.OnInitBase(this);
         }
 
-        public void RemovePlugin(IAcServerPlugin plugin)
+        public void RemovePlugin(AcServerPluginBase plugin)
         {
             if (plugin == null)
             {
@@ -121,7 +166,7 @@ namespace acPlugins4net
             _plugins.Remove(plugin);
         }
 
-        public void AddExternalPlugin(ExternalPlugin externalPlugin)
+        public void AddExternalPlugin(ExternalPluginInfo externalPlugin)
         {
             if (externalPlugin == null)
             {
@@ -141,7 +186,7 @@ namespace acPlugins4net
             _externalPlugins.Add(externalPlugin);
         }
 
-        public void RemoveExternalPlugin(ExternalPlugin externalPlugin)
+        public void RemoveExternalPlugin(ExternalPluginInfo externalPlugin)
         {
             if (externalPlugin == null)
             {
@@ -161,61 +206,53 @@ namespace acPlugins4net
             _externalPlugins.Remove(externalPlugin);
         }
 
-        public virtual void OnError(Exception ex)
-        {
-            if (this.Log != null)
-            {
-                this.Log.Log(ex);
-            }
-        }
-
         public bool IsConnected
         {
             get
             {
-                return this._UDP.Opened;
+                return _UDP.Opened;
             }
         }
 
         public virtual void Connect()
         {
-            // First we're getting the configured ports (app.config)
-            var acServerHost = Config.GetSetting("acServer_host", "127.0.0.1");
-            var acServerPort = Config.GetSettingAsInt("acServer_port", 11000);
-            var pluginPort = Config.GetSettingAsInt("plugin_port", 12000);
+            _UDP.Open(ListeningPort, RemostHostname, RemotePort, MessageReceived, Log);
 
-            _UDP.Open(pluginPort, acServerHost, acServerPort, MessageReceived, OnError);
-
-            foreach (IAcServerPlugin plugin in _plugins)
+            foreach (AcServerPluginBase plugin in _plugins)
             {
                 try
                 {
-                    plugin.OnConnected();
+                    plugin.OnConnectedBase();
                 }
                 catch (Exception ex)
                 {
-                    OnError(ex);
+                    Log(ex);
                 }
             }
 
-            foreach (ExternalPlugin externalPlugin in _externalPlugins)
+            foreach (ExternalPluginInfo externalPlugin in _externalPlugins)
             {
                 try
                 {
                     DuplexUDPClient externalPluginUdp = new DuplexUDPClient();
-                    externalPluginUdp.Open(externalPlugin.ListeningPort, externalPlugin.RemostHostname, externalPlugin.RemotePort, MessageReceivedFromExternalPlugin, OnError);
+                    externalPluginUdp.Open(externalPlugin.ListeningPort, externalPlugin.RemostHostname, externalPlugin.RemotePort, MessageReceivedFromExternalPlugin, Log);
                     _openExternalPlugins.Add(externalPlugin, externalPluginUdp);
                 }
                 catch (Exception ex)
                 {
-                    OnError(ex);
+                    Log(ex);
                 }
             }
         }
 
         protected virtual void MessageReceivedFromExternalPlugin(byte[] data)
         {
-            this._UDP.TrySend(data);
+            _UDP.Send(data);
+
+            if (LogServerRequests > 0)
+            {
+                LogRequestToServer(AcMessageParser.Parse(data));
+            }
         }
 
         public virtual void Disconnect()
@@ -230,20 +267,20 @@ namespace acPlugins4net
                 }
                 catch (Exception ex)
                 {
-                    OnError(ex);
+                    Log(ex);
                 }
             }
             _openExternalPlugins.Clear();
 
-            foreach (IAcServerPlugin plugin in _plugins)
+            foreach (AcServerPluginBase plugin in _plugins)
             {
                 try
                 {
-                    plugin.OnDisconnected();
+                    plugin.OnDisconnectedBase();
                 }
                 catch (Exception ex)
                 {
-                    OnError(ex);
+                    Log(ex);
                 }
             }
         }
@@ -252,35 +289,35 @@ namespace acPlugins4net
         {
             var msg = AcMessageParser.Parse(data);
 
-            foreach (IAcServerPlugin plugin in _plugins)
+            foreach (AcServerPluginBase plugin in _plugins)
             {
                 try
                 {
                     switch (msg.Type)
                     {
                         case ACSProtocol.MessageType.ACSP_NEW_SESSION:
-                            plugin.OnNewSession((MsgNewSession)msg);
+                            plugin.OnNewSessionBase((MsgNewSession)msg);
                             break;
                         case ACSProtocol.MessageType.ACSP_NEW_CONNECTION:
-                            plugin.OnNewConnection((MsgNewConnection)msg);
+                            plugin.OnNewConnectionBase((MsgNewConnection)msg);
                             break;
                         case ACSProtocol.MessageType.ACSP_CONNECTION_CLOSED:
-                            plugin.OnConnectionClosed((MsgConnectionClosed)msg);
+                            plugin.OnConnectionClosedBase((MsgConnectionClosed)msg);
                             break;
                         case ACSProtocol.MessageType.ACSP_CAR_UPDATE:
-                            plugin.OnCarUpdate((MsgCarUpdate)msg);
+                            plugin.OnCarUpdateBase((MsgCarUpdate)msg);
                             break;
                         case ACSProtocol.MessageType.ACSP_CAR_INFO:
-                            plugin.OnCarInfo((MsgCarInfo)msg);
+                            plugin.OnCarInfoBase((MsgCarInfo)msg);
                             break;
                         case ACSProtocol.MessageType.ACSP_LAP_COMPLETED:
-                            plugin.OnLapCompleted((MsgLapCompleted)msg);
+                            plugin.OnLapCompletedBase((MsgLapCompleted)msg);
                             break;
                         case ACSProtocol.MessageType.ACSP_END_SESSION:
-                            plugin.OnSessionEnded((MsgSessionEnded)msg);
+                            plugin.OnSessionEndedBase((MsgSessionEnded)msg);
                             break;
                         case ACSProtocol.MessageType.ACSP_CLIENT_EVENT:
-                            plugin.OnCollision((MsgClientEvent)msg);
+                            plugin.OnCollisionBase((MsgClientEvent)msg);
                             break;
                         case ACSProtocol.MessageType.ACSP_REALTIMEPOS_INTERVAL:
                         case ACSProtocol.MessageType.ACSP_GET_CAR_INFO:
@@ -296,37 +333,30 @@ namespace acPlugins4net
                 }
                 catch (Exception ex)
                 {
-                    OnError(ex);
+                    Log(ex);
                 }
             }
 
             foreach (DuplexUDPClient externalPluginUdp in _openExternalPlugins.Values)
             {
-                try
-                {
-                    externalPluginUdp.TrySend(data);
-                }
-                catch (Exception ex)
-                {
-                    OnError(ex);
-                }
+                externalPluginUdp.TrySend(data);
             }
         }
 
-        public void OnConsoleCommand(string cmd)
+        public void ProcessEnteredCommand(string cmd)
         {
-            foreach (IAcServerPlugin plugin in _plugins)
+            foreach (AcServerPluginBase plugin in _plugins)
             {
                 try
                 {
-                    if (!plugin.OnConsoleCommand(cmd))
+                    if (!plugin.OnCommandEnteredBase(cmd))
                     {
                         break;
                     }
                 }
                 catch (Exception ex)
                 {
-                    OnError(ex);
+                    Log(ex);
                 }
             }
         }
@@ -336,27 +366,62 @@ namespace acPlugins4net
         public virtual void RequestCarInfo(byte carId)
         {
             var carInfoRequest = new RequestCarInfo() { CarId = carId };
-            _UDP.TrySend(carInfoRequest.ToBinary());
+            _UDP.Send(carInfoRequest.ToBinary());
+            if (LogServerRequests > 0)
+            {
+                LogRequestToServer(carInfoRequest);
+            }
         }
 
         public virtual void BroadcastChatMessage(string msg)
         {
             var chatRequest = new RequestBroadcastChat() { ChatMessage = msg };
-            _UDP.TrySend(chatRequest.ToBinary());
+            _UDP.Send(chatRequest.ToBinary());
+            if (LogServerRequests > 0)
+            {
+                LogRequestToServer(chatRequest);
+            }
         }
 
         public virtual void SendChatMessage(byte car_id, string msg)
         {
             var chatRequest = new RequestSendChat() { CarId = car_id, ChatMessage = msg };
-            _UDP.TrySend(chatRequest.ToBinary());
+            _UDP.Send(chatRequest.ToBinary());
+            if (LogServerRequests > 0)
+            {
+                LogRequestToServer(chatRequest);
+            }
         }
 
         public virtual void EnableRealtimeReport(UInt16 interval)
         {
             var enableRealtimeReportRequest = new RequestRealtimeInfo { Interval = interval };
-            _UDP.TrySend(enableRealtimeReportRequest.ToBinary());
+            _UDP.Send(enableRealtimeReportRequest.ToBinary());
+            if (LogServerRequests > 0)
+            {
+                LogRequestToServer(enableRealtimeReportRequest);
+            }
         }
 
         #endregion
+
+        #region for convenience ILog is implemented by plugin manager
+
+        public virtual void Log(string message)
+        {
+            Logger.Log(message);
+        }
+
+        public virtual void Log(Exception ex)
+        {
+            Logger.Log(ex);
+        }
+
+        #endregion
+
+        protected virtual void LogRequestToServer(PluginMessage msg)
+        {
+            Log("Sent Request: " + msg);
+        }
     }
 }

@@ -30,7 +30,7 @@ namespace acServerFake.viemodel
 
             OpenUDPConnection = new RelayCommand("Open UDP", (p) => 
             {
-                UDPServer.Open(serverPort, pluginPort, MessageReceived, OnError);
+                UDPServer.Open(serverPort, "127.0.0.1", pluginPort, MessageReceived, OnError);
             });
         }
 

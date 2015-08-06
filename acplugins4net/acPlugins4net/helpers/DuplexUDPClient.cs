@@ -115,13 +115,28 @@ namespace acPlugins4net.helpers
             }
         }
 
-        public bool TrySend(byte[] typeByte)
+        public int Send(byte[] dgram)
+        {
+            return Send(dgram, dgram.Length);
+        }
+
+        public int Send(byte[] dgram, int bytes)
         {
             if (_plugin == null)
                 throw new Exception("TrySend: UdpClient missing, please open first");
+            return _plugin.Send(dgram, bytes);
+        }
+
+        public bool TrySend(byte[] dgram)
+        {
+            try
             {
-                _plugin.Send(typeByte, typeByte.Length);
-                return true;
+                return Send(dgram) == dgram.Length;
+            }
+            catch (Exception ex)
+            {
+                ErrorHandler(ex);
+                return false;
             }
         }
     }

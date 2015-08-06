@@ -10,14 +10,13 @@ using System.Threading.Tasks;
 
 namespace acPlugins4net
 {
-    public abstract class AcServerPluginNew : MD5Hashable, IAcServerPlugin
+    public abstract class AcServerPluginNew : AcServerPluginBase
     {
-        public string PluginName { get; set; }
-
-        protected AcServerPluginManager pluginManager { get; private set; }
+        public AcServerPluginManager PluginManager { get; private set; }
 
         public IConfigManager Config { get; private set; }
-        protected internal byte[] _fingerprint = null;
+
+        protected internal byte[] _fingerprint;
 
         #region Cache and Helpers
 
@@ -26,60 +25,59 @@ namespace acPlugins4net
 
         #endregion
 
-        public AcServerPluginNew()
+        protected AcServerPluginNew(string pluginName = null)
+            : base(pluginName)
         {
-            PluginName = "Unnamed plugin";
         }
 
-        #region explicit implementations of IAcServerPlugin interface - usually a call of base.EventHandler(), but this one is more secure
+        #region sealed overrides of BaseAcServerPlugin methods - usually a call of base.EventHandler(), but this one is more secure
 
-        void IAcServerPlugin.OnInit(AcServerPluginManager manager)
+        protected internal sealed override void OnInitBase(AcServerPluginManager manager)
         {
-            pluginManager = manager;
+            PluginManager = manager;
             Config = manager.Config;
             _CarInfo = new ConcurrentDictionary<int, MsgCarInfo>(10, 64);
             _fingerprint = Hash(Config.GetSetting("ac_server_directory") + Config.GetSetting("acServer_port"));
-            manager.Log.Log("Track/Layout is " + manager.Track + "[" + manager.TrackLayout + "] (by workaround)");
-            OnInit(manager);
+            OnInit();
         }
 
-        void IAcServerPlugin.OnConnected()
+        protected internal sealed override void OnConnectedBase()
         {
             OnConnected();
         }
 
-        void IAcServerPlugin.OnDisconnected()
+        protected internal sealed override void OnDisconnectedBase()
         {
             OnDisconnected();
         }
 
         /// <summary>
-        /// Called when a console command was entered.
+        /// Called when a command was entered.
         /// </summary>
-        /// <param name="cmd">The console command.</param>
-        /// <returns>Whether the command should be send to the next plugin.</returns>
-        bool IAcServerPlugin.OnConsoleCommand(string cmd)
+        /// <param name="cmd">The command.</param>
+        /// <returns>Whether the command should be passed to the next plugin.</returns>
+        protected internal sealed override bool OnCommandEnteredBase(string cmd)
         {
-            return OnConsoleCommand(cmd);
+            return OnCommandEntered(cmd);
         }
 
-        void IAcServerPlugin.OnNewSession(MsgNewSession msg)
+        protected internal sealed override void OnNewSessionBase(MsgNewSession msg)
         {
             CarInfo.Clear();
-            for (byte i = 0; i < pluginManager.MaxClients; i++)
+            for (byte i = 0; i < PluginManager.MaxClients; i++)
             {
-                pluginManager.RequestCarInfo(i);
+                PluginManager.RequestCarInfo(i);
             }
             OnNewSession(msg);
         }
 
-        void IAcServerPlugin.OnCarInfo(MsgCarInfo msg)
+        protected internal sealed override void OnCarInfoBase(MsgCarInfo msg)
         {
             _CarInfo.AddOrUpdate(msg.CarId, msg, (key, val) => val);
             OnCarInfo(msg);
         }
 
-        void IAcServerPlugin.OnNewConnection(MsgNewConnection msg)
+        protected internal sealed override void OnNewConnectionBase(MsgNewConnection msg)
         {
             var carInfo = new MsgCarInfo()
             {
@@ -94,7 +92,7 @@ namespace acPlugins4net
             OnNewConnection(msg);
         }
 
-        void IAcServerPlugin.OnConnectionClosed(MsgConnectionClosed msg)
+        protected internal sealed override void OnConnectionClosedBase(MsgConnectionClosed msg)
         {
             var carInfo = new MsgCarInfo()
             {
@@ -109,22 +107,22 @@ namespace acPlugins4net
             OnConnectionClosed(msg);
         }
 
-        void IAcServerPlugin.OnSessionEnded(MsgSessionEnded msg)
+        protected internal sealed override void OnSessionEndedBase(MsgSessionEnded msg)
         {
             OnSessionEnded(msg);
         }
 
-        void IAcServerPlugin.OnCarUpdate(MsgCarUpdate msg)
+        protected internal sealed override void OnCarUpdateBase(MsgCarUpdate msg)
         {
             OnCarUpdate(msg);
         }
 
-        void IAcServerPlugin.OnLapCompleted(MsgLapCompleted msg)
+        protected internal sealed override void OnLapCompletedBase(MsgLapCompleted msg)
         {
             OnLapCompleted(msg);
         }
 
-        void IAcServerPlugin.OnCollision(MsgClientEvent msg)
+        protected internal sealed override void OnCollisionBase(MsgClientEvent msg)
         {
             OnCollision(msg);
         }
@@ -134,13 +132,19 @@ namespace acPlugins4net
         #region overridable event handlers
 
         /// <summary>
-        /// Called when a console command was entered.
+        /// Called when a command was entered.
         /// </summary>
-        /// <param name="cmd">The console command.</param>
-        /// <returns>Whether the command should be send to the next plugin.</returns>
-        public virtual bool OnConsoleCommand(string cmd) { return true; }
+        /// <param name="cmd">The command.</param>
+        /// <returns>Whether the command should be passed to the next plugin.</returns>
+        public virtual bool OnCommandEntered(string cmd)
+        {
+#pragma warning disable 618
+            OnConsoleCommand(cmd); // obviously remove these lines when workarounds are no longer needed
+#pragma warning restore 618
+            return true;
+        }
 
-        public virtual void OnInit(AcServerPluginManager manager) { }
+        public virtual void OnInit() { }
         public virtual void OnConnected() { }
         public virtual void OnDisconnected() { }
 
@@ -155,25 +159,40 @@ namespace acPlugins4net
 
         #endregion
 
-        #region Requests to the AcServer (might be removed because they are implemented in AcPluginManager (without Console.WriteLine))
+        #region workarounds so that plugins developed with old AcServerPlugin are compiling
 
+        [Obsolete("Use PluginManager.BroadcastChatMessage instead")]
         protected internal void BroadcastChatMessage(string msg)
         {
-            this.pluginManager.BroadcastChatMessage(msg);
-            Console.WriteLine("Broadcasted '{0}'", msg);
+            this.PluginManager.BroadcastChatMessage(msg);
         }
 
+        [Obsolete("Use PluginManager.SendChatMessage instead")]
         protected internal void SendChatMessage(byte car_id, string msg)
         {
-            this.pluginManager.SendChatMessage(car_id, msg);
-            Console.WriteLine("Sent chat message '{1}' to car {0}", car_id, msg);
+            this.PluginManager.SendChatMessage(car_id, msg);
         }
 
+        [Obsolete("Use PluginManager.EnableRealtimeReport instead")]
         protected internal void EnableRealtimeReport(UInt16 interval)
         {
-            this.pluginManager.EnableRealtimeReport(interval);
-            Console.WriteLine("Realtime pos interval now set to: {0} ms", interval);
+            this.PluginManager.EnableRealtimeReport(interval);
         }
+
+        [Obsolete("Only for compatibility with plugins developed for old AcServerPlugin, override OnCommandEntered instead")]
+        public virtual void OnConsoleCommand(string cmd) { }
+
+        [Obsolete("Use PluginManager.ServerName instead")]
+        public string Servername { get { return PluginManager.ServerName; } }
+
+        [Obsolete("Use PluginManager.Track instead")]
+        public string Track { get { return PluginManager.Track; } }
+
+        [Obsolete("Use PluginManager.TrackLayout instead")]
+        public string TrackLayout { get { return PluginManager.TrackLayout; } }
+
+        [Obsolete("Use PluginManager.MaxClients instead")]
+        public int MaxClients { get { return PluginManager.MaxClients; } }
 
         #endregion
     }

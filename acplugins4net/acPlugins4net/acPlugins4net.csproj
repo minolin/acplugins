@@ -46,15 +46,18 @@
     <Compile Include="AcServerPluginManager.cs" />
     <Compile Include="configuration\AppConfigConfigurator.cs" />
     <Compile Include="configuration\IConfigManager.cs" />
+    <Compile Include="ExternalPluginInfo.cs" />
     <Compile Include="helpers\AcMessageParser.cs" />
     <Compile Include="helpers\ConsoleLogger.cs" />
     <Compile Include="helpers\DuplexUDPClient.cs" />
     <Compile Include="AcServerPlugin.cs" />
     <Compile Include="AcServerPluginNew.cs" />
+    <Compile Include="helpers\IFileLog.cs" />
     <Compile Include="helpers\ILog.cs" />
+    <Compile Include="helpers\FileLogWriter.cs" />
     <Compile Include="helpers\MD5Hashable.cs" />
     <Compile Include="helpers\WorkaroundHelper.cs" />
-    <Compile Include="IAcServerPlugin.cs" />
+    <Compile Include="AcServerPluginBase.cs" />
     <Compile Include="messages\MsgCarInfo.cs" />
     <Compile Include="messages\MsgCarUpdate.cs" />
     <Compile Include="messages\MsgClientEvent.cs" />
@@ -71,7 +74,7 @@
     <Compile Include="kunos\ACSProtocol.cs" />
     <Compile Include="messages\MsgNewSession.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="helpers\RunPluginInConsole.cs" />
+    <Compile Include="RunPluginInConsole.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
