@@ -19,7 +19,18 @@ namespace acPlugins4net.messages
         public MsgClientEvent()
             : base(ACSProtocol.MessageType.ACSP_CLIENT_EVENT)
         {
-            
+        }
+
+
+        public MsgClientEvent(MsgClientEvent copy)
+            : base(ACSProtocol.MessageType.ACSP_CLIENT_EVENT)
+        {
+            Subtype = copy.Subtype;
+            CarId = copy.CarId;
+            OtherCarId = copy.OtherCarId;
+            RelativeVelocity = copy.RelativeVelocity;
+            WorldPosition = copy.WorldPosition; // wrong, should really copy this
+            RelativePosition = copy.RelativePosition;// wrong, should really copy this
         }
 
         protected internal override void Serialize(System.IO.BinaryWriter bw)
@@ -28,7 +39,7 @@ namespace acPlugins4net.messages
             bw.Write(CarId);
             if (Subtype == (byte)ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_CAR)
                 bw.Write(OtherCarId);
-            
+
             bw.Write(RelativeVelocity);
 
             writeVector3f(bw, WorldPosition);

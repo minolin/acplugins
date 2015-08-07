@@ -92,7 +92,10 @@
     <None Include="Service References\minoRatingServer\minorating3.xsd">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Service References\minoRatingServer\MinoRatingPlugin.minoRatingServer.CollisionReaction.datasource">
+    <None Include="Service References\minoRatingServer\minorating4.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\minoRatingServer\MinoRatingPlugin.minoRatingServer.PluginReaction.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\minoRatingServer\Reference.svcmap">

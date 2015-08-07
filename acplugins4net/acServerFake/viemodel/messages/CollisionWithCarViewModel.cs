@@ -12,6 +12,8 @@ namespace acServerFake.viemodel.messages
 {
     public class CollisionWithCarViewModel : BaseMessageViewModel<MsgClientEvent>
     {
+        public bool DoubleSend { get; set; } = true;
+
         public override string MsgCaption
         {
             get { return "Collision (cars)"; }
@@ -25,6 +27,18 @@ namespace acServerFake.viemodel.messages
             Message.WorldPosition = PluginMessage.Vector3f.RandomBig();
             Message.RelativeVelocity = 15.0f;
             Message.Subtype = (byte)ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_CAR;
+        }
+
+        public override void SendMessage(MsgClientEvent Message)
+        {
+            base.SendMessage(Message);
+            if(DoubleSend)
+            {
+                var copy = new MsgClientEvent(Message);
+                copy.CarId = Message.OtherCarId;
+                copy.OtherCarId = Message.CarId;
+                ServerViewModel.Instance.SendMessage(copy);
+            }
         }
     }
 }

@@ -17,7 +17,7 @@ namespace MinoRatingPlugin
         public string TrustToken { get; set; }
         public Guid CurrentSessionGuid { get; set; }
         private bool _sessionIdPending = false;
-        public static Version PluginVersion = new Version(0, 3, 0);
+        public static Version PluginVersion = new Version(0, 3, 2);
 
         private void WaitForCleanSessionId()
         {
@@ -79,8 +79,6 @@ namespace MinoRatingPlugin
             Console.WriteLine("===============================");
             CurrentSessionGuid = LiveDataServer.NewSession(CurrentSessionGuid, Servername, Track + "[" + TrackLayout + "]", msg.SessionType, msg.Laps, msg.WaitTime, msg.TimeOfDay, msg.AmbientTemp, msg.RoadTemp, TrustToken, _fingerprint);
             _sessionIdPending = false;
-
-            BroadcastChatMessage("This server is observed by www.minorating.com - stay clean & have fun");
         }
 
         public override void OnNewConnection(MsgNewConnection msg)
@@ -113,7 +111,9 @@ namespace MinoRatingPlugin
             else
             {
                 Console.WriteLine("LapCompleted by " + driver.DriverName + ": " + TimeSpan.FromMilliseconds(msg.Laptime));
-                var result = LiveDataServer.LapCompleted(CurrentSessionGuid, msg.CarId, driver.DriverGuid, msg.Laptime, msg.Cuts, msg.GripLevel, ConvertLB(msg.Leaderboard), TrustToken);
+                var actions = LiveDataServer.LapCompleted(CurrentSessionGuid, msg.CarId, driver.DriverGuid, msg.Laptime, msg.Cuts, msg.GripLevel, ConvertLB(msg.Leaderboard), TrustToken);
+                Console.WriteLine("" + actions.Length + " actions returned");
+                HandleClientActions(actions);
             }
         }
 
@@ -138,6 +138,7 @@ namespace MinoRatingPlugin
                             break;
                         }
                     }
+                    Console.WriteLine("" + DateTime.Now.TimeOfDay + " OnCollision (" + msg.CarId + "vs" + msg.OtherCarId + "), contantTrees.Count=" + contactTrees.Count + ", partOfATree=" + partOfATree);
 
                     if (!partOfATree)
                     {
@@ -146,8 +147,8 @@ namespace MinoRatingPlugin
                     }
                 }
 
-                Console.WriteLine("Collision occured!!! " + msg.CarId + " vs. " + msg.OtherCarId);
-                var result = LiveDataServer.Collision(CurrentSessionGuid, msg.CarId, msg.OtherCarId, msg.RelativeVelocity, 0.667234f, msg.RelativePosition.x, msg.RelativePosition.z, msg.WorldPosition.x, msg.WorldPosition.z, TrustToken);
+                var actions = LiveDataServer.Collision(CurrentSessionGuid, msg.CarId, msg.OtherCarId, msg.RelativeVelocity, 0.667234f, msg.RelativePosition.x, msg.RelativePosition.z, msg.WorldPosition.x, msg.WorldPosition.z, TrustToken);
+                HandleClientActions(actions);
             }
             else
             {
@@ -158,21 +159,45 @@ namespace MinoRatingPlugin
 
         private void EvaluateContactTree(CollisionBag bag)
         {
+            var actions = LiveDataServer.CollisionTreeEnded(CurrentSessionGuid, bag.First, bag.Second, bag.Count, bag.Started, bag.LastCollision, TrustToken);
+            HandleClientActions(actions);
             lock (contactTrees)
                 contactTrees.Remove(bag);
+        }
 
-            var actions = LiveDataServer.CollisionTreeEnded(CurrentSessionGuid, bag.First, bag.Second, bag.Count, bag.Started, bag.LastCollision, TrustToken);
+        private void HandleClientActions(PluginReaction[] actions)
+        {
             foreach (var a in actions)
             {
-                // TODO switch (a.Reaction)
-                Console.WriteLine("Action for car " + a.CarId + ": " + a.Reaction + " " + a.Text);
+                if (string.IsNullOrEmpty(a.Text))
+                    a.Text = "";
 
-                if(!string.IsNullOrEmpty(a.Text))
-                if(a.Reaction == CollisionReaction.ReactionType.Whisper)
+                if (a.Delay == 0)
+                {
+                    ExecuteAction(a);
+                }
+                else
+                {
+                    new Thread(() =>
+                    {
+                        Thread.Sleep(a.Delay);
+                        ExecuteAction(a);
+                    }).Start();
+                }
+            }
+        }
+
+        private void ExecuteAction(PluginReaction a)
+        {
+            try
+            {
+                Console.WriteLine("Action for car " + a.CarId + ": " + a.Reaction + " " + a.Text);
+                if (a.Reaction == PluginReaction.ReactionType.Whisper)
                     SendChatMessage(a.CarId, a.Text);
-                else if (a.Reaction == CollisionReaction.ReactionType.Broadcast)
+                else if (a.Reaction == PluginReaction.ReactionType.Broadcast)
                     BroadcastChatMessage(a.Text);
             }
+            catch (Exception) { }
         }
 
         // We have to convert the acPlugins4net-Leaderboard to a minoRating one. This is pretty stupid mapping

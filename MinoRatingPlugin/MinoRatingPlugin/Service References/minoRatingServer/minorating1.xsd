@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import schemaLocation="http://localhost:805/minorating?xsd=xsd3" namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
   <xs:complexType name="ArrayOfLeaderboardEntry">
     <xs:sequence>
       <xs:element minOccurs="0" maxOccurs="unbounded" name="LeaderboardEntry" nillable="true" type="tns:LeaderboardEntry" />
@@ -16,23 +17,25 @@
     </xs:sequence>
   </xs:complexType>
   <xs:element name="LeaderboardEntry" nillable="true" type="tns:LeaderboardEntry" />
-  <xs:complexType name="ArrayOfCollisionReaction">
+  <xs:complexType name="ArrayOfPluginReaction">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="CollisionReaction" nillable="true" type="tns:CollisionReaction" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="PluginReaction" nillable="true" type="tns:PluginReaction" />
     </xs:sequence>
   </xs:complexType>
-  <xs:element name="ArrayOfCollisionReaction" nillable="true" type="tns:ArrayOfCollisionReaction" />
-  <xs:complexType name="CollisionReaction">
+  <xs:element name="ArrayOfPluginReaction" nillable="true" type="tns:ArrayOfPluginReaction" />
+  <xs:complexType name="PluginReaction">
     <xs:sequence>
       <xs:element minOccurs="0" name="CarId" type="xs:unsignedByte" />
+      <xs:element minOccurs="0" name="Delay" type="xs:int" />
       <xs:element minOccurs="0" name="Name" nillable="true" type="xs:string" />
-      <xs:element minOccurs="0" name="Reaction" type="tns:CollisionReaction.ReactionType" />
+      <xs:element xmlns:q1="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="Parameters" nillable="true" type="q1:ArrayOfanyType" />
+      <xs:element minOccurs="0" name="Reaction" type="tns:PluginReaction.ReactionType" />
       <xs:element minOccurs="0" name="SteamId" nillable="true" type="xs:string" />
       <xs:element minOccurs="0" name="Text" nillable="true" type="xs:string" />
     </xs:sequence>
   </xs:complexType>
-  <xs:element name="CollisionReaction" nillable="true" type="tns:CollisionReaction" />
-  <xs:simpleType name="CollisionReaction.ReactionType">
+  <xs:element name="PluginReaction" nillable="true" type="tns:PluginReaction" />
+  <xs:simpleType name="PluginReaction.ReactionType">
     <xs:restriction base="xs:string">
       <xs:enumeration value="None" />
       <xs:enumeration value="Whisper" />
@@ -43,5 +46,5 @@
       <xs:enumeration value="Ban" />
     </xs:restriction>
   </xs:simpleType>
-  <xs:element name="CollisionReaction.ReactionType" nillable="true" type="tns:CollisionReaction.ReactionType" />
+  <xs:element name="PluginReaction.ReactionType" nillable="true" type="tns:PluginReaction.ReactionType" />
 </xs:schema>

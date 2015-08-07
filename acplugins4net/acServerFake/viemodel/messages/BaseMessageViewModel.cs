@@ -18,8 +18,13 @@ namespace acServerFake.viemodel.messages
 
             SendCommand = new RelayCommand("Send", (p) =>
             {
-                ServerViewModel.Instance.SendMessage(Message);
+                SendMessage(Message);
             });
+        }
+
+        public virtual void SendMessage(T Message)
+        {
+            ServerViewModel.Instance.SendMessage(Message);
         }
     }
 }

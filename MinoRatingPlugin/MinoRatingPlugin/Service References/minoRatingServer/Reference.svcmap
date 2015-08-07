@@ -23,6 +23,7 @@
   </MetadataSources>
   <Metadata>
     <MetadataFile FileName="minorating2.xsd" MetadataType="Schema" ID="075926d3-71fb-4845-ab7b-67ddd918f784" SourceId="1" SourceUrl="http://localhost:805/minorating?xsd=xsd1" />
+    <MetadataFile FileName="minorating4.xsd" MetadataType="Schema" ID="95aa2cb4-a6bd-4dbe-99b9-d30520f67377" SourceId="1" SourceUrl="http://localhost:805/minorating?xsd=xsd4" />
     <MetadataFile FileName="LiveDataDump.wsdl" MetadataType="Wsdl" ID="e8bd5f60-1a45-4306-83ad-61ab70c6e4f2" SourceId="1" SourceUrl="http://localhost:805/minorating?wsdl" />
     <MetadataFile FileName="minorating1.xsd" MetadataType="Schema" ID="92b28ec9-7e85-4e77-806b-8b265abdd8e2" SourceId="1" SourceUrl="http://localhost:805/minorating?xsd=xsd2" />
     <MetadataFile FileName="minorating.disco" MetadataType="Disco" ID="750de7f6-e21b-453c-9980-b71d71551add" SourceId="1" SourceUrl="http://localhost:805/minorating?disco" />

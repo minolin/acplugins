@@ -36,7 +36,6 @@ namespace MinoRatingPlugin
             {
                 try
                 {
-
                     while (true)
                     {
                         var secondsToMaximum = DateTime.Now.Subtract(bag.Started).TotalSeconds;
@@ -45,8 +44,10 @@ namespace MinoRatingPlugin
                         if (secondsToMaximum > MaximumTreeDurationSeconds || secondsToRefresh > TreeRefreshSeconds)
                             break;
 
-                        Thread.Sleep((int)((TreeRefreshSeconds - secondsToRefresh) * 1000) + 100);
+                        var duration = (TreeRefreshSeconds - secondsToRefresh) * 1000 + 100;
+                        Thread.Sleep((int)(duration));
                     }
+                    Console.WriteLine("" + DateTime.Now.TimeOfDay + ": Collision bag finished (" + carId + " vs. " + otherCarId + ")");
                     evaluateContactTree(bag);
                 }
                 catch (Exception)
@@ -96,7 +97,6 @@ namespace MinoRatingPlugin
 
             // And: The wreckfest goes on, so we'll notice the this occurance (see TreeRefreshSeconds)
             LastCollision = DateTime.Now;
-
             return true;
         }
     }

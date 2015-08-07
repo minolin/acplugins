@@ -124,9 +124,15 @@ namespace MinoRatingPlugin.minoRatingServer {
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
-    [System.Runtime.Serialization.DataContractAttribute(Name="CollisionReaction", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy")]
+    [System.Runtime.Serialization.DataContractAttribute(Name="PluginReaction", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy")]
     [System.SerializableAttribute()]
-    public partial class CollisionReaction : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
+    [System.Runtime.Serialization.KnownTypeAttribute(typeof(System.Version))]
+    [System.Runtime.Serialization.KnownTypeAttribute(typeof(MinoRatingPlugin.minoRatingServer.LeaderboardEntry[]))]
+    [System.Runtime.Serialization.KnownTypeAttribute(typeof(MinoRatingPlugin.minoRatingServer.LeaderboardEntry))]
+    [System.Runtime.Serialization.KnownTypeAttribute(typeof(MinoRatingPlugin.minoRatingServer.PluginReaction[]))]
+    [System.Runtime.Serialization.KnownTypeAttribute(typeof(MinoRatingPlugin.minoRatingServer.PluginReaction.ReactionType))]
+    [System.Runtime.Serialization.KnownTypeAttribute(typeof(object[]))]
+    public partial class PluginReaction : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
         
         [System.NonSerializedAttribute()]
         private System.Runtime.Serialization.ExtensionDataObject extensionDataField;
@@ -135,10 +141,16 @@ namespace MinoRatingPlugin.minoRatingServer {
         private byte CarIdField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private int DelayField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
         private string NameField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
-        private MinoRatingPlugin.minoRatingServer.CollisionReaction.ReactionType ReactionField;
+        private object[] ParametersField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private MinoRatingPlugin.minoRatingServer.PluginReaction.ReactionType ReactionField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
         private string SteamIdField;
@@ -170,6 +182,19 @@ namespace MinoRatingPlugin.minoRatingServer {
         }
         
         [System.Runtime.Serialization.DataMemberAttribute()]
+        public int Delay {
+            get {
+                return this.DelayField;
+            }
+            set {
+                if ((this.DelayField.Equals(value) != true)) {
+                    this.DelayField = value;
+                    this.RaisePropertyChanged("Delay");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
         public string Name {
             get {
                 return this.NameField;
@@ -183,7 +208,20 @@ namespace MinoRatingPlugin.minoRatingServer {
         }
         
         [System.Runtime.Serialization.DataMemberAttribute()]
-        public MinoRatingPlugin.minoRatingServer.CollisionReaction.ReactionType Reaction {
+        public object[] Parameters {
+            get {
+                return this.ParametersField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.ParametersField, value) != true)) {
+                    this.ParametersField = value;
+                    this.RaisePropertyChanged("Parameters");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public MinoRatingPlugin.minoRatingServer.PluginReaction.ReactionType Reaction {
             get {
                 return this.ReactionField;
             }
@@ -231,7 +269,7 @@ namespace MinoRatingPlugin.minoRatingServer {
         }
         
         [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
-        [System.Runtime.Serialization.DataContractAttribute(Name="CollisionReaction.ReactionType", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy")]
+        [System.Runtime.Serialization.DataContractAttribute(Name="PluginReaction.ReactionType", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy")]
         public enum ReactionType : int {
             
             [System.Runtime.Serialization.EnumMemberAttribute()]
@@ -292,22 +330,22 @@ namespace MinoRatingPlugin.minoRatingServer {
         System.Threading.Tasks.Task ClosedConnectionAsync(System.Guid sessionId, int carId, string car, string name, string driverId, string token);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/LapCompleted", ReplyAction="http://tempuri.org/ILiveDataDump/LapCompletedResponse")]
-        byte[] LapCompleted(System.Guid sessionId, int car, string driver, uint laptime, int cuts, float grip, MinoRatingPlugin.minoRatingServer.LeaderboardEntry[] leaderboard, string token);
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] LapCompleted(System.Guid sessionId, int car, string driver, uint laptime, int cuts, float grip, MinoRatingPlugin.minoRatingServer.LeaderboardEntry[] leaderboard, string token);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/LapCompleted", ReplyAction="http://tempuri.org/ILiveDataDump/LapCompletedResponse")]
-        System.Threading.Tasks.Task<byte[]> LapCompletedAsync(System.Guid sessionId, int car, string driver, uint laptime, int cuts, float grip, MinoRatingPlugin.minoRatingServer.LeaderboardEntry[] leaderboard, string token);
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> LapCompletedAsync(System.Guid sessionId, int car, string driver, uint laptime, int cuts, float grip, MinoRatingPlugin.minoRatingServer.LeaderboardEntry[] leaderboard, string token);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/Collision", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionResponse")]
-        byte[] Collision(System.Guid sessionId, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z, string token);
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] Collision(System.Guid sessionId, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z, string token);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/Collision", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionResponse")]
-        System.Threading.Tasks.Task<byte[]> CollisionAsync(System.Guid sessionId, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z, string token);
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> CollisionAsync(System.Guid sessionId, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z, string token);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/CollisionTreeEnded", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionTreeEndedResponse")]
-        MinoRatingPlugin.minoRatingServer.CollisionReaction[] CollisionTreeEnded(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended, string token);
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] CollisionTreeEnded(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended, string token);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/CollisionTreeEnded", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionTreeEndedResponse")]
-        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.CollisionReaction[]> CollisionTreeEndedAsync(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended, string token);
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> CollisionTreeEndedAsync(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended, string token);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/RandomCarInfo", ReplyAction="http://tempuri.org/ILiveDataDump/RandomCarInfoResponse")]
         void RandomCarInfo(System.Guid sessionId, int carId, string car, string name, string driverId, string token);
@@ -389,27 +427,27 @@ namespace MinoRatingPlugin.minoRatingServer {
             return base.Channel.ClosedConnectionAsync(sessionId, carId, car, name, driverId, token);
         }
         
-        public byte[] LapCompleted(System.Guid sessionId, int car, string driver, uint laptime, int cuts, float grip, MinoRatingPlugin.minoRatingServer.LeaderboardEntry[] leaderboard, string token) {
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] LapCompleted(System.Guid sessionId, int car, string driver, uint laptime, int cuts, float grip, MinoRatingPlugin.minoRatingServer.LeaderboardEntry[] leaderboard, string token) {
             return base.Channel.LapCompleted(sessionId, car, driver, laptime, cuts, grip, leaderboard, token);
         }
         
-        public System.Threading.Tasks.Task<byte[]> LapCompletedAsync(System.Guid sessionId, int car, string driver, uint laptime, int cuts, float grip, MinoRatingPlugin.minoRatingServer.LeaderboardEntry[] leaderboard, string token) {
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> LapCompletedAsync(System.Guid sessionId, int car, string driver, uint laptime, int cuts, float grip, MinoRatingPlugin.minoRatingServer.LeaderboardEntry[] leaderboard, string token) {
             return base.Channel.LapCompletedAsync(sessionId, car, driver, laptime, cuts, grip, leaderboard, token);
         }
         
-        public byte[] Collision(System.Guid sessionId, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z, string token) {
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] Collision(System.Guid sessionId, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z, string token) {
             return base.Channel.Collision(sessionId, car, otherCar, speed, splinepos, relativeX, relativeZ, x, z, token);
         }
         
-        public System.Threading.Tasks.Task<byte[]> CollisionAsync(System.Guid sessionId, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z, string token) {
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> CollisionAsync(System.Guid sessionId, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z, string token) {
             return base.Channel.CollisionAsync(sessionId, car, otherCar, speed, splinepos, relativeX, relativeZ, x, z, token);
         }
         
-        public MinoRatingPlugin.minoRatingServer.CollisionReaction[] CollisionTreeEnded(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended, string token) {
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] CollisionTreeEnded(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended, string token) {
             return base.Channel.CollisionTreeEnded(sessionId, car, otherCar, count, started, ended, token);
         }
         
-        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.CollisionReaction[]> CollisionTreeEndedAsync(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended, string token) {
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> CollisionTreeEndedAsync(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended, string token) {
             return base.Channel.CollisionTreeEndedAsync(sessionId, car, otherCar, count, started, ended, token);
         }
         
