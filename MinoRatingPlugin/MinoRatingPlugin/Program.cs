@@ -17,7 +17,7 @@ namespace MinoRatingPlugin
         public string TrustToken { get; set; }
         public Guid CurrentSessionGuid { get; set; }
         private bool _sessionIdPending = false;
-        public static Version PluginVersion = new Version(0, 1, 1);
+        public static Version PluginVersion = new Version(0, 3, 0);
 
         private void WaitForCleanSessionId()
         {
@@ -79,6 +79,8 @@ namespace MinoRatingPlugin
             Console.WriteLine("===============================");
             CurrentSessionGuid = LiveDataServer.NewSession(CurrentSessionGuid, Servername, Track + "[" + TrackLayout + "]", msg.SessionType, msg.Laps, msg.WaitTime, msg.TimeOfDay, msg.AmbientTemp, msg.RoadTemp, TrustToken, _fingerprint);
             _sessionIdPending = false;
+
+            BroadcastChatMessage("This server is observed by www.minorating.com - stay clean & have fun");
         }
 
         public override void OnNewConnection(MsgNewConnection msg)
@@ -164,6 +166,12 @@ namespace MinoRatingPlugin
             {
                 // TODO switch (a.Reaction)
                 Console.WriteLine("Action for car " + a.CarId + ": " + a.Reaction + " " + a.Text);
+
+                if(!string.IsNullOrEmpty(a.Text))
+                if(a.Reaction == CollisionReaction.ReactionType.Whisper)
+                    SendChatMessage(a.CarId, a.Text);
+                else if (a.Reaction == CollisionReaction.ReactionType.Broadcast)
+                    BroadcastChatMessage(a.Text);
             }
         }
 

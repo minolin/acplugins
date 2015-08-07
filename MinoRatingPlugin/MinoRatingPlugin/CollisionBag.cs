@@ -34,8 +34,25 @@ namespace MinoRatingPlugin
             var bag = StartNew(carId, otherCarId);
             new Thread(() =>
             {
-                Thread.Sleep(MaximumTreeDurationSeconds * 1000 + 1);
-                evaluateContactTree(bag);
+                try
+                {
+
+                    while (true)
+                    {
+                        var secondsToMaximum = DateTime.Now.Subtract(bag.Started).TotalSeconds;
+                        var secondsToRefresh = DateTime.Now.Subtract(bag.LastCollision).TotalSeconds;
+
+                        if (secondsToMaximum > MaximumTreeDurationSeconds || secondsToRefresh > TreeRefreshSeconds)
+                            break;
+
+                        Thread.Sleep((int)((TreeRefreshSeconds - secondsToRefresh) * 1000) + 100);
+                    }
+                    evaluateContactTree(bag);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("Exception in Collision bag for " + carId + "/" + otherCarId);
+                }
             }).Start();
 
             return bag;
