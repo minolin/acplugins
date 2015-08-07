@@ -1,6 +1,6 @@
 from threading import Thread
 import socket, time, select
-import ac_server_protocol
+from . import ac_server_protocol
 
 class ACServerPlugin:
 

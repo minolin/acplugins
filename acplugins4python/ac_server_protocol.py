@@ -1,4 +1,4 @@
-from ac_server_helpers import *
+from .ac_server_helpers import *
 
 __all__ = ["NewSession","CollisionEnv","CollisionCar","CarInfo","CarUpdate","NewConnection","ConnectionClosed","LapCompleted"]
 
@@ -24,7 +24,7 @@ class NewSession(GenericPacket):
     _content = (
         ('name', Ascii),
         ('sessionType', Uint8),
-        ('timeOfDay', Uint16),
+        ('sessionTime', Uint16),
         ('laps', Uint16),
         ('waittime', Uint16),
         ('ambientTemp', Uint8),
