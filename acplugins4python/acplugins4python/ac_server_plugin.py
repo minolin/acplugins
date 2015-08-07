@@ -70,9 +70,9 @@ class ACServerPlugin:
             self.proxySocket.bind( (serverIP, proxySendPort) )
             # set up a 0.5s pulse, need this to be able to Ctrl-C the python apps
             self.proxySocket.settimeout(0.5)
-            self.proxySocket = Thread(target=self._performProxy)
-            self.proxySocket.daemon=True
-            self.proxySocket.start()
+            self.proxySocketThread = Thread(target=self._performProxy)
+            self.proxySocketThread.daemon=True
+            self.proxySocketThread.start()
         else:
             self.proxySocket = None
             
@@ -159,54 +159,3 @@ def print_event(x, v = None, indent = "  "):
             if not v is None: s += str(v)
             print(s)
                 
-if __name__ == "__main__":
-    # example usage
-    import sys, time
-    from ac_server_protocol import *
-    
-    # this callback will be called after receiving an AC event
-    def callback(event):
-    
-        if type(event) == NewSession:
-            print("NewSession:")
-            s.enableRealtimeReport(1000)
-            # access the event data with 
-            # event.name, event.laps, etc. see the ac_server_protocol.py for the event definitions
-            # in this example we print all available attributes of the received events
-        elif type(event) == CollisionEnv:
-            print("CollisionEnv")
-        elif type(event) == CollisionCar:
-            print("CollisionCar")
-        elif type(event) == CarInfo:
-            print("CarInfo")
-        elif type(event) == CarUpdate:
-            print("CarUpdate")
-        elif type(event) == NewConnection:
-            print("NewConnection")
-        elif type(event) == ConnectionClosed:
-            print("ConnectionClosed")
-        elif type(event) == LapCompleted:
-            print("LapCompleted")
-        print_event(event)
-
-    # create the server plugin handling the UDP interface
-    s = ACServerPlugin(int(sys.argv[1]), int(sys.argv[2]), callback, 
-                       None if len(sys.argv)<4 else int(sys.argv[3]), 
-                       None if len(sys.argv)<5 else int(sys.argv[4]))
-    # request the car info packet of carId=7
-    s.getCarInfo(7)
-    # process server packets for 5 seconds
-    s.processServerPackets(5)
-    # enable the realtime report with 1000ms cycle time (1Hz)
-    s.enableRealtimeReport(1000)
-    # process server packets for 5 seconds
-    s.processServerPackets(5)
-    # send chat message to carId=7
-    s.sendChat(7, "Hello 7")
-    # process server packets for 5 seconds    
-    s.processServerPackets(5)
-    # send chat message to all cars
-    s.broadcastChat("Hello all")
-    # process server packets forever 
-    s.processServerPackets()
-    
