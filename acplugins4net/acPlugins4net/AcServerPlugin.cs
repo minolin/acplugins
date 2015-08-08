@@ -10,140 +10,74 @@ using System.Threading.Tasks;
 
 namespace acPlugins4net
 {
-    public abstract class AcServerPlugin : MD5Hashable
+    public abstract class AcServerPlugin : AcServerPluginBase
     {
-        private readonly DuplexUDPClient _UDP;
-        public IConfigManager Config { get; private set; }
-        private WorkaroundHelper _Workarounds = null;
-        private ILog _log = null;
-        protected internal byte[] _fingerprint = null;
+        public AcServerPluginManager PluginManager { get; private set; }
 
-        public string PluginName { get; set; }
+        public IConfigManager Config { get; private set; }
+
+        protected internal byte[] _fingerprint;
 
         #region Cache and Helpers
-
-        public string Servername { get; private set; }
-        public string Track { get; private set; }
-        public string TrackLayout { get; private set; }
-        public int MaxClients { get; private set; }
 
         private ConcurrentDictionary<int, MsgCarInfo> _CarInfo = null;
         public IDictionary<int, MsgCarInfo> CarInfo { get { return _CarInfo; } }
 
-
         #endregion
 
-        public AcServerPlugin()
+        protected AcServerPlugin(string pluginName = null)
+            : base(pluginName)
         {
-            _UDP = new DuplexUDPClient();
-            PluginName = "Unnamed plugin";
-            _log = new ConsoleLogger();
-            Config = new AppConfigConfigurator();
-            _Workarounds = new WorkaroundHelper(Config);
+        }
+
+        #region sealed overrides of BaseAcServerPlugin methods - usually a call of base.EventHandler(), but this one is more secure
+
+        protected internal sealed override void OnInitBase(AcServerPluginManager manager)
+        {
+            PluginManager = manager;
+            Config = manager.Config;
             _CarInfo = new ConcurrentDictionary<int, MsgCarInfo>(10, 64);
-            _fingerprint = Hash(Config.GetSetting("ac_server_directory") + Config.GetSetting("acServer_port"));
-        }
-
-        public void RunUntilAborted()
-        {
-            _log.Log(PluginName + " starting up...");
-            Init();
-            _log.Log("Initialized, start UDP connection...");
-            Connect();
-            _log.Log("... ok, we're good to go.");
-
-            var input = Console.ReadLine();
-            while (input != "x" && input != "exit")
-            {
-                // Basically we're blocking the Main Thread until exit.
-                // Ugly, but pretty easy to use by the deriving Plugin
-
-                // To have a bit of functionality we'll let the server admin 
-                // type in commands that can be understood by the deriving plugin
-                if (!string.IsNullOrEmpty(input))
-                    OnConsoleCommand(input);
-
-                input = Console.ReadLine();
-            }
-
-            Disconnect();
-        }
-
-        private void Init()
-        {
-            Servername = _Workarounds.FindServerConfigEntry("NAME=");
-            Track = _Workarounds.FindServerConfigEntry("TRACK=");
-            TrackLayout = _Workarounds.FindServerConfigEntry("CONFIG_TRACK=");
-            _log.Log("Track/Layout is " + Track + "[" + TrackLayout + "] (by workaround)");
-            MaxClients = Convert.ToInt32(_Workarounds.FindServerConfigEntry("MAX_CLIENTS="));
-
+            _fingerprint = Hash(Config.GetSetting("ac_server_directory") + PluginManager.RemotePort);
             OnInit();
         }
 
-        public virtual void Connect()
+        protected internal sealed override void OnConnectedBase()
         {
-            // First we're getting the configured ports (read directly from the server_config.ini)
-            string acServerPortString = _Workarounds.FindServerConfigEntry("UDP_PLUGIN_LOCAL_PORT=");
-            string pluginPortString = _Workarounds.FindServerConfigEntry("UDP_PLUGIN_ADDRESS=");
-
-            #region determine the acServerPort with helpful error messages - this *will* be done wrong
-            if (string.IsNullOrWhiteSpace(acServerPortString) || acServerPortString == "0")
-                throw new Exception("There is no UDP_PLUGIN_LOCAL_PORT defined in the server_config.ini - check the file and the path in the <plugin>.exe.config");
-
-            int acServerPort;
-            if(!int.TryParse(acServerPortString, out acServerPort))
-                throw new Exception("Error in server_config.ini: UDP_PLUGIN_LOCAL_PORT=" + acServerPortString + " is not a valid port - check the file and the path in the <plugin>.exe.config");
-            #endregion
-
-            #region the same for the plugin port - including a restriction to localhost (see http://www.assettocorsa.net/forum/index.php?threads/about-that-maybe-server-api.24360/page-8#post-507070)
-            if (string.IsNullOrWhiteSpace(pluginPortString))
-                throw new Exception("There is no UDP_PLUGIN_ADDRESS defined in the server_config.ini - check the file and the path in the <plugin>.exe.config");
-
-            if(!pluginPortString.StartsWith("127.0.0.1:"))
-                throw new Exception("The UDP_PLUGIN_ADDRESS (defined in the server_config.ini) must referenced locally, that is 127.0.0.1:<port> - check the file and the path in the <plugin>.exe.config");
-
-            int pluginPort;
-            if(!int.TryParse(pluginPortString.Replace("127.0.0.1:", ""), out pluginPort))
-                throw new Exception("Error in server_config.ini: UDP_PLUGIN_ADDRESS=" + pluginPortString + " is not a valid port - check the file and the path in the <plugin>.exe.config");
-            #endregion
-
-            _UDP.Open(pluginPort, acServerPort, MessageReceived, OnError);
+            OnConnected();
         }
 
-        public virtual void Disconnect()
+        protected internal sealed override void OnDisconnectedBase()
         {
-            _UDP.Close();
+            OnDisconnected();
         }
 
-        protected virtual void OnError(Exception ex)
+        /// <summary>
+        /// Called when a command was entered.
+        /// </summary>
+        /// <param name="cmd">The command.</param>
+        /// <returns>Whether the command should be passed to the next plugin.</returns>
+        protected internal sealed override bool OnCommandEnteredBase(string cmd)
         {
-            Console.WriteLine("Error: " + ex.Message);
+            return OnCommandEntered(cmd);
         }
 
-        private void MessageReceived(byte[] data)
-        {
-            AcMessageParser.Activate(this, data);
-        }
-
-        #region base event handlers - usually a call of base.EventHandler(), but this one is more secure
-
-        internal void OnNewSessionBase(MsgNewSession msg)
+        protected internal sealed override void OnNewSessionBase(MsgNewSession msg)
         {
             CarInfo.Clear();
-            for (byte i = 0; i < MaxClients; i++)
+            for (byte i = 0; i < PluginManager.MaxClients; i++)
             {
-                _UDP.TrySend(new RequestCarInfo() { CarId = i }.ToBinary());
+                PluginManager.RequestCarInfo(i);
             }
             OnNewSession(msg);
         }
 
-        internal void OnCarInfoBase(MsgCarInfo msg)
+        protected internal sealed override void OnCarInfoBase(MsgCarInfo msg)
         {
             _CarInfo.AddOrUpdate(msg.CarId, msg, (key, val) => val);
             OnCarInfo(msg);
         }
 
-        internal void OnNewConnectionBase(MsgNewConnection msg)
+        protected internal sealed override void OnNewConnectionBase(MsgNewConnection msg)
         {
             var carInfo = new MsgCarInfo()
             {
@@ -158,7 +92,7 @@ namespace acPlugins4net
             OnNewConnection(msg);
         }
 
-        internal void OnConnectionClosedBase(MsgConnectionClosed msg)
+        protected internal sealed override void OnConnectionClosedBase(MsgConnectionClosed msg)
         {
             var carInfo = new MsgCarInfo()
             {
@@ -173,13 +107,47 @@ namespace acPlugins4net
             OnConnectionClosed(msg);
         }
 
+        protected internal sealed override void OnSessionEndedBase(MsgSessionEnded msg)
+        {
+            OnSessionEnded(msg);
+        }
+
+        protected internal sealed override void OnCarUpdateBase(MsgCarUpdate msg)
+        {
+            OnCarUpdate(msg);
+        }
+
+        protected internal sealed override void OnLapCompletedBase(MsgLapCompleted msg)
+        {
+            OnLapCompleted(msg);
+        }
+
+        protected internal sealed override void OnCollisionBase(MsgClientEvent msg)
+        {
+            OnCollision(msg);
+        }
 
         #endregion
 
         #region overridable event handlers
 
+        /// <summary>
+        /// Called when a command was entered.
+        /// </summary>
+        /// <param name="cmd">The command.</param>
+        /// <returns>Whether the command should be passed to the next plugin.</returns>
+        public virtual bool OnCommandEntered(string cmd)
+        {
+#pragma warning disable 618
+            OnConsoleCommand(cmd); // obviously remove these lines when workarounds are no longer needed
+#pragma warning restore 618
+            return true;
+        }
+
         public virtual void OnInit() { }
-        public virtual void OnConsoleCommand(string cmd) { }
+        public virtual void OnConnected() { }
+        public virtual void OnDisconnected() { }
+
         public virtual void OnNewSession(MsgNewSession msg) { }
         public virtual void OnSessionEnded(MsgSessionEnded msg) { }
         public virtual void OnConnectionClosed(MsgConnectionClosed msg) { }
@@ -191,28 +159,40 @@ namespace acPlugins4net
 
         #endregion
 
-        #region Requests to the AcServer
+        #region workarounds so that plugins developed with old AcServerPlugin are compiling
 
+        [Obsolete("Use PluginManager.BroadcastChatMessage instead")]
         protected internal void BroadcastChatMessage(string msg)
         {
-            var chatRequest = new RequestBroadcastChat() { ChatMessage = msg };
-            _UDP.TrySend(chatRequest.ToBinary());
-            Console.WriteLine("Broadcasted " + chatRequest.ToString());
+            this.PluginManager.BroadcastChatMessage(msg);
         }
 
+        [Obsolete("Use PluginManager.SendChatMessage instead")]
         protected internal void SendChatMessage(byte car_id, string msg)
         {
-            var chatRequest = new RequestSendChat() { CarId = car_id, ChatMessage = msg };
-            _UDP.TrySend(chatRequest.ToBinary());
-            Console.WriteLine("Broadcasted " + chatRequest.ToString());
+            this.PluginManager.SendChatMessage(car_id, msg);
         }
 
+        [Obsolete("Use PluginManager.EnableRealtimeReport instead")]
         protected internal void EnableRealtimeReport(UInt16 interval)
         {
-            var enableRealtimeReportRequest = new RequestRealtimeInfo { Interval = interval };
-            _UDP.TrySend(enableRealtimeReportRequest.ToBinary());
-            Console.WriteLine("Realtime pos interval now set to: {0} ms", interval);
+            this.PluginManager.EnableRealtimeReport(interval);
         }
+
+        [Obsolete("Only for compatibility with plugins developed for old AcServerPlugin, override OnCommandEntered instead")]
+        public virtual void OnConsoleCommand(string cmd) { }
+
+        [Obsolete("Use PluginManager.ServerName instead")]
+        public string Servername { get { return PluginManager.ServerName; } }
+
+        [Obsolete("Use PluginManager.Track instead")]
+        public string Track { get { return PluginManager.Track; } }
+
+        [Obsolete("Use PluginManager.TrackLayout instead")]
+        public string TrackLayout { get { return PluginManager.TrackLayout; } }
+
+        [Obsolete("Use PluginManager.MaxClients instead")]
+        public int MaxClients { get { return PluginManager.MaxClients; } }
 
         #endregion
     }

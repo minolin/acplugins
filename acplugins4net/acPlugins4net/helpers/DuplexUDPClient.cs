@@ -23,7 +23,7 @@ namespace acPlugins4net.helpers
 
         public bool Opened { get; private set; }
 
-        public void Open(int listeningPort, int remotePort, MessageReceivedDelegate callback, ErrorHandlerDelegate errorhandler)
+        public void Open(int listeningPort, string remostHostname, int remotePort, MessageReceivedDelegate callback, ErrorHandlerDelegate errorhandler)
         {
             if (_plugin != null)
                 throw new Exception("UdpServer was already started.");
@@ -32,7 +32,7 @@ namespace acPlugins4net.helpers
             ErrorHandler = errorhandler;
 
             _plugin = new UdpClient(listeningPort);
-            _plugin.Connect("127.0.0.1", remotePort);
+            _plugin.Connect(remostHostname, remotePort);
             RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, remotePort);
             Opened = true;
 
@@ -115,13 +115,28 @@ namespace acPlugins4net.helpers
             }
         }
 
-        public bool TrySend(byte[] typeByte)
+        public int Send(byte[] dgram)
+        {
+            return Send(dgram, dgram.Length);
+        }
+
+        public int Send(byte[] dgram, int bytes)
         {
             if (_plugin == null)
                 throw new Exception("TrySend: UdpClient missing, please open first");
+            return _plugin.Send(dgram, bytes);
+        }
+
+        public bool TrySend(byte[] dgram)
+        {
+            try
             {
-                _plugin.Send(typeByte, typeByte.Length);
-                return true;
+                return Send(dgram) == dgram.Length;
+            }
+            catch (Exception ex)
+            {
+                ErrorHandler(ex);
+                return false;
             }
         }
     }

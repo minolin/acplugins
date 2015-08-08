@@ -8,6 +8,13 @@ namespace acPlugins4net.helpers
 {
     class ConsoleLogger : ILog
     {
+        private readonly string _logFilePath;
+
+        public ConsoleLogger(string logFilePath = null)
+        {
+            _logFilePath = logFilePath;
+        }
+
         void ILog.Log(Exception ex)
         {
             var msg = ex.Message;
@@ -18,18 +25,24 @@ namespace acPlugins4net.helpers
                 iex = iex.InnerException;
             }
             Console.WriteLine(msg);
-            using (var writer = System.IO.File.AppendText("minoratingplugin.txt"))
+            if (!string.IsNullOrEmpty(_logFilePath))
             {
-                writer.WriteLine(msg);
+                using (var writer = System.IO.File.AppendText(_logFilePath))
+                {
+                    writer.WriteLine(msg);
+                }
             }
         }
 
         void ILog.Log(string message)
         {
             Console.WriteLine(message);
-            using (var writer = System.IO.File.AppendText("minoratingplugin.txt"))
+            if (!string.IsNullOrEmpty(_logFilePath))
             {
-                writer.WriteLine(message);
+                using (var writer = System.IO.File.AppendText(_logFilePath))
+                {
+                    writer.WriteLine(message);
+                }
             }
         }
     }

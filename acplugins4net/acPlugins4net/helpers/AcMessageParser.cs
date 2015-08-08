@@ -40,7 +40,8 @@ namespace acPlugins4net.helpers
             return newMsg;
         }
 
-        internal static void Activate(AcServerPlugin acServerPlugin, byte[] data)
+        [Obsolete("No longer needed when replaced AcServerPlugin with AcServerPluginNew")]
+        internal static void Activate(AcServerPluginOld acServerPlugin, byte[] data)
         {
             var msg = Parse(data);
             switch (msg.Type)
