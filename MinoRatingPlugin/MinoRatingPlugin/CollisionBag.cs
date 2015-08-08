@@ -1,4 +1,5 @@
-﻿using System;
+﻿using acPlugins4net.helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,7 +30,7 @@ namespace MinoRatingPlugin
         public int First { get { return CarsInCollisionTree[0]; } }
         public int Second { get { return CarsInCollisionTree[1]; } }
 
-        internal static CollisionBag StartNew(byte carId, byte otherCarId, Action<CollisionBag> evaluateContactTree)
+        internal static CollisionBag StartNew(byte carId, byte otherCarId, Action<CollisionBag> evaluateContactTree, ILog log)
         {
             var bag = StartNew(carId, otherCarId);
             new Thread(() =>
@@ -47,12 +48,13 @@ namespace MinoRatingPlugin
                         var duration = (TreeRefreshSeconds - secondsToRefresh) * 1000 + 100;
                         Thread.Sleep((int)(duration));
                     }
-                    Console.WriteLine("" + DateTime.Now.TimeOfDay + ": Collision bag finished (" + carId + " vs. " + otherCarId + ")");
+                    log.Log("" + DateTime.Now.TimeOfDay + ": Collision bag finished (" + carId + " vs. " + otherCarId + ")");
                     evaluateContactTree(bag);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    Console.WriteLine("Exception in Collision bag for " + carId + "/" + otherCarId);
+                    log.Log("Exception in Collision bag for " + carId + "/" + otherCarId);
+                    log.Log(ex);
                 }
             }).Start();
 

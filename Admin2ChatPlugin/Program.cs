@@ -11,13 +11,13 @@ namespace Admin2ChatPlugin
     {
         static void Main(string[] args)
         {
-            new Program().RunUntilAborted();
+            new Program() { PluginName = "Admin2ChatPlugin" }.RunUntilAborted();
         }
 
         public override void OnConsoleCommand(string cmd)
         {
             if(cmd.StartsWith("/chat "))
-                BroadcastChatMessage("ServerAdmin: " + cmd.Replace("/chat ", ""));
+                BroadcastChatMessage(cmd.Replace("/chat ", ""));
             else if(cmd.StartsWith("/w "))
             {
                 cmd = cmd.Replace("/w ", "").Trim();
@@ -38,7 +38,7 @@ namespace Admin2ChatPlugin
                 }
 #endregion
 
-                SendChatMessage((byte)car_id, "ServerAdmin: " + msg);
+                SendChatMessage((byte)car_id, msg);
             }
         }
     }

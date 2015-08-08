@@ -8,10 +8,11 @@ using acPlugins4net.messages;
 using MinoRatingPlugin.minoRatingServer;
 using System.Threading;
 using acPlugins4net.kunos;
+using acPlugins4net.helpers;
 
 namespace MinoRatingPlugin
 {
-    class Program : AcServerPlugin
+    class MinoratingPlugin : AcServerPlugin
     {
         public LiveDataDumpClient LiveDataServer { get; set; }
         public string TrustToken { get; set; }
@@ -27,13 +28,11 @@ namespace MinoRatingPlugin
 
         static void Main(string[] args)
         {
-            System.IO.File.WriteAllText("minoratingplugin.txt", "Main(): " + DateTime.Now);
-            new Program() { PluginName = "Minorating " + PluginVersion }.RunUntilAborted();
+            RunPluginInConsole.RunSinglePluginUntilAborted(new MinoratingPlugin(), new FileLogWriter("log", "minoplugin.txt") { CopyToConsole = true, LogWithTimestamp = true });
         }
 
         public override void OnInit()
         {
-            base.OnInit();
             LiveDataServer = new LiveDataDumpClient();
             TrustToken = Config.GetSetting("server_trust_token");
             if (string.IsNullOrEmpty(TrustToken))
@@ -47,44 +46,43 @@ namespace MinoRatingPlugin
             {
                 try
                 {
-                    Console.WriteLine("Plugin Version " + PluginVersion);
+                    PluginManager.Log("Plugin Version " + PluginVersion);
                     var serverVersion = LiveDataServer.GetVersion();
-                    Console.WriteLine("Connection to server with version: " + serverVersion);
+                    PluginManager.Log("Connection to server with version: " + serverVersion);
 
                     if (serverVersion > PluginVersion)
                     {
-                        Console.WriteLine("================================");
-                        Console.WriteLine("================================");
-                        Console.WriteLine("Version missmatch, your plugin seems to be outdated. Please consider downloading a new one from the forums");
-                        Console.WriteLine("For the moment we'll do our best and try to go on.");
-                        Console.WriteLine("================================");
+                        PluginManager.Log("================================");
+                        PluginManager.Log("================================");
+                        PluginManager.Log("Version missmatch, your plugin seems to be outdated. Please consider downloading a new one from the forums");
+                        PluginManager.Log("For the moment we'll do our best and try to go on.");
+                        PluginManager.Log("================================");
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    Console.WriteLine("Error connecting to the remote server :(");
+                    PluginManager.Log("Error connecting to the remote server :(");
+                    PluginManager.Log(ex);
                 }
             }).Start();
-
-
         }
 
         public override void OnNewSession(MsgNewSession msg)
         {
             _sessionIdPending = true;
-            Console.WriteLine("===============================");
-            Console.WriteLine("===============================");
-            Console.WriteLine("OnNewSession: " + msg.Name + "@" + Servername);
-            Console.WriteLine("===============================");
-            Console.WriteLine("===============================");
-            CurrentSessionGuid = LiveDataServer.NewSession(CurrentSessionGuid, Servername, Track + "[" + TrackLayout + "]", msg.SessionType, msg.Laps, msg.WaitTime, msg.TimeOfDay, msg.AmbientTemp, msg.RoadTemp, TrustToken, _fingerprint);
+            PluginManager.Log("===============================");
+            PluginManager.Log("===============================");
+            PluginManager.Log("OnNewSession: " + msg.Name + "@" + PluginManager.ServerName);
+            PluginManager.Log("===============================");
+            PluginManager.Log("===============================");
+            CurrentSessionGuid = LiveDataServer.NewSession(CurrentSessionGuid, PluginManager.ServerName, PluginManager.Track + "[" + PluginManager.TrackLayout + "]", msg.SessionType, msg.Laps, msg.WaitTime, msg.TimeOfDay, msg.AmbientTemp, msg.RoadTemp, TrustToken, _fingerprint);
             _sessionIdPending = false;
         }
 
         public override void OnNewConnection(MsgNewConnection msg)
         {
             WaitForCleanSessionId();
-            Console.WriteLine("OnNewConnection: " + msg.DriverName + "@" + msg.CarModel);
+            PluginManager.Log("OnNewConnection: " + msg.DriverName + "@" + msg.CarModel);
 
             LiveDataServer.NewConnection(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, TrustToken);
         }
@@ -92,13 +90,13 @@ namespace MinoRatingPlugin
         public override void OnSessionEnded(MsgSessionEnded msg)
         {
             LiveDataServer.EndSession(CurrentSessionGuid, TrustToken, _fingerprint);
-            Console.WriteLine("Session ended");
+            PluginManager.Log("Session ended");
         }
 
         public override void OnConnectionClosed(MsgConnectionClosed msg)
         {
             WaitForCleanSessionId();
-            Console.WriteLine("OnConnectionClosed: " + msg.DriverName + "@" + msg.CarModel);
+            PluginManager.Log("OnConnectionClosed: " + msg.DriverName + "@" + msg.CarModel);
             LiveDataServer.ClosedConnection(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.CarSkin, msg.DriverGuid, TrustToken);
         }
 
@@ -107,12 +105,12 @@ namespace MinoRatingPlugin
             WaitForCleanSessionId();
             MsgCarInfo driver;
             if (!CarInfo.TryGetValue(msg.CarId, out driver))
-                Console.WriteLine("Error; car_id " + msg.CarId + " was not known by the CarInfo Dictionary :(");
+                PluginManager.Log("Error; car_id " + msg.CarId + " was not known by the CarInfo Dictionary :(");
             else
             {
-                Console.WriteLine("LapCompleted by " + driver.DriverName + ": " + TimeSpan.FromMilliseconds(msg.Laptime));
+                PluginManager.Log("LapCompleted by " + driver.DriverName + ": " + TimeSpan.FromMilliseconds(msg.Laptime));
                 var actions = LiveDataServer.LapCompleted(CurrentSessionGuid, msg.CarId, driver.DriverGuid, msg.Laptime, msg.Cuts, msg.GripLevel, ConvertLB(msg.Leaderboard), TrustToken);
-                Console.WriteLine("" + actions.Length + " actions returned");
+                PluginManager.Log("" + actions.Length + " actions returned");
                 HandleClientActions(actions);
             }
         }
@@ -138,12 +136,12 @@ namespace MinoRatingPlugin
                             break;
                         }
                     }
-                    Console.WriteLine("" + DateTime.Now.TimeOfDay + " OnCollision (" + msg.CarId + "vs" + msg.OtherCarId + "), contantTrees.Count=" + contactTrees.Count + ", partOfATree=" + partOfATree);
+                    PluginManager.Log("" + DateTime.Now.TimeOfDay + " OnCollision (" + msg.CarId + "vs" + msg.OtherCarId + "), contantTrees.Count=" + contactTrees.Count + ", partOfATree=" + partOfATree);
 
                     if (!partOfATree)
                     {
                         // Then we'll start a new one
-                        contactTrees.Add(CollisionBag.StartNew(msg.CarId, msg.OtherCarId, EvaluateContactTree));
+                        contactTrees.Add(CollisionBag.StartNew(msg.CarId, msg.OtherCarId, EvaluateContactTree, PluginManager));
                     }
                 }
 
@@ -152,7 +150,7 @@ namespace MinoRatingPlugin
             }
             else
             {
-                Console.WriteLine("Collision occured!!! " + msg.CarId + " vs. wall");
+                PluginManager.Log("Collision occured!!! " + msg.CarId + " vs. wall");
                 var result = LiveDataServer.Collision(CurrentSessionGuid, msg.CarId, -1, msg.RelativeVelocity, 0.667234f, msg.RelativePosition.x, msg.RelativePosition.z, msg.WorldPosition.x, msg.WorldPosition.z, TrustToken);
             }
         }
@@ -191,11 +189,11 @@ namespace MinoRatingPlugin
         {
             try
             {
-                Console.WriteLine("Action for car " + a.CarId + ": " + a.Reaction + " " + a.Text);
+                PluginManager.Log("Action for car " + a.CarId + ": " + a.Reaction + " " + a.Text);
                 if (a.Reaction == PluginReaction.ReactionType.Whisper)
-                    SendChatMessage(a.CarId, a.Text);
+                    PluginManager.SendChatMessage(a.CarId, a.Text);
                 else if (a.Reaction == PluginReaction.ReactionType.Broadcast)
-                    BroadcastChatMessage(a.Text);
+                    PluginManager.BroadcastChatMessage(a.Text);
             }
             catch (Exception) { }
         }
@@ -221,7 +219,7 @@ namespace MinoRatingPlugin
         public override void OnCarInfo(MsgCarInfo msg)
         {
             WaitForCleanSessionId();
-            Console.WriteLine("CarInfo: " + msg.CarId + ", " + msg.DriverName + "@" + msg.CarModel);
+            PluginManager.Log("CarInfo: " + msg.CarId + ", " + msg.DriverName + "@" + msg.CarModel);
             if (msg.IsConnected)
                 LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, TrustToken);
             else
