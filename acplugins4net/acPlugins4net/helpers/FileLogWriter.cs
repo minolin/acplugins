@@ -34,10 +34,21 @@ namespace acPlugins4net.helpers
         private StreamWriter log;
         private string currentFile;
 
+        /// <summary>
+        /// Let's you paste every line into the Console as well
+        /// </summary>
+        public bool CopyToConsole { get; set; } = false;
+
+        /// <summary>
+        /// Toggles logging with a Timestamp (no date)
+        /// </summary>
+        public bool LogWithTimestamp { get; set; } = false;
+
         public string CurrentLogFile
         {
             get { return currentFile; }
         }
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileLogWriter"/> class.
@@ -131,7 +142,14 @@ namespace acPlugins4net.helpers
                 }
                 if (this.log != null)
                 {
-                    this.log.WriteLine(message);
+                    if(LogWithTimestamp)
+                        this.log.WriteLine(string.Format("{0} {1}", DateTime.Now.ToString("hh.mm.ss.ffffff"), message));
+                    else
+                        this.log.WriteLine(message);
+                }
+                if (CopyToConsole)
+                {
+                    Console.WriteLine(message);
                 }
             }
         }

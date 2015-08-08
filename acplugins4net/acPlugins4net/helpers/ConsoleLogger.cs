@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace acPlugins4net.helpers
 {
-    class ConsoleLogger : ILog
+    public class ConsoleLogger : ILog
     {
         private readonly string _logFilePath;
 
