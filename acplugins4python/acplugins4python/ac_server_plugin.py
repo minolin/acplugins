@@ -59,17 +59,14 @@ class ACServerPlugin:
         
         self.host = serverIP
         self.sendPort = sendPort
-        self.acSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.acSocket.bind( (serverIP, rcvPort) )
-        # set up a 0.5s pulse, need this to be able to Ctrl-C the python apps
-        self.acSocket.settimeout(0.5)
+        self.rcvPort = rcvPort
+        self.acSocket = self.openSocket(self.host, self.rcvPort, self.sendPort, None)
+        
         
         if not proxyRcvPort is None and not proxySendPort is None:
             self.proxyRcvPort = proxyRcvPort
-            self.proxySocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self.proxySocket.bind( (serverIP, proxySendPort) )
-            # set up a 0.5s pulse, need this to be able to Ctrl-C the python apps
-            self.proxySocket.settimeout(0.5)
+            self.proxySendPort = proxySendPort
+            self.proxySocket = self.openSocket(self.host, self.proxySendPort, self.proxyRcvPort, None)
             self.proxySocketThread = Thread(target=self._performProxy)
             self.proxySocketThread.daemon=True
             self.proxySocketThread.start()
@@ -78,6 +75,14 @@ class ACServerPlugin:
             
         self.realtimeReport = None
                     
+    def openSocket(self, host, rcvp, sendp, s):
+        if not s is None: s.close()        
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.bind( (host, rcvp) )
+        # set up a 0.5s pulse, need this to be able to Ctrl-C the python apps
+        s.settimeout(0.5)
+        return s
+
     def processServerPackets(self, timeout=None):
         """
         call this function to process server packets for a given
@@ -87,13 +92,23 @@ class ACServerPlugin:
         while 1:
             try:
                 data, addr = self.acSocket.recvfrom(2048)
+                #data = self.acSocket.recv(2048)
                 if not self.proxySocket is None:
-                    self.proxySocket.sendto(data, ("127.0.0.1", self.proxyRcvPort))
+                    try:
+                        self.proxySocket.sendto(data, ("127.0.0.1", self.proxyRcvPort))
+                    except:
+                        pass
                 r = ac_server_protocol.parse(data)
                 for c in self.callbacks:
                     c(r)
             except socket.timeout:
                 pass
+            except ConnectionResetError:
+                # I hate windows :( who would ever get the idea to set WSAECONNRESET on a connectionless protocol ?!?
+                # The upshot is this: when we send data to a socket which has no listener attached (yet)
+                # windows is giving the connection reset by peer error at the next recv call
+                # It seems that the socket is unusable afterwards, so we re-open it :(
+                self.acSocket = self.openSocket(self.host, self.rcvPort, self.sendPort, self.acSocket)
             if not timeout is None:
                 if time.time()-t > timeout:
                     break
@@ -141,6 +156,11 @@ class ACServerPlugin:
                     self.acSocket.sendto(data, (self.host, self.sendPort))
             except socket.timeout:
                 pass
+            except ConnectionResetError:
+                # I hate windows :( who would ever get the idea to set WSAECONNRESET on a connectionless protocol ?!?
+                self.proxySocket = self.openSocket(self.host, self.proxySendPort, self.proxyRcvPort, self.proxySocket)
+                time.sleep(1.0)
+                
             
 # just print all attributes of the event
 def print_event(x, v = None, indent = "  "):
