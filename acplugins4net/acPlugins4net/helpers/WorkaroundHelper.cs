@@ -23,7 +23,7 @@ namespace acPlugins4net.helpers
                     string configFile = "";
                     try
                     {
-                        var acDirectory = _Config.GetSetting("ac_server_directory", "Config-Setting 'ac_server_directory' is mandatory, but not set");
+                        var acDirectory = _Config.GetSetting("ac_server_directory");
                         if (string.IsNullOrWhiteSpace(acDirectory))
                         {
                             acDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
