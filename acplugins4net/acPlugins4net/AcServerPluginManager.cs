@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace acPlugins4net
@@ -477,6 +478,46 @@ namespace acPlugins4net
             {
                 LogRequestToServer(enableRealtimeReportRequest);
             }
+        }
+
+        #endregion
+
+        #region Requests to the AcServer async with option to delay
+
+        public virtual void RequestCarInfoAsync(byte carId, int delayMs = 0)
+        {
+            ThreadPool.QueueUserWorkItem(o =>
+            {
+                if (delayMs > 0) Thread.Sleep(delayMs);
+                this.RequestCarInfo(carId);
+            });
+        }
+
+        public virtual void BroadcastChatMessageAsync(string msg, int delayMs = 0)
+        {
+            ThreadPool.QueueUserWorkItem(o =>
+            {
+                if (delayMs > 0) Thread.Sleep(delayMs);
+                this.BroadcastChatMessage(msg);
+            });
+        }
+
+        public virtual void SendChatMessageAsync(byte car_id, string msg, int delayMs = 0)
+        {
+            ThreadPool.QueueUserWorkItem(o =>
+            {
+                if (delayMs > 0) Thread.Sleep(delayMs);
+                this.SendChatMessage(car_id, msg);
+            });
+        }
+
+        public virtual void EnableRealtimeReportAsync(UInt16 interval, int delayMs = 0)
+        {
+            ThreadPool.QueueUserWorkItem(o =>
+            {
+                if (delayMs > 0) Thread.Sleep(delayMs);
+                this.EnableRealtimeReport(interval);
+            });
         }
 
         #endregion
