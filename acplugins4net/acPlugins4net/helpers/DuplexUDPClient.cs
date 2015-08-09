@@ -13,6 +13,7 @@ namespace acPlugins4net.helpers
     {
         private UdpClient _plugin = null;
         private readonly Queue<byte[]> _messageQueue = new Queue<byte[]>();
+        private readonly Queue<byte[]> _sendMessageQueue = new Queue<byte[]>();
         public delegate void MessageReceivedDelegate(byte[] data);
         private MessageReceivedDelegate MessageReceived;
         public delegate void ErrorHandlerDelegate(Exception ex);
@@ -20,14 +21,18 @@ namespace acPlugins4net.helpers
         private IPEndPoint RemoteIpEndPoint = null;
         private Thread _processMessagesThread;
         private Thread _receiveMessagesThread;
+        private Thread _sendMessagesThread;
+
+        public int MinWaitMsBetweenSend { get; set; }
 
         public bool Opened { get; private set; }
 
-        public void Open(int listeningPort, string remostHostname, int remotePort, MessageReceivedDelegate callback, ErrorHandlerDelegate errorhandler)
+        public void Open(int listeningPort, string remostHostname, int remotePort, MessageReceivedDelegate callback, ErrorHandlerDelegate errorhandler, int minWaitMsBetweenSend = 20)
         {
             if (_plugin != null)
                 throw new Exception("UdpServer was already started.");
 
+            MinWaitMsBetweenSend = minWaitMsBetweenSend;
             MessageReceived = callback;
             ErrorHandler = errorhandler;
 
@@ -41,25 +46,34 @@ namespace acPlugins4net.helpers
 
             _receiveMessagesThread = new Thread(ReceiveMessages) { Name = "ReceiveMessages" };
             _receiveMessagesThread.Start();
+
+            _sendMessagesThread = new Thread(SendMessages) { Name = "SendMessages" };
+            _sendMessagesThread.Start();
         }
 
         public void Close()
         {
             if (_plugin != null)
             {
-                lock (_messageQueue)
+                lock (_sendMessageQueue)
                 {
-                    Opened = false;
-                    Monitor.Pulse(_messageQueue); // if the ProcessMessages thread is waiting, wake it up
+                    lock (_messageQueue)
+                    {
+                        Opened = false;
+                        Monitor.Pulse(_messageQueue); // if the ProcessMessages thread is waiting, wake it up
+                        Monitor.Pulse(_sendMessageQueue); // if the SendMessages thread is waiting, wake it up
+                    }
                 }
 
                 _plugin.Close(); // _plugin.Receive in ReceiveMessages thread should return at this point
 
                 _processMessagesThread.Join(); // make sure thread has terminated
                 _receiveMessagesThread.Join(); // make sure thread has terminated
+                _sendMessagesThread.Join();
 
                 _plugin = null;
                 _messageQueue.Clear();
+                _sendMessageQueue.Clear();
             }
         }
 
@@ -115,23 +129,56 @@ namespace acPlugins4net.helpers
             }
         }
 
-        public int Send(byte[] dgram)
+        private void SendMessages()
         {
-            return Send(dgram, dgram.Length);
+            while (Opened)
+            {
+                byte[] msgData;
+                lock (_sendMessageQueue)
+                {
+                    if (_sendMessageQueue.Count == 0)
+                    {
+                        if (!Opened) break; // don't start waiting and exit loop if closed
+                        Monitor.Wait(_sendMessageQueue);
+                        if (!Opened) break; // exit loop if closed
+                    }
+
+                    msgData = _sendMessageQueue.Dequeue();
+                }
+
+                try
+                {
+                    _plugin.Send(msgData, msgData.Length);
+                    if (MinWaitMsBetweenSend > 0)
+                    {
+                        Thread.Sleep(MinWaitMsBetweenSend);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ErrorHandler(ex);
+                }
+            }
         }
 
-        public int Send(byte[] dgram, int bytes)
+        public void Send(byte[] dgram)
         {
             if (_plugin == null)
                 throw new Exception("TrySend: UdpClient missing, please open first");
-            return _plugin.Send(dgram, bytes);
+
+            lock (_sendMessageQueue)
+            {
+                _sendMessageQueue.Enqueue(dgram);
+                Monitor.Pulse(_sendMessageQueue);
+            }
         }
 
         public bool TrySend(byte[] dgram)
         {
             try
             {
-                return Send(dgram) == dgram.Length;
+                Send(dgram);
+                return true;// we don't really know if it worked
             }
             catch (Exception ex)
             {
