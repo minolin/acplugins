@@ -42,7 +42,7 @@ namespace MinoRatingPlugin
             }
             CurrentSessionGuid = Guid.Empty;
 
-            new Thread(() =>
+            ThreadPool.QueueUserWorkItem(o =>
             {
                 try
                 {
@@ -64,7 +64,7 @@ namespace MinoRatingPlugin
                     PluginManager.Log("Error connecting to the remote server :(");
                     PluginManager.Log(ex);
                 }
-            }).Start();
+            });
         }
 
         public override void OnNewSession(MsgNewSession msg)
@@ -176,11 +176,11 @@ namespace MinoRatingPlugin
                 }
                 else
                 {
-                    new Thread(() =>
+                    ThreadPool.QueueUserWorkItem(o =>
                     {
                         Thread.Sleep(a.Delay);
                         ExecuteAction(a);
-                    }).Start();
+                    });
                 }
             }
         }
