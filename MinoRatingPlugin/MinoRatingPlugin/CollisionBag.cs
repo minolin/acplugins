@@ -17,14 +17,8 @@ namespace MinoRatingPlugin
         public DateTime Started { get; private set; }
         public DateTime LastCollision { get; private set; }
 
-        public bool IsActive
-        {
-            get
-            {
-                return DateTime.Now.Subtract(LastCollision).TotalSeconds < TreeRefreshSeconds
-                    && DateTime.Now.Subtract(Started).TotalSeconds < MaximumTreeDurationSeconds;
-            }
-        }
+        public bool IsActive { get; set; }
+        private readonly object lockObject = new object();
 
         public int Count { get { return CarsInCollisionTree.Count; } }
         public int First { get { return CarsInCollisionTree[0]; } }
@@ -33,17 +27,25 @@ namespace MinoRatingPlugin
         internal static CollisionBag StartNew(byte carId, byte otherCarId, Action<CollisionBag> evaluateContactTree, ILog log)
         {
             var bag = StartNew(carId, otherCarId);
-            new Thread(() =>
+            ThreadPool.QueueUserWorkItem(o =>
             {
                 try
                 {
                     while (true)
                     {
-                        var secondsToMaximum = DateTime.Now.Subtract(bag.Started).TotalSeconds;
-                        var secondsToRefresh = DateTime.Now.Subtract(bag.LastCollision).TotalSeconds;
+                        double secondsToMaximum, secondsToRefresh;
 
-                        if (secondsToMaximum > MaximumTreeDurationSeconds || secondsToRefresh > TreeRefreshSeconds)
-                            break;
+                        lock (bag.lockObject)
+                        {
+                            secondsToMaximum = DateTime.Now.Subtract(bag.Started).TotalSeconds;
+                            secondsToRefresh = DateTime.Now.Subtract(bag.LastCollision).TotalSeconds;
+
+                            if (secondsToMaximum > MaximumTreeDurationSeconds || secondsToRefresh > TreeRefreshSeconds)
+                            {
+                                bag.IsActive = false;
+                                break;
+                            }
+                        }
 
                         var duration = (TreeRefreshSeconds - secondsToRefresh) * 1000 + 100;
                         Thread.Sleep((int)(duration));
@@ -56,7 +58,7 @@ namespace MinoRatingPlugin
                     log.Log("Exception in Collision bag for " + carId + "/" + otherCarId);
                     log.Log(ex);
                 }
-            }).Start();
+            });
 
             return bag;
         }
@@ -69,6 +71,7 @@ namespace MinoRatingPlugin
                 CarsInCollisionTree = new List<byte>(),
                 Started = now,
                 LastCollision = now,
+                IsActive = true,
             };
 
             bag.CarsInCollisionTree.Add(car1);
@@ -82,24 +85,26 @@ namespace MinoRatingPlugin
             // We'll see if the requirement are met so the collision event can be part of this tree.
             // In reality this means that both aren't to be accused, only the initial contact partners.
             // If not, TryAdd will return false
+            lock (lockObject)
+            {
+                // First: Is this bag still valid?
+                if (!IsActive)
+                    return false;
 
-            // First: Is this bag still valid?
-            if (!IsActive)
-                return false;
+                // Then: Is at least one in the bag?
+                if (!CarsInCollisionTree.Contains(car1) && !CarsInCollisionTree.Contains(car2))
+                    return false;
 
-            // Then: Is at least one in the bag?
-            if (!CarsInCollisionTree.Contains(car1) && !CarsInCollisionTree.Contains(car2))
-                return false;
+                // So we should find out which one is and add the other one, if not yet happened (shouldn't, according to this code)
+                if (CarsInCollisionTree.Contains(car1) && !CarsInCollisionTree.Contains(car2))
+                    CarsInCollisionTree.Add(car2);
+                if (CarsInCollisionTree.Contains(car2) && !CarsInCollisionTree.Contains(car1))
+                    CarsInCollisionTree.Add(car1);
 
-            // So we should find out which one is and add the other one, if not yet happened (shouldn't, according to this code)
-            if (CarsInCollisionTree.Contains(car1) && !CarsInCollisionTree.Contains(car2))
-                CarsInCollisionTree.Add(car2);
-            if (CarsInCollisionTree.Contains(car2) && !CarsInCollisionTree.Contains(car1))
-                CarsInCollisionTree.Add(car1);
-
-            // And: The wreckfest goes on, so we'll notice the this occurance (see TreeRefreshSeconds)
-            LastCollision = DateTime.Now;
-            return true;
+                // And: The wreckfest goes on, so we'll notice the this occurance (see TreeRefreshSeconds)
+                LastCollision = DateTime.Now;
+                return true;
+            }
         }
     }
 }
