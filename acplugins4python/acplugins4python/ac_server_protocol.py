@@ -30,14 +30,41 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from .ac_server_helpers import *
 
-__all__ = ["NewSession","CollisionEnv","CollisionCar","CarInfo","CarUpdate","NewConnection","ConnectionClosed","LapCompleted"]
+__all__ = [
+    "ProtocolVersionMismatch",
+    "NewSession",
+    "SessionInfo",
+    "EndSession",
+    "CollisionEnv",
+    "CollisionCar",
+    "CarInfo",
+    "CarUpdate",
+    "NewConnection",
+    "ConnectionClosed",
+    "LapCompleted",
+    "ProtocolVersion",
+    "ChatEvent",
+    "ClientLoaded",
+    "ProtocolError",
+    "GetSessionInfo",
+    "SetSessionInfo",
+    "KickUser",
+    ]
+    
+PROTOCOL_VERSION = 2
 
 ACSP_NEW_SESSION = 50
 ACSP_NEW_CONNECTION = 51
 ACSP_CONNECTION_CLOSED = 52
 ACSP_CAR_UPDATE = 53
 ACSP_CAR_INFO = 54 # Sent as response to ACSP_GET_CAR_INFO command
+ACSP_END_SESSION = 55
 ACSP_LAP_COMPLETED = 73
+ACSP_VERSION = 56
+ACSP_CHAT = 57
+ACSP_CLIENT_LOADED = 58
+ACSP_SESSION_INFO = 59
+ACSP_ERROR = 60
 
 ACSP_CLIENT_EVENT = 130
 
@@ -48,10 +75,23 @@ ACSP_REALTIMEPOS_INTERVAL = 200
 ACSP_GET_CAR_INFO = 201
 ACSP_SEND_CHAT = 202 # Sends chat to one car
 ACSP_BROADCAST_CHAT = 203 # Sends chat to everybody 
-        
+ACSP_GET_SESSION_INFO = 204
+ACSP_SET_SESSION_INFO = 205
+ACSP_KICK_USER = 206
+
+class ProtocolVersionMismatch(RuntimeError):
+    pass
+
 class NewSession(GenericPacket):
     packetId = ACSP_NEW_SESSION
     _content = (
+        ('version', Uint8),
+        ('sessionIndex', Uint8), # the index of the session this packet belongs to
+        ('currSessionIndex', Uint8), # the index of the current session of the server
+        ('sessionCount', Uint8),
+        ('serverName', UTF32),
+        ('track', Ascii),
+        ('track_config', Ascii),
         ('name', Ascii),
         ('sessionType', Uint8),
         ('sessionTime', Uint16),
@@ -59,8 +99,12 @@ class NewSession(GenericPacket):
         ('waittime', Uint16),
         ('ambientTemp', Uint8),
         ('roadTemp', Uint8),
-        ('wheather', Ascii)
+        ('wheather', Ascii),
+        ('elapsedMS', Int32),
     )       
+
+class SessionInfo(NewSession):
+    packetId = ACSP_SESSION_INFO
 
 class CollisionEnv(GenericPacket):
     packetId = ACSP_CLIENT_EVENT
@@ -100,6 +144,12 @@ class CarInfo(GenericPacket):
         ('driverName', UTF32),
         ('driverTeam', UTF32),
         ('driverGuid', UTF32),
+    )
+    
+class EndSession(GenericPacket):
+    packetId = ACSP_END_SESSION
+    _content = (
+        ('filename', UTF32),
     )
     
 class CarUpdate(GenericPacket):
@@ -155,6 +205,31 @@ class LapCompleted(GenericPacket):
         ('gripLevel', Float),
     )
 
+class ProtocolVersion(GenericPacket):
+    packetId = ACSP_VERSION
+    _content = (
+        ('version', Uint8),
+    )
+
+class ChatEvent(GenericPacket):
+    packetId = ACSP_CHAT
+    _content = (
+        ('carId', Uint8),
+        ('message', UTF32),
+    )
+    
+class ClientLoaded(GenericPacket):
+    packetId = ACSP_CLIENT_LOADED
+    _content = (
+        ('carId', Uint8),
+    )
+
+class ProtocolError(GenericPacket):
+    packetId = ACSP_ERROR
+    _content = (
+        ('message', UTF32),
+    )
+
 class GetCarInfo(GenericPacket):
     packetId = ACSP_GET_CAR_INFO
     _content = (
@@ -180,17 +255,46 @@ class BroadcastChat(GenericPacket):
         ('message', UTF32),
     )
     
+class GetSessionInfo(GenericPacket):
+    packetId = ACSP_GET_SESSION_INFO
+    _content = (
+        ('sessionIndex', Int16),
+    )
+    
+class SetSessionInfo(GenericPacket):
+    packetId = ACSP_SET_SESSION_INFO
+    _content = (
+        ('sessionIndex', Uint8),
+        ('sessionName', UTF32),
+        ('sessionType', Uint8),
+        ('laps', Uint32),
+        ('timeSeconds', Uint32),
+        ('waitTimeSeconds', Uint32),
+    )
+    
+class KickUser(GenericPacket):
+    packetId = ACSP_KICK_USER
+    _content = (
+        ('carId', Uint8),
+    )
+    
 eventMap = {
 }
 for e in [NewSession, 
+          SessionInfo,
+          EndSession,
           ClientEvent, 
           CarInfo, 
           CarUpdate, 
           NewConnection, 
           ConnectionClosed, 
           LapCompleted,
-          EnableRealtimeReport,
-          BroadcastChat]:
+          ProtocolVersion,
+          ChatEvent,
+          ClientLoaded,
+          ProtocolError,
+          EnableRealtimeReport, # we need to parse this requests due to proxy
+          ]:
     eventMap[e.packetId] = e
 
 def parse(buffer):
@@ -198,6 +302,9 @@ def parse(buffer):
     if eID in eventMap:
         r = eventMap[eID]()
         idx,r = r.from_buffer(buffer, idx)
+        if type(r) in (ProtocolVersion,SessionInfo,NewSession):
+            if r.version != PROTOCOL_VERSION:
+                raise ProtocolVersionMismatch("Expected version %d, got version %d" % (PROTOCOL_VERSION,r.version))
         return r
     return None
     

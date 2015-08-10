@@ -71,7 +71,9 @@ class GenericArrayParser:
 Uint8 = GenericStructParser('B')
 Bool = GenericStructParser('B', lambda x: x != 0)
 Uint16 = GenericStructParser('H')
+Int16 = GenericStructParser('h')
 Uint32 = GenericStructParser('I')
+Int32 = GenericStructParser('i')
 Float = GenericStructParser('f')
 Vector3f = GenericStructParser('fff')
 Ascii = GenericArrayParser(

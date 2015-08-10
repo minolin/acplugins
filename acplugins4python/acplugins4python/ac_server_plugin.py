@@ -112,6 +112,13 @@ class ACServerPlugin:
             if not timeout is None:
                 if time.time()-t > timeout:
                     break
+                    
+    def getSessionInfo(self, sessionIndex = -1):
+        """
+        request the session info of the specified session (-1 for current session)
+        """
+        p = ac_server_protocol.GetSessionInfo(sessionIndex=sessionIndex)
+        self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))        
    
     def getCarInfo(self, carId):
         """
@@ -142,6 +149,19 @@ class ACServerPlugin:
         p = ac_server_protocol.BroadcastChat(message=message)
         d = p.to_buffer()
         self.acSocket.sendto(d, (self.host,self.sendPort))
+        
+    def setSessionInfo(self, sessionIndex, sessionName, sessionType, laps, timeSeconds, waitTimeSeconds):
+        p = ac_server_protocol.SetSessionInfo(sessionIndex=sessionIndex,
+                                              sessionName=sessionName,
+                                              sessionType=sessionType,
+                                              laps=laps,
+                                              timeSeconds=timeSeconds,
+                                              waitTimeSeconds=waitTimeSeconds)
+        self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
+        
+    def kickUser(self, carId):
+        p = ac_server_protocol.KickUser(carId=carId)
+        self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
         
     def _performProxy(self):
         while 1:
