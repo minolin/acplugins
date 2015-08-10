@@ -1,3 +1,5 @@
+# a test
+
 from setuptools import setup
 
 plugin_version = "0.3"
