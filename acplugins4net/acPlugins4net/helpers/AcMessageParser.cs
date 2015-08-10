@@ -47,7 +47,7 @@ namespace acPlugins4net.helpers
             switch (msg.Type)
             {
                 case ACSProtocol.MessageType.ACSP_NEW_SESSION:
-                    acServerPlugin.OnNewSessionBase(msg as MsgNewSession);
+                    acServerPlugin.OnNewSessionBase(msg as MsgSessionInfo);
                     break;
                 case ACSProtocol.MessageType.ACSP_NEW_CONNECTION:
                     acServerPlugin.OnNewConnectionBase(msg as MsgNewConnection);
@@ -79,7 +79,8 @@ namespace acPlugins4net.helpers
                 case ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_ENV:
                 case ACSProtocol.MessageType.ERROR:
                 default:
-                    throw new Exception("Received wrong or unknown MessageType: " + msg.Type);
+                    throw new Exception("Unknown MessageType: " + msg.Type + ", probably because Minolin didn't know the byte values for the new ACSP-Fields.");
+                    //throw new Exception("Received wrong or unknown MessageType: " + msg.Type);
             }
         }
 
@@ -87,7 +88,9 @@ namespace acPlugins4net.helpers
         {
             switch (msgType)
             {
-                case ACSProtocol.MessageType.ACSP_NEW_SESSION: return new MsgNewSession();
+                case ACSProtocol.MessageType.ACSP_VERSION: return new MsgVersionInfo();
+                case ACSProtocol.MessageType.ACSP_SESSION_INFO:
+                case ACSProtocol.MessageType.ACSP_NEW_SESSION: return new MsgSessionInfo();
                 case ACSProtocol.MessageType.ACSP_NEW_CONNECTION: return new MsgNewConnection();
                 case ACSProtocol.MessageType.ACSP_CONNECTION_CLOSED: return new MsgConnectionClosed();
                 case ACSProtocol.MessageType.ACSP_CAR_UPDATE: return new MsgCarUpdate();
@@ -99,6 +102,9 @@ namespace acPlugins4net.helpers
                 case ACSProtocol.MessageType.ACSP_GET_CAR_INFO: return new RequestCarInfo();
                 case ACSProtocol.MessageType.ACSP_SEND_CHAT: return new RequestSendChat();
                 case ACSProtocol.MessageType.ACSP_BROADCAST_CHAT: return new RequestBroadcastChat();
+                case ACSProtocol.MessageType.ACSP_CHAT: return new MsgChat();
+                case ACSProtocol.MessageType.ACSP_GET_SESSION_INFO: return new RequestSessionInfo();
+                case ACSProtocol.MessageType.ACSP_CLIENT_LOADED: return new MsgClientLoaded();
                 case ACSProtocol.MessageType.ERROR:
                     throw new Exception("CreateInstance: MessageType is not set or wrong (ERROR=0)");
                 case ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_CAR:

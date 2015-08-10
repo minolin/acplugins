@@ -128,7 +128,7 @@ namespace acPlugins4net
 
         #region base event handlers - usually a call of base.EventHandler(), but this one is more secure
 
-        internal void OnNewSessionBase(MsgNewSession msg)
+        internal void OnNewSessionBase(MsgSessionInfo msg)
         {
             CarInfo.Clear();
             for (byte i = 0; i < MaxClients; i++)
@@ -181,7 +181,7 @@ namespace acPlugins4net
 
         public virtual void OnInit() { }
         public virtual void OnConsoleCommand(string cmd) { }
-        public virtual void OnNewSession(MsgNewSession msg) { }
+        public virtual void OnNewSession(MsgSessionInfo msg) { }
         public virtual void OnSessionEnded(MsgSessionEnded msg) { }
         public virtual void OnConnectionClosed(MsgConnectionClosed msg) { }
         public virtual void OnNewConnection(MsgNewConnection msg) { }

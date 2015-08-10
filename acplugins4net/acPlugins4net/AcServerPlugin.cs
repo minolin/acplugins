@@ -61,7 +61,7 @@ namespace acPlugins4net
             return OnCommandEntered(cmd);
         }
 
-        protected internal sealed override void OnNewSessionBase(MsgNewSession msg)
+        protected internal sealed override void OnNewSessionBase(MsgSessionInfo msg)
         {
             CarInfo.Clear();
             for (byte i = 0; i < PluginManager.MaxClients; i++)
@@ -127,6 +127,21 @@ namespace acPlugins4net
             OnCollision(msg);
         }
 
+        protected internal sealed override void OnChatMessageBase(MsgChat msg)
+        {
+            OnChatMessage(msg);
+        }
+
+        protected internal sealed override void OnClientLoadedBase(MsgClientLoaded msg)
+        {
+            OnClientLoaded(msg);
+        }
+
+        protected internal sealed override void OnSessionInfoBase(MsgSessionInfo msg)
+        {
+            OnSessionInfo(msg);
+        }
+
         #endregion
 
         #region overridable event handlers
@@ -148,7 +163,7 @@ namespace acPlugins4net
         public virtual void OnConnected() { }
         public virtual void OnDisconnected() { }
 
-        public virtual void OnNewSession(MsgNewSession msg) { }
+        public virtual void OnNewSession(MsgSessionInfo msg) { }
         public virtual void OnSessionEnded(MsgSessionEnded msg) { }
         public virtual void OnConnectionClosed(MsgConnectionClosed msg) { }
         public virtual void OnNewConnection(MsgNewConnection msg) { }
@@ -156,6 +171,9 @@ namespace acPlugins4net
         public virtual void OnCarUpdate(MsgCarUpdate msg) { }
         public virtual void OnLapCompleted(MsgLapCompleted msg) { }
         public virtual void OnCollision(MsgClientEvent msg) { }
+        public virtual void OnSessionInfo(MsgSessionInfo msg) { }
+        public virtual void OnClientLoaded(MsgClientLoaded msg) { }
+        public virtual void OnChatMessage(MsgChat msg) { }
 
         #endregion
 

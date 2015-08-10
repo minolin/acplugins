@@ -29,7 +29,9 @@ namespace acPlugins4net
 
         protected internal virtual bool OnCommandEnteredBase(string cmd) { return true; }
 
-        protected internal virtual void OnNewSessionBase(MsgNewSession msg) { }
+        protected internal virtual void OnSessionInfoBase(MsgSessionInfo msg) { }
+
+        protected internal virtual void OnNewSessionBase(MsgSessionInfo msg) { }
 
         protected internal virtual void OnSessionEndedBase(MsgSessionEnded msg) { }
 
@@ -44,5 +46,9 @@ namespace acPlugins4net
         protected internal virtual void OnCollisionBase(MsgClientEvent msg) { }
 
         protected internal virtual void OnLapCompletedBase(MsgLapCompleted msg) { }
+
+        protected internal virtual void OnClientLoadedBase(MsgClientLoaded msg) { }
+
+        protected internal virtual void OnChatMessageBase(MsgChat msg) { }
     }
 }

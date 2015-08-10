@@ -5,7 +5,7 @@ using acPlugins4net.messages;
 
 namespace acServerFake.viemodel.messages
 {
-    class NewSessionViewModel : BaseMessageViewModel<MsgNewSession>
+    class NewSessionViewModel : BaseMessageViewModel<MsgSessionInfo>
     {
         #region New Session Properties
 

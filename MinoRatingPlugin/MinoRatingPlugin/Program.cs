@@ -60,7 +60,7 @@ namespace MinoRatingPlugin
             });
         }
 
-        public override void OnNewSession(MsgNewSession msg)
+        public override void OnNewSession(MsgSessionInfo msg)
         {
             PluginManager.Log("===============================");
             PluginManager.Log("===============================");

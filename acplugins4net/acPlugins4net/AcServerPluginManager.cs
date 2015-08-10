@@ -372,8 +372,11 @@ namespace acPlugins4net
                 {
                     switch (msg.Type)
                     {
+                        case ACSProtocol.MessageType.ACSP_SESSION_INFO:
+                            plugin.OnSessionInfoBase((MsgSessionInfo)msg);
+                            break;
                         case ACSProtocol.MessageType.ACSP_NEW_SESSION:
-                            plugin.OnNewSessionBase((MsgNewSession)msg);
+                            plugin.OnNewSessionBase((MsgSessionInfo)msg);
                             break;
                         case ACSProtocol.MessageType.ACSP_NEW_CONNECTION:
                             plugin.OnNewConnectionBase((MsgNewConnection)msg);
@@ -396,16 +399,27 @@ namespace acPlugins4net
                         case ACSProtocol.MessageType.ACSP_CLIENT_EVENT:
                             plugin.OnCollisionBase((MsgClientEvent)msg);
                             break;
+                        case ACSProtocol.MessageType.ACSP_VERSION:
+                            // TODO: Protocol version check, this should be doable inside the pluginmanager
+                            break;
+                        case ACSProtocol.MessageType.ACSP_CLIENT_LOADED:
+                            plugin.OnClientLoadedBase((MsgClientLoaded)msg);
+                            break;
+                        case ACSProtocol.MessageType.ACSP_CHAT:
+                            plugin.OnChatMessageBase((MsgChat)msg);
+                            break;
                         case ACSProtocol.MessageType.ACSP_REALTIMEPOS_INTERVAL:
                         case ACSProtocol.MessageType.ACSP_GET_CAR_INFO:
                         case ACSProtocol.MessageType.ACSP_SEND_CHAT:
                         case ACSProtocol.MessageType.ACSP_BROADCAST_CHAT:
+                        case ACSProtocol.MessageType.ACSP_GET_SESSION_INFO:
                             throw new Exception("Received unexpected MessageType (for a plugin): " + msg.Type);
                         case ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_CAR:
                         case ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_ENV:
                         case ACSProtocol.MessageType.ERROR:
                         default:
-                            throw new Exception("Received wrong or unknown MessageType: " + msg.Type);
+                            throw new Exception("Unknown MessageType: " + msg.Type + ", probably because Minolin didn't know the byte values for the new ACSP-Fields.");
+                            //throw new Exception("Received wrong or unknown MessageType: " + msg.Type);
                     }
                 }
                 catch (Exception ex)
@@ -419,6 +433,28 @@ namespace acPlugins4net
                 externalPluginUdp.TrySend(data);
             }
         }
+
+        #region Quickhack for 1.2.3: SessionInfo -> NewSession
+        // We can receive the old NewSession-Event any time now in it's new form, the SessionInfo.
+        // To be able to tell if this is a "New Session" event, we'll just store the old one and compare
+        // so the manager can raise the NewSession-event as well
+        MsgSessionInfo _last = null;
+        private bool IsNewSession(MsgSessionInfo sessionInfo)
+        {
+            bool isANewSession = false;
+
+            // If we had none? New definitifly, but maybe we should be careful if the session has significat ElapsedMS
+            if (_last == null
+                // If the type (Qualifying, Race) is different it IS a new one
+                || _last.Type != sessionInfo.Type
+                // if the elapsed time is getting lower, it's also a new session (can be difficult due to negative pre-race values)
+                || sessionInfo.ElapsedMS < _last.ElapsedMS)
+                isANewSession = true;
+
+            _last = sessionInfo;
+            return isANewSession;
+        }
+        #endregion
 
         public void ProcessEnteredCommand(string cmd)
         {
@@ -477,6 +513,30 @@ namespace acPlugins4net
             if (LogServerRequests > 0)
             {
                 LogRequestToServer(enableRealtimeReportRequest);
+            }
+        }
+
+        /// <summary>
+        /// Request a SessionInfo object, use -1 for the current session
+        /// </summary>
+        /// <param name="sessionIndex"></param>
+        public virtual void RequestSessionInfo(Int16 sessionIndex)
+        {
+            var sessionRequest = new RequestSessionInfo() { SessionIndex = sessionIndex };
+            _UDP.Send(sessionRequest.ToBinary());
+            if (LogServerRequests > 0)
+            {
+                LogRequestToServer(sessionRequest);
+            }
+        }
+
+        public virtual void RequestProtocolVersion(byte pluginManagerVersion)
+        {
+            var versionRequest = new MsgVersionInfo() { Version = pluginManagerVersion };
+            _UDP.Send(versionRequest.ToBinary());
+            if (LogServerRequests > 0)
+            {
+                LogRequestToServer(versionRequest);
             }
         }
 
