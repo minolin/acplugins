@@ -17,14 +17,7 @@ namespace MinoRatingPlugin
         public LiveDataDumpClient LiveDataServer { get; set; }
         public string TrustToken { get; set; }
         public Guid CurrentSessionGuid { get; set; }
-        private bool _sessionIdPending = false;
-        public static Version PluginVersion = new Version(0, 3, 2);
-
-        private void WaitForCleanSessionId()
-        {
-            while (_sessionIdPending)
-                Thread.Sleep(10);
-        }
+        public static Version PluginVersion = new Version(0, 3, 3);
 
         static void Main(string[] args)
         {
@@ -69,21 +62,17 @@ namespace MinoRatingPlugin
 
         public override void OnNewSession(MsgNewSession msg)
         {
-            _sessionIdPending = true;
             PluginManager.Log("===============================");
             PluginManager.Log("===============================");
             PluginManager.Log("OnNewSession: " + msg.Name + "@" + PluginManager.ServerName);
             PluginManager.Log("===============================");
             PluginManager.Log("===============================");
             CurrentSessionGuid = LiveDataServer.NewSession(CurrentSessionGuid, PluginManager.ServerName, PluginManager.Track + "[" + PluginManager.TrackLayout + "]", msg.SessionType, msg.Laps, msg.WaitTime, msg.TimeOfDay, msg.AmbientTemp, msg.RoadTemp, TrustToken, _fingerprint);
-            _sessionIdPending = false;
         }
 
         public override void OnNewConnection(MsgNewConnection msg)
         {
-            WaitForCleanSessionId();
             PluginManager.Log("OnNewConnection: " + msg.DriverName + "@" + msg.CarModel);
-
             LiveDataServer.NewConnection(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, TrustToken);
         }
 
@@ -95,14 +84,12 @@ namespace MinoRatingPlugin
 
         public override void OnConnectionClosed(MsgConnectionClosed msg)
         {
-            WaitForCleanSessionId();
             PluginManager.Log("OnConnectionClosed: " + msg.DriverName + "@" + msg.CarModel);
             LiveDataServer.ClosedConnection(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.CarSkin, msg.DriverGuid, TrustToken);
         }
 
         public override void OnLapCompleted(MsgLapCompleted msg)
         {
-            WaitForCleanSessionId();
             MsgCarInfo driver;
             if (!CarInfo.TryGetValue(msg.CarId, out driver))
                 PluginManager.Log("Error; car_id " + msg.CarId + " was not known by the CarInfo Dictionary :(");
@@ -119,7 +106,6 @@ namespace MinoRatingPlugin
 
         public override void OnCollision(MsgClientEvent msg)
         {
-            WaitForCleanSessionId();
             if (msg.Subtype == (byte)ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_CAR)
             {
                 // TODO: Messy code. Needs rewrite as soon as I know where I'm heading.
@@ -218,7 +204,6 @@ namespace MinoRatingPlugin
 
         public override void OnCarInfo(MsgCarInfo msg)
         {
-            WaitForCleanSessionId();
             PluginManager.Log("CarInfo: " + msg.CarId + ", " + msg.DriverName + "@" + msg.CarModel);
             if (msg.IsConnected)
                 LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, TrustToken);
