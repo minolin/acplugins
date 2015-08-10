@@ -117,5 +117,19 @@ namespace acPlugins4net.messages
             writeString(bw, Weather);
             bw.Write(ElapsedMS);
         }
+
+        public RequestSetSession CreateSetSessionRequest()
+        {
+            return new RequestSetSession()
+            {
+                Laps = this.Laps,
+                ServerName = this.ServerName,
+                SessionIndex = this.SessionIndex, 
+                SessionType = this.SessionType,
+                Time = this.TimeOfDay,
+                WaitTime = this.WaitTime,
+            };
+        }
+
     }
 }

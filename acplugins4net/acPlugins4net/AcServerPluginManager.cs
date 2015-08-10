@@ -54,7 +54,6 @@ namespace acPlugins4net
         /// Can be set via app.config setting "ac_server_port". Default is 11000.
         /// </summary>
         public int RemotePort { get; set; }
-
         public string ServerName { get; set; }
         public string Track { get; set; }
         public string TrackLayout { get; set; }
@@ -437,28 +436,6 @@ namespace acPlugins4net
             }
         }
 
-        #region Quickhack for 1.2.3: SessionInfo -> NewSession
-        // We can receive the old NewSession-Event any time now in it's new form, the SessionInfo.
-        // To be able to tell if this is a "New Session" event, we'll just store the old one and compare
-        // so the manager can raise the NewSession-event as well
-        MsgSessionInfo _last = null;
-        private bool IsNewSession(MsgSessionInfo sessionInfo)
-        {
-            bool isANewSession = false;
-
-            // If we had none? New definitifly, but maybe we should be careful if the session has significat ElapsedMS
-            if (_last == null
-                // If the type (Qualifying, Race) is different it IS a new one
-                || _last.Type != sessionInfo.Type
-                // if the elapsed time is getting lower, it's also a new session (can be difficult due to negative pre-race values)
-                || sessionInfo.ElapsedMS < _last.ElapsedMS)
-                isANewSession = true;
-
-            _last = sessionInfo;
-            return isANewSession;
-        }
-        #endregion
-
         public void ProcessEnteredCommand(string cmd)
         {
             foreach (AcServerPluginBase plugin in _plugins)
@@ -540,6 +517,25 @@ namespace acPlugins4net
             if (LogServerRequests > 0)
             {
                 LogRequestToServer(versionRequest);
+            }
+        }
+
+        public void RequestKickDriverById(byte car_id)
+        {
+            var kickRequest = new RequestKickUser() { CarId = car_id };
+            _UDP.Send(kickRequest.ToBinary());
+            if (LogServerRequests > 0)
+            {
+                LogRequestToServer(kickRequest);
+            }
+        }
+
+        public void RequestSetSession(RequestSetSession requestSetSession)
+        {
+            _UDP.Send(requestSetSession.ToBinary());
+            if (LogServerRequests > 0)
+            {
+                LogRequestToServer(requestSetSession);
             }
         }
 
