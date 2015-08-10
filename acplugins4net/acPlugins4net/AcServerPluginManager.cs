@@ -399,7 +399,7 @@ namespace acPlugins4net
                             plugin.OnCollisionBase((MsgClientEvent)msg);
                             break;
                         case ACSProtocol.MessageType.ACSP_VERSION:
-                            // TODO: Protocol version check, this should be doable inside the pluginmanager
+                            plugin.OnProtocolVersionBase((MsgVersionInfo)msg);
                             break;
                         case ACSProtocol.MessageType.ACSP_CLIENT_LOADED:
                             plugin.OnClientLoadedBase((MsgClientLoaded)msg);
@@ -408,7 +408,7 @@ namespace acPlugins4net
                             plugin.OnChatMessageBase((MsgChat)msg);
                             break;
                         case ACSProtocol.MessageType.ACSP_ERROR:
-                            plugin.OnErrorBase((MsgError)msg);
+                            plugin.OnServerErrorBase((MsgError)msg);
                             break;
                         case ACSProtocol.MessageType.ACSP_REALTIMEPOS_INTERVAL:
                         case ACSProtocol.MessageType.ACSP_GET_CAR_INFO:
@@ -510,16 +510,6 @@ namespace acPlugins4net
             }
         }
 
-        public virtual void RequestProtocolVersion(byte pluginManagerVersion)
-        {
-            var versionRequest = new MsgVersionInfo() { Version = pluginManagerVersion };
-            _UDP.Send(versionRequest.ToBinary());
-            if (LogServerRequests > 0)
-            {
-                LogRequestToServer(versionRequest);
-            }
-        }
-
         public void RequestKickDriverById(byte car_id)
         {
             var kickRequest = new RequestKickUser() { CarId = car_id };
@@ -537,46 +527,6 @@ namespace acPlugins4net
             {
                 LogRequestToServer(requestSetSession);
             }
-        }
-
-        #endregion
-
-        #region Requests to the AcServer async with option to delay
-
-        public virtual void RequestCarInfoAsync(byte carId, int delayMs = 0)
-        {
-            ThreadPool.QueueUserWorkItem(o =>
-            {
-                if (delayMs > 0) Thread.Sleep(delayMs);
-                this.RequestCarInfo(carId);
-            });
-        }
-
-        public virtual void BroadcastChatMessageAsync(string msg, int delayMs = 0)
-        {
-            ThreadPool.QueueUserWorkItem(o =>
-            {
-                if (delayMs > 0) Thread.Sleep(delayMs);
-                this.BroadcastChatMessage(msg);
-            });
-        }
-
-        public virtual void SendChatMessageAsync(byte car_id, string msg, int delayMs = 0)
-        {
-            ThreadPool.QueueUserWorkItem(o =>
-            {
-                if (delayMs > 0) Thread.Sleep(delayMs);
-                this.SendChatMessage(car_id, msg);
-            });
-        }
-
-        public virtual void EnableRealtimeReportAsync(UInt16 interval, int delayMs = 0)
-        {
-            ThreadPool.QueueUserWorkItem(o =>
-            {
-                if (delayMs > 0) Thread.Sleep(delayMs);
-                this.EnableRealtimeReport(interval);
-            });
         }
 
         #endregion
