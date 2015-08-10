@@ -33,55 +33,11 @@ namespace acPlugins4net.helpers
             using (var br = new BinaryReader(m))
             {
                 if (br.ReadByte() != (byte)newMsg.Type)
-                    throw new Exception("Error in parsing the message, just because Minolin is dumb and you can't do anything about it");
+                    throw new Exception("Error in parsing the message, just because Minolin is dumb and you can't do anything about it. Hint: Message Type wasn't the one the Constrcutor of" + newMsg.GetType().Name + " receives");
                 newMsg.Deserialize(br);
             }
 
             return newMsg;
-        }
-
-        [Obsolete("No longer needed when replaced AcServerPlugin with AcServerPluginNew")]
-        internal static void Activate(AcServerPluginOld acServerPlugin, byte[] data)
-        {
-            var msg = Parse(data);
-            switch (msg.Type)
-            {
-                case ACSProtocol.MessageType.ACSP_NEW_SESSION:
-                    acServerPlugin.OnNewSessionBase(msg as MsgSessionInfo);
-                    break;
-                case ACSProtocol.MessageType.ACSP_NEW_CONNECTION:
-                    acServerPlugin.OnNewConnectionBase(msg as MsgNewConnection);
-                    break;
-                case ACSProtocol.MessageType.ACSP_CONNECTION_CLOSED:
-                    acServerPlugin.OnConnectionClosedBase(msg as MsgConnectionClosed);
-                    break;
-                case ACSProtocol.MessageType.ACSP_CAR_UPDATE:
-                    acServerPlugin.OnCarUpdate(msg as MsgCarUpdate);
-                    break;
-                case ACSProtocol.MessageType.ACSP_CAR_INFO:
-                    acServerPlugin.OnCarInfoBase(msg as MsgCarInfo);
-                    break;
-                case ACSProtocol.MessageType.ACSP_LAP_COMPLETED:
-                    acServerPlugin.OnLapCompleted(msg as MsgLapCompleted);
-                    break;
-                case ACSProtocol.MessageType.ACSP_END_SESSION:
-                    acServerPlugin.OnSessionEnded(msg as MsgSessionEnded);
-                    break;
-                case ACSProtocol.MessageType.ACSP_CLIENT_EVENT:
-                    acServerPlugin.OnCollision(msg as MsgClientEvent);
-                    break;
-                case ACSProtocol.MessageType.ACSP_REALTIMEPOS_INTERVAL:
-                case ACSProtocol.MessageType.ACSP_GET_CAR_INFO:
-                case ACSProtocol.MessageType.ACSP_SEND_CHAT:
-                case ACSProtocol.MessageType.ACSP_BROADCAST_CHAT:
-                    throw new Exception("Received unexpected MessageType (for a plugin): " + msg.Type);
-                case ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_CAR:
-                case ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_ENV:
-                case ACSProtocol.MessageType.ERROR:
-                default:
-                    throw new Exception("Unknown MessageType: " + msg.Type + ", probably because Minolin didn't know the byte values for the new ACSP-Fields.");
-                    //throw new Exception("Received wrong or unknown MessageType: " + msg.Type);
-            }
         }
 
         private static PluginMessage CreateInstance(ACSProtocol.MessageType msgType)
@@ -89,8 +45,8 @@ namespace acPlugins4net.helpers
             switch (msgType)
             {
                 case ACSProtocol.MessageType.ACSP_VERSION: return new MsgVersionInfo();
-                case ACSProtocol.MessageType.ACSP_SESSION_INFO:
-                case ACSProtocol.MessageType.ACSP_NEW_SESSION: return new MsgSessionInfo();
+                case ACSProtocol.MessageType.ACSP_SESSION_INFO: return new MsgSessionInfo();
+                case ACSProtocol.MessageType.ACSP_NEW_SESSION: return new MsgSessionInfo(ACSProtocol.MessageType.ACSP_NEW_SESSION);
                 case ACSProtocol.MessageType.ACSP_NEW_CONNECTION: return new MsgNewConnection();
                 case ACSProtocol.MessageType.ACSP_CONNECTION_CLOSED: return new MsgConnectionClosed();
                 case ACSProtocol.MessageType.ACSP_CAR_UPDATE: return new MsgCarUpdate();
@@ -105,8 +61,11 @@ namespace acPlugins4net.helpers
                 case ACSProtocol.MessageType.ACSP_CHAT: return new MsgChat();
                 case ACSProtocol.MessageType.ACSP_GET_SESSION_INFO: return new RequestSessionInfo();
                 case ACSProtocol.MessageType.ACSP_CLIENT_LOADED: return new MsgClientLoaded();
-                case ACSProtocol.MessageType.ERROR:
-                    throw new Exception("CreateInstance: MessageType is not set or wrong (ERROR=0)");
+                case ACSProtocol.MessageType.ACSP_SET_SESSION_INFO: return new RequestSetSession();
+                case ACSProtocol.MessageType.ACSP_ERROR: return new MsgError();
+                case ACSProtocol.MessageType.ACSP_KICK_USER: return new RequestKickUser();
+                case ACSProtocol.MessageType.ERROR_BYTE:
+                    throw new Exception("CreateInstance: MessageType is not set or wrong (ERROR_BYTE=0)");
                 case ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_CAR:
                 case ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_ENV:
                     throw new Exception("CreateInstance: MessageType " + msgType + " is not meant to be used as MessageType, but as Subtype to ACSP_CLIENT_EVENT");

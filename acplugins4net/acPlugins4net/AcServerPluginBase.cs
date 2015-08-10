@@ -50,5 +50,10 @@ namespace acPlugins4net
         protected internal virtual void OnClientLoadedBase(MsgClientLoaded msg) { }
 
         protected internal virtual void OnChatMessageBase(MsgChat msg) { }
+
+        internal void OnErrorBase(MsgError msg)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -9,6 +9,7 @@ using MinoRatingPlugin.minoRatingServer;
 using System.Threading;
 using acPlugins4net.kunos;
 using acPlugins4net.helpers;
+using System.ServiceModel;
 
 namespace MinoRatingPlugin
 {
@@ -26,7 +27,8 @@ namespace MinoRatingPlugin
 
         public override void OnInit()
         {
-            LiveDataServer = new LiveDataDumpClient();
+            LiveDataServer = new LiveDataDumpClient(new BasicHttpBinding(), new EndpointAddress("http://plugin.minorating.com:805/minorating"));
+
             TrustToken = Config.GetSetting("server_trust_token");
             if (string.IsNullOrEmpty(TrustToken))
             {

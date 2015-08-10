@@ -408,6 +408,9 @@ namespace acPlugins4net
                         case ACSProtocol.MessageType.ACSP_CHAT:
                             plugin.OnChatMessageBase((MsgChat)msg);
                             break;
+                        case ACSProtocol.MessageType.ACSP_ERROR:
+                            plugin.OnErrorBase((MsgError)msg);
+                            break;
                         case ACSProtocol.MessageType.ACSP_REALTIMEPOS_INTERVAL:
                         case ACSProtocol.MessageType.ACSP_GET_CAR_INFO:
                         case ACSProtocol.MessageType.ACSP_SEND_CHAT:
@@ -416,7 +419,7 @@ namespace acPlugins4net
                             throw new Exception("Received unexpected MessageType (for a plugin): " + msg.Type);
                         case ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_CAR:
                         case ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_ENV:
-                        case ACSProtocol.MessageType.ERROR:
+                        case ACSProtocol.MessageType.ERROR_BYTE:
                         default:
                             throw new Exception("Unknown MessageType: " + msg.Type + ", probably because Minolin didn't know the byte values for the new ACSP-Fields.");
                             //throw new Exception("Received wrong or unknown MessageType: " + msg.Type);

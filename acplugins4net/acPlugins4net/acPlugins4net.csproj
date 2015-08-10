@@ -44,7 +44,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AcServerPluginManager.cs" />
-    <Compile Include="AcServerPluginOld.cs" />
     <Compile Include="configuration\AppConfigConfigurator.cs" />
     <Compile Include="configuration\IConfigManager.cs" />
     <Compile Include="ExternalPluginInfo.cs" />
@@ -64,10 +63,13 @@
     <Compile Include="messages\MsgClientEvent.cs" />
     <Compile Include="messages\MsgClientLoaded.cs" />
     <Compile Include="messages\MsgConnectionClosed.cs" />
+    <Compile Include="messages\MsgError.cs" />
+    <Compile Include="messages\RequestKickUser.cs" />
     <Compile Include="messages\MsgLapCompleted.cs" />
     <Compile Include="messages\MsgLapCompletedLeaderboardEnty.cs" />
     <Compile Include="messages\MsgNewConnection.cs" />
     <Compile Include="messages\MsgSessionEnded.cs" />
+    <Compile Include="messages\RequestSetSession.cs" />
     <Compile Include="messages\MsgVersionInfo.cs" />
     <Compile Include="messages\RequestBroadcastChat.cs" />
     <Compile Include="messages\RequestCarInfo.cs" />

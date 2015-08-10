@@ -69,6 +69,15 @@ namespace acPlugins4net.messages
 
         }
 
+        public MsgSessionInfo(ACSProtocol.MessageType overridingNewSessionFlag)
+            :base(ACSProtocol.MessageType.ACSP_NEW_SESSION)
+        {
+            if (overridingNewSessionFlag != ACSProtocol.MessageType.ACSP_NEW_SESSION)
+                throw new Exception("MsgSessionInfo's type may only be overriden by ACSP_NEW_SESSION");
+
+        }
+
+
         protected internal override void Deserialize(System.IO.BinaryReader br)
         {
             Version = br.ReadByte();

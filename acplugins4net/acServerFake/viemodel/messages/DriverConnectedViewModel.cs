@@ -18,7 +18,7 @@ namespace acServerFake.viemodel.messages
             }
         }
 
-        [Obsolete("nicht fertig")]
+        [Obsolete("unfinished")]
         public DriverConnectedViewModel()
         {
             Message.CarId = 7;

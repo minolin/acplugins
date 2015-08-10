@@ -43,13 +43,6 @@ namespace acPlugins4net
             }
         }
 
-        [Obsolete("This method can be removed when switch to AcServerPluginManager is completed")]
-        public static void RunUntilAborted(this AcServerPluginBase plugin)
-        {
-            IConfigManager config = new AppConfigConfigurator();
-            RunSinglePluginUntilAborted(plugin, new ConsoleLogger("minoratingplugin.txt"));
-        }
-
         public static void RunSinglePluginUntilAborted(this AcServerPluginBase plugin, ILog log, IConfigManager config = null, bool loadInfoFromServerConfig = true)
         {
             AcServerPluginManager pluginManager = new AcServerPluginManager(log, config);
