@@ -1,7 +1,7 @@
 from setuptools import setup
 
-plugin_version = "0.2"
-ac_version = "1.2.2"
+plugin_version = "0.3"
+ac_version = "1.2.3"
 python_version = "3.3.x"
 
 setup(name='acplugins4python',
