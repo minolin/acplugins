@@ -104,9 +104,9 @@ namespace acPlugins4net.messages
             bw.Write(SessionIndex);
             bw.Write(CurrentSessionIndex);
             bw.Write(SessionCount);
-            bw.Write(ServerName);
-            bw.Write(Track);
-            bw.Write(TrackConfig);
+            writeStringW(bw, ServerName);
+            writeString(bw, Track);
+            writeString(bw, TrackConfig);
             writeString(bw, Name);
             bw.Write(SessionType);
             bw.Write(TimeOfDay);

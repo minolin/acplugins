@@ -9,6 +9,24 @@ namespace acServerFake.viemodel.messages
     {
         #region New Session Properties
 
+        public string ServerName
+        {
+            get { return Message.ServerName; }
+            set { Message.ServerName = value; OnPropertyChanged("ServerName"); }
+        }
+
+        public string Track
+        {
+            get { return Message.Track; }
+            set { Message.Track = value; OnPropertyChanged("Track"); }
+        }
+
+        public string TrackConfig
+        {
+            get { return Message.TrackConfig; }
+            set { Message.TrackConfig = value; OnPropertyChanged("TrackConfig"); }
+        }
+
         public string Name
         {
             get { return Message.Name; }
@@ -67,8 +85,12 @@ namespace acServerFake.viemodel.messages
         public NewSessionViewModel()
         {
             // Quick & dirty: Some defaults to speed up tests
-            Name = "wtf is a session 'name'?";
-            SessionType = 2;
+            Message.Version = AcServerPluginManager.RequiredProtocolVersion - 1;
+            ServerName = "Fake Server Trackday";
+            Track = "mugello";
+            TrackConfig = "";
+            Name = "Race";
+            SessionType = 3;
             TimeOfDay = 233; // Ideas for a daytime format for a daytime in ushort? Minutes?
             Laps = 8;
             WaitTime = 30;

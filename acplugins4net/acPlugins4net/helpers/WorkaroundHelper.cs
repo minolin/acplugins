@@ -24,10 +24,14 @@ namespace acPlugins4net.helpers
                     try
                     {
                         var acDirectory = _Config.GetSetting("ac_server_directory");
+                        var configDir = _Config.GetSetting("ac_cfg_directory");
+                        if (string.IsNullOrEmpty(configDir))
+                            configDir = "cfg";
+
                         if (string.IsNullOrWhiteSpace(acDirectory))
                         {
                             acDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                            configFile = Path.Combine(acDirectory, "cfg", "server_cfg.ini");
+                            configFile = Path.Combine(acDirectory, configDir, "server_cfg.ini");
 
                             if (!File.Exists(configFile))
                             {
@@ -35,7 +39,8 @@ namespace acPlugins4net.helpers
                             }
                         }
 
-                        configFile = Path.Combine(acDirectory, "cfg", "server_cfg.ini");
+
+                        configFile = Path.Combine(acDirectory, configDir, "server_cfg.ini");
                         _ConfigIniLines = File.ReadAllLines(configFile);
                     }
                     catch (Exception ex)
@@ -76,3 +81,4 @@ namespace acPlugins4net.helpers
         }
     }
 }
+

@@ -18,7 +18,7 @@ namespace MinoRatingPlugin
         public LiveDataDumpClient LiveDataServer { get; set; }
         public string TrustToken { get; set; }
         public Guid CurrentSessionGuid { get; set; }
-        public static Version PluginVersion = new Version(0, 3, 3);
+        public static Version PluginVersion = new Version(0, 4, 0);
 
         static void Main(string[] args)
         {
@@ -27,7 +27,11 @@ namespace MinoRatingPlugin
 
         public override void OnInit()
         {
+#if DEBUG
+            LiveDataServer = new LiveDataDumpClient(new BasicHttpBinding(), new EndpointAddress("http://localhost:805/minorating"));
+#else
             LiveDataServer = new LiveDataDumpClient(new BasicHttpBinding(), new EndpointAddress("http://plugin.minorating.com:805/minorating"));
+#endif
 
             TrustToken = Config.GetSetting("server_trust_token");
             if (string.IsNullOrEmpty(TrustToken))
@@ -182,6 +186,17 @@ namespace MinoRatingPlugin
                     PluginManager.SendChatMessage(a.CarId, a.Text);
                 else if (a.Reaction == PluginReaction.ReactionType.Broadcast)
                     PluginManager.BroadcastChatMessage(a.Text);
+                else if(a.Reaction == PluginReaction.ReactionType.Kick)
+                {
+                    // To be 100% sure we kick the right person we'll have to compare the steam id
+                    MsgCarInfo c;
+                    if(CarInfo.TryGetValue(a.CarId, out c))
+                        if (c.IsConnected && c.DriverGuid == a.SteamId)
+                        {
+                            PluginManager.BroadcastChatMessage("" + c.DriverName + " has been kicked by minorating.com");
+                            PluginManager.RequestKickDriverById(a.CarId);
+                        }
+                }
             }
             catch (Exception) { }
         }
@@ -211,6 +226,32 @@ namespace MinoRatingPlugin
                 LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, TrustToken);
             else
                 LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, "", "", TrustToken);
+        }
+
+        public override void OnChatMessage(MsgChat msg)
+        {
+            if (!msg.IsCommand)
+                return;
+
+            var split = msg.Message.Split(' ');
+            if (split.Length > 0)
+            {
+                switch (split[0])
+                {
+                    case "/mr":
+                    case "/minorating":
+                        HandleClientActions(LiveDataServer.RequestDriverRating(CurrentSessionGuid, msg.CarId, TrustToken));
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        public override void OnClientLoaded(MsgClientLoaded msg)
+        {
+            HandleClientActions(LiveDataServer.RequestDriverRating(CurrentSessionGuid, msg.CarId, TrustToken));
+            HandleClientActions(LiveDataServer.RequestDriverLoaded(CurrentSessionGuid, msg.CarId, TrustToken));
         }
     }
 }

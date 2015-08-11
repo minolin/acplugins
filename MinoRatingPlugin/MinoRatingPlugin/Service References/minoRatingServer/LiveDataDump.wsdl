@@ -69,6 +69,18 @@
   <wsdl:message name="ILiveDataDump_GetVersion_OutputMessage">
     <wsdl:part name="parameters" element="tns:GetVersionResponse" />
   </wsdl:message>
+  <wsdl:message name="ILiveDataDump_RequestDriverRating_InputMessage">
+    <wsdl:part name="parameters" element="tns:RequestDriverRating" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_RequestDriverRating_OutputMessage">
+    <wsdl:part name="parameters" element="tns:RequestDriverRatingResponse" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_RequestDriverLoaded_InputMessage">
+    <wsdl:part name="parameters" element="tns:RequestDriverLoaded" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_RequestDriverLoaded_OutputMessage">
+    <wsdl:part name="parameters" element="tns:RequestDriverLoadedResponse" />
+  </wsdl:message>
   <wsdl:portType name="ILiveDataDump">
     <wsdl:operation name="Tst">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/Tst" message="tns:ILiveDataDump_Tst_InputMessage" />
@@ -109,6 +121,14 @@
     <wsdl:operation name="GetVersion">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/GetVersion" message="tns:ILiveDataDump_GetVersion_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/GetVersionResponse" message="tns:ILiveDataDump_GetVersion_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="RequestDriverRating">
+      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/RequestDriverRating" message="tns:ILiveDataDump_RequestDriverRating_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/RequestDriverRatingResponse" message="tns:ILiveDataDump_RequestDriverRating_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="RequestDriverLoaded">
+      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/RequestDriverLoaded" message="tns:ILiveDataDump_RequestDriverLoaded_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/RequestDriverLoadedResponse" message="tns:ILiveDataDump_RequestDriverLoaded_OutputMessage" />
     </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="BasicHttpBinding_ILiveDataDump" type="tns:ILiveDataDump">
@@ -196,6 +216,24 @@
     </wsdl:operation>
     <wsdl:operation name="GetVersion">
       <soap:operation soapAction="http://tempuri.org/ILiveDataDump/GetVersion" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RequestDriverRating">
+      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/RequestDriverRating" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RequestDriverLoaded">
+      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/RequestDriverLoaded" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>

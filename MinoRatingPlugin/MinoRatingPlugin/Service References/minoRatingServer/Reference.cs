@@ -358,6 +358,18 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/GetVersion", ReplyAction="http://tempuri.org/ILiveDataDump/GetVersionResponse")]
         System.Threading.Tasks.Task<System.Version> GetVersionAsync();
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/RequestDriverRating", ReplyAction="http://tempuri.org/ILiveDataDump/RequestDriverRatingResponse")]
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] RequestDriverRating(System.Guid sessionId, int car, string token);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/RequestDriverRating", ReplyAction="http://tempuri.org/ILiveDataDump/RequestDriverRatingResponse")]
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> RequestDriverRatingAsync(System.Guid sessionId, int car, string token);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/RequestDriverLoaded", ReplyAction="http://tempuri.org/ILiveDataDump/RequestDriverLoadedResponse")]
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] RequestDriverLoaded(System.Guid sessionId, int car, string token);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/RequestDriverLoaded", ReplyAction="http://tempuri.org/ILiveDataDump/RequestDriverLoadedResponse")]
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> RequestDriverLoadedAsync(System.Guid sessionId, int car, string token);
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
@@ -465,6 +477,22 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         public System.Threading.Tasks.Task<System.Version> GetVersionAsync() {
             return base.Channel.GetVersionAsync();
+        }
+        
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] RequestDriverRating(System.Guid sessionId, int car, string token) {
+            return base.Channel.RequestDriverRating(sessionId, car, token);
+        }
+        
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> RequestDriverRatingAsync(System.Guid sessionId, int car, string token) {
+            return base.Channel.RequestDriverRatingAsync(sessionId, car, token);
+        }
+        
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] RequestDriverLoaded(System.Guid sessionId, int car, string token) {
+            return base.Channel.RequestDriverLoaded(sessionId, car, token);
+        }
+        
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> RequestDriverLoadedAsync(System.Guid sessionId, int car, string token) {
+            return base.Channel.RequestDriverLoadedAsync(sessionId, car, token);
         }
     }
 }
