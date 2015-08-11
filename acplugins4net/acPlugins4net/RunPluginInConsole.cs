@@ -18,7 +18,7 @@ namespace acPlugins4net
                 pluginManager.Log("... ok, we're good to go.");
 
                 var input = Console.ReadLine();
-                while (input != "x" && input != "exit")
+                while (input != "x" && input != "exit" && pluginManager.IsConnected)
                 {
                     // Basically we're blocking the Main Thread until exit.
                     // Ugly, but pretty easy to use by the deriving Plugin
