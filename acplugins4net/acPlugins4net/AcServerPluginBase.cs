@@ -51,9 +51,8 @@ namespace acPlugins4net
 
         protected internal virtual void OnChatMessageBase(MsgChat msg) { }
 
-        internal void OnErrorBase(MsgError msg)
-        {
-            throw new NotImplementedException();
-        }
+        protected internal virtual void OnProtocolVersionBase(MsgVersionInfo msg) { }
+
+        protected internal virtual void OnServerErrorBase(MsgError msg) { }
     }
 }

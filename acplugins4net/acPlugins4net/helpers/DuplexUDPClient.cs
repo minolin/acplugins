@@ -107,9 +107,9 @@ namespace acPlugins4net.helpers
 
         private void ReceiveMessages()
         {
-            try
+            while (Opened)
             {
-                while (Opened)
+                try
                 {
                     var bytesReceived = _plugin.Receive(ref RemoteIpEndPoint);
                     lock (_messageQueue)
@@ -118,13 +118,13 @@ namespace acPlugins4net.helpers
                         Monitor.Pulse(_messageQueue);
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                if (Opened)
+                catch (Exception ex)
                 {
-                    // something has gone wrong badly
-                    ErrorHandler(ex);
+                    if (Opened)
+                    {
+                        // it seems the acServer is not running/ready yet
+                        ErrorHandler(ex);
+                    }
                 }
             }
         }

@@ -142,6 +142,16 @@ namespace acPlugins4net
             OnSessionInfo(msg);
         }
 
+        protected internal sealed override void OnServerErrorBase(MsgError msg)
+        {
+            OnServerError(msg);
+        }
+
+        protected internal override void OnProtocolVersionBase(MsgVersionInfo msg)
+        {
+            OnProtocolVersion(msg);
+        }
+
         #endregion
 
         #region overridable event handlers
@@ -174,6 +184,8 @@ namespace acPlugins4net
         public virtual void OnSessionInfo(MsgSessionInfo msg) { }
         public virtual void OnClientLoaded(MsgClientLoaded msg) { }
         public virtual void OnChatMessage(MsgChat msg) { }
+        public virtual void OnServerError(MsgError msg) { }
+        public virtual void OnProtocolVersion(MsgVersionInfo msg) { }
 
         #endregion
 
