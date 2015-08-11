@@ -70,6 +70,8 @@ namespace acPlugins4net
 
         [Obsolete("Not yet, but once Kunos implements MaxClients as part of the session info, we should remove it")]
         public int MaxClients { get; set; }
+
+        public string AdminPassword { get; set; }
         #endregion
 
         public AcServerPluginManager(ILog log = null, IConfigManager config = null)
@@ -97,6 +99,7 @@ namespace acPlugins4net
                 RemostHostname = "127.0.0.1";
             RemotePort = Config.GetSettingAsInt("ac_server_port", 11000);
             MaxClients = Config.GetSettingAsInt("max_clients", 32);
+            AdminPassword = Config.GetSetting("admin_password");
 
             LogServerRequests = Config.GetSettingAsInt("log_server_requests", 1);
         }
@@ -115,6 +118,7 @@ namespace acPlugins4net
                 }
 
                 MaxClients = Convert.ToInt32(_Workarounds.FindServerConfigEntry("MAX_CLIENTS="));
+                AdminPassword = _Workarounds.FindServerConfigEntry("ADMIN_PASSWORD=");
 
                 // First we're getting the configured ports (read directly from the server_config.ini)
                 string acServerPortString = _Workarounds.FindServerConfigEntry("UDP_PLUGIN_LOCAL_PORT=");
