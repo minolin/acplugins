@@ -15,7 +15,12 @@ namespace acPlugins4net
 {
     public class AcServerPluginManager : ILog
     {
-        public const int RequiredProtocolVersion = 2;
+        static AcServerPluginManager()
+        {
+            RequiredProtocolVersion = Assembly.GetExecutingAssembly().GetName().Version.Major;
+        }
+
+        public static readonly int RequiredProtocolVersion;
 
         #region private fields
         private readonly DuplexUDPClient _UDP;
@@ -62,9 +67,8 @@ namespace acPlugins4net
         /// Can be set via app.config setting "ac_server_port". Default is 11000.
         /// </summary>
         public int RemotePort { get; set; }
-        public string ServerName { get; set; }
-        public string Track { get; set; }
-        public string TrackLayout { get; set; }
+
+        [Obsolete("Not yet, but once Kunos implements MaxClients as part of the session info, we should remove it")]
         public int MaxClients { get; set; }
         #endregion
 
@@ -92,21 +96,24 @@ namespace acPlugins4net
             if (string.IsNullOrWhiteSpace(RemostHostname))
                 RemostHostname = "127.0.0.1";
             RemotePort = Config.GetSettingAsInt("ac_server_port", 11000);
+            MaxClients = Config.GetSettingAsInt("max_clients", 32);
+
             LogServerRequests = Config.GetSettingAsInt("log_server_requests", 1);
         }
 
         /// <summary>
         /// Loads the information from server configuration.
-        /// The following Properties are set: <see cref="ServerName"/>, <see cref="Track"/>, <see cref="TrackLayout"/>, 
-        /// <see cref="MaxClients"/>, <see cref="ListeningPort"/>,  <see cref="RemostHostname"/>, <see cref="RemotePort"/>
+        /// The following Properties are set: <see cref="MaxClients"/>, <see cref="ListeningPort"/>,  <see cref="RemostHostname"/>, <see cref="RemotePort"/>
         /// </summary>
         public void LoadInfoFromServerConfig()
         {
             lock (lockObject)
             {
-                ServerName = _Workarounds.FindServerConfigEntry("NAME=");
-                Track = _Workarounds.FindServerConfigEntry("TRACK=");
-                TrackLayout = _Workarounds.FindServerConfigEntry("CONFIG_TRACK=");
+                if (this.Config.GetSettingAsInt("load_server_cfg", 1) == 0)
+                {
+                    return;
+                }
+
                 MaxClients = Convert.ToInt32(_Workarounds.FindServerConfigEntry("MAX_CLIENTS="));
 
                 // First we're getting the configured ports (read directly from the server_config.ini)

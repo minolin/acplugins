@@ -13,7 +13,7 @@ using System.ServiceModel;
 
 namespace MinoRatingPlugin
 {
-    class MinoratingPlugin : AcServerPlugin
+    public class MinoratingPlugin : AcServerPlugin
     {
         public LiveDataDumpClient LiveDataServer { get; set; }
         public string TrustToken { get; set; }
@@ -22,7 +22,18 @@ namespace MinoRatingPlugin
 
         static void Main(string[] args)
         {
-            RunPluginInConsole.RunSinglePluginUntilAborted(new MinoratingPlugin(), new FileLogWriter("log", "minoplugin.txt") { CopyToConsole = true, LogWithTimestamp = true });
+            try
+            {
+                AcServerPluginManager pluginManager = new AcServerPluginManager(new FileLogWriter("log", "minoplugin.txt") { CopyToConsole = true, LogWithTimestamp = true });
+                pluginManager.LoadInfoFromServerConfig();
+                pluginManager.AddPlugin(new MinoratingPlugin());
+                pluginManager.LoadPluginsFromAppConfig();
+                RunPluginInConsole.RunUntilAborted(pluginManager);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public override void OnInit()
@@ -70,10 +81,10 @@ namespace MinoRatingPlugin
         {
             PluginManager.Log("===============================");
             PluginManager.Log("===============================");
-            PluginManager.Log("OnNewSession: " + msg.Name + "@" + PluginManager.ServerName);
+            PluginManager.Log("OnNewSession: " + msg.Name + "@" + msg.ServerName);
             PluginManager.Log("===============================");
             PluginManager.Log("===============================");
-            CurrentSessionGuid = LiveDataServer.NewSession(CurrentSessionGuid, PluginManager.ServerName, PluginManager.Track + "[" + PluginManager.TrackLayout + "]", msg.SessionType, msg.Laps, msg.WaitTime, msg.TimeOfDay, msg.AmbientTemp, msg.RoadTemp, TrustToken, _fingerprint);
+            CurrentSessionGuid = LiveDataServer.NewSession(CurrentSessionGuid, msg.ServerName, msg.Track + "[" + msg.TrackConfig + "]", msg.SessionType, msg.Laps, msg.WaitTime, msg.TimeOfDay, msg.AmbientTemp, msg.RoadTemp, TrustToken, _fingerprint);
         }
 
         public override void OnNewConnection(MsgNewConnection msg)
@@ -186,11 +197,11 @@ namespace MinoRatingPlugin
                     PluginManager.SendChatMessage(a.CarId, a.Text);
                 else if (a.Reaction == PluginReaction.ReactionType.Broadcast)
                     PluginManager.BroadcastChatMessage(a.Text);
-                else if(a.Reaction == PluginReaction.ReactionType.Kick)
+                else if (a.Reaction == PluginReaction.ReactionType.Kick)
                 {
                     // To be 100% sure we kick the right person we'll have to compare the steam id
                     MsgCarInfo c;
-                    if(CarInfo.TryGetValue(a.CarId, out c))
+                    if (CarInfo.TryGetValue(a.CarId, out c))
                         if (c.IsConnected && c.DriverGuid == a.SteamId)
                         {
                             PluginManager.BroadcastChatMessage("" + c.DriverName + " has been kicked by minorating.com");
