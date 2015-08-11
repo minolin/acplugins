@@ -45,30 +45,5 @@ namespace acPlugins4net
                 pluginManager.Log("Disconnected...");
             }
         }
-
-        public static void RunSinglePluginUntilAborted(this AcServerPluginBase plugin, ILog log, IConfigManager config = null, bool loadInfoFromServerConfig = true)
-        {
-            AcServerPluginManager pluginManager = new AcServerPluginManager(log, config);
-            try
-            {
-                pluginManager.Log(plugin.PluginName + " starting up...");
-                if (loadInfoFromServerConfig)
-                {
-                    pluginManager.Log("Loading info from server config...");
-                    pluginManager.LoadInfoFromServerConfig();
-                    pluginManager.Log("Track/Layout is " + pluginManager.Track + "[" + pluginManager.TrackLayout + "]");
-                }
-                pluginManager.AddPlugin(plugin);
-            }
-            catch (Exception ex)
-            {
-                pluginManager.Log("Fatal error during startup");
-                pluginManager.Log(ex);
-                // There's no point going into the main loop if the initialisation went horribly wrong
-                return;
-            }
-
-            RunUntilAborted(pluginManager);
-        }
     }
 }

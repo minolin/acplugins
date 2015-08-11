@@ -9,11 +9,22 @@ using acPlugins4net.messages;
 
 namespace Admin2ChatPlugin
 {
-    class Admin2ChatPlugin : AcServerPlugin
+    public class Admin2ChatPlugin : AcServerPlugin
     {
         static void Main(string[] args)
         {
-            RunPluginInConsole.RunSinglePluginUntilAborted(new Admin2ChatPlugin(), new FileLogWriter(".", "log.txt") { CopyToConsole = true, LogWithTimestamp = true });
+            try
+            {
+                AcServerPluginManager pluginManager = new AcServerPluginManager(new FileLogWriter(".", "log.txt") { CopyToConsole = true, LogWithTimestamp = true });
+                pluginManager.LoadInfoFromServerConfig();
+                pluginManager.AddPlugin(new Admin2ChatPlugin());
+                pluginManager.LoadPluginsFromAppConfig();
+                RunPluginInConsole.RunUntilAborted(pluginManager);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public override bool OnCommandEntered(string cmd)

@@ -85,7 +85,7 @@ namespace acServerFake.viemodel.messages
         public NewSessionViewModel()
         {
             // Quick & dirty: Some defaults to speed up tests
-            Message.Version = AcServerPluginManager.RequiredProtocolVersion - 1;
+            Message.Version = (byte)(AcServerPluginManager.RequiredProtocolVersion - 1);
             ServerName = "Fake Server Trackday";
             Track = "mugello";
             TrackConfig = "";

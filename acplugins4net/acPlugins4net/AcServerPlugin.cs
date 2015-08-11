@@ -212,18 +212,6 @@ namespace acPlugins4net
         [Obsolete("Only for compatibility with plugins developed for old AcServerPlugin, override OnCommandEntered instead")]
         public virtual void OnConsoleCommand(string cmd) { }
 
-        [Obsolete("Use PluginManager.ServerName instead")]
-        public string Servername { get { return PluginManager.ServerName; } }
-
-        [Obsolete("Use PluginManager.Track instead")]
-        public string Track { get { return PluginManager.Track; } }
-
-        [Obsolete("Use PluginManager.TrackLayout instead")]
-        public string TrackLayout { get { return PluginManager.TrackLayout; } }
-
-        [Obsolete("Use PluginManager.MaxClients instead")]
-        public int MaxClients { get { return PluginManager.MaxClients; } }
-
         #endregion
     }
 }
