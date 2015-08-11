@@ -360,15 +360,15 @@ namespace acPlugins4net
 
         public virtual void Disconnect()
         {
+            if (!IsConnected)
+            {
+                throw new Exception("PluginManager is not connected");
+            }
+
+            _UDP.Close();
+
             lock (lockObject)
             {
-                if (!IsConnected)
-                {
-                    throw new Exception("PluginManager is not connected");
-                }
-
-                _UDP.Close();
-
                 foreach (DuplexUDPClient externalPluginUdp in _openExternalPlugins.Values)
                 {
                     try
@@ -415,7 +415,7 @@ namespace acPlugins4net
 
                     if (this.ProtocolVersion != RequiredProtocolVersion)
                     {
-                        this.Disconnect();
+                        ThreadPool.QueueUserWorkItem(o => this.Disconnect()); // because we are here in the ProcessMessages Thread we can't disconnect from here
                         throw new Exception(string.Format("AcServer protocol version '{0}' is different from the required protocol version '{1}'. Disconnecting...",
                             this.ProtocolVersion, RequiredProtocolVersion));
                     }

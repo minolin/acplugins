@@ -38,7 +38,10 @@ namespace acPlugins4net
             }
             finally
             {
-                pluginManager.Disconnect();
+                if (pluginManager.IsConnected)
+                {
+                    pluginManager.Disconnect();
+                }
                 pluginManager.Log("Disconnected...");
             }
         }
