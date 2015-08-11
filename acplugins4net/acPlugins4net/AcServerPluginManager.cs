@@ -415,7 +415,7 @@ namespace acPlugins4net
 
                     if (this.ProtocolVersion != RequiredProtocolVersion)
                     {
-                        ThreadPool.QueueUserWorkItem(o => this.Disconnect()); // because we are here in the ProcessMessages Thread we can't disconnect from here
+                        this.Disconnect();
                         throw new Exception(string.Format("AcServer protocol version '{0}' is different from the required protocol version '{1}'. Disconnecting...",
                             this.ProtocolVersion, RequiredProtocolVersion));
                     }

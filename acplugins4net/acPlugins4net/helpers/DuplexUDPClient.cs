@@ -67,9 +67,12 @@ namespace acPlugins4net.helpers
 
                 _plugin.Close(); // _plugin.Receive in ReceiveMessages thread should return at this point
 
-                _processMessagesThread.Join(); // make sure thread has terminated
+                if (Thread.CurrentThread != _processMessagesThread)
+                {
+                    _processMessagesThread.Join(); // make sure thread has terminated
+                }
                 _receiveMessagesThread.Join(); // make sure thread has terminated
-                _sendMessagesThread.Join();
+                _sendMessagesThread.Join(); // make sure thread has terminated
 
                 _plugin = null;
                 _messageQueue.Clear();
