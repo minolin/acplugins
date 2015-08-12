@@ -15,123 +15,14 @@ namespace MinoRatingPlugin.minoRatingServer {
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
-    [System.Runtime.Serialization.DataContractAttribute(Name="LeaderboardEntry", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy")]
-    [System.SerializableAttribute()]
-    public partial class LeaderboardEntry : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
-        
-        [System.NonSerializedAttribute()]
-        private System.Runtime.Serialization.ExtensionDataObject extensionDataField;
-        
-        [System.Runtime.Serialization.OptionalFieldAttribute()]
-        private int CarIdField;
-        
-        [System.Runtime.Serialization.OptionalFieldAttribute()]
-        private string DriverIdField;
-        
-        [System.Runtime.Serialization.OptionalFieldAttribute()]
-        private int LapsDrivenField;
-        
-        [System.Runtime.Serialization.OptionalFieldAttribute()]
-        private int RankField;
-        
-        [System.Runtime.Serialization.OptionalFieldAttribute()]
-        private uint TimeField;
-        
-        [global::System.ComponentModel.BrowsableAttribute(false)]
-        public System.Runtime.Serialization.ExtensionDataObject ExtensionData {
-            get {
-                return this.extensionDataField;
-            }
-            set {
-                this.extensionDataField = value;
-            }
-        }
-        
-        [System.Runtime.Serialization.DataMemberAttribute()]
-        public int CarId {
-            get {
-                return this.CarIdField;
-            }
-            set {
-                if ((this.CarIdField.Equals(value) != true)) {
-                    this.CarIdField = value;
-                    this.RaisePropertyChanged("CarId");
-                }
-            }
-        }
-        
-        [System.Runtime.Serialization.DataMemberAttribute()]
-        public string DriverId {
-            get {
-                return this.DriverIdField;
-            }
-            set {
-                if ((object.ReferenceEquals(this.DriverIdField, value) != true)) {
-                    this.DriverIdField = value;
-                    this.RaisePropertyChanged("DriverId");
-                }
-            }
-        }
-        
-        [System.Runtime.Serialization.DataMemberAttribute()]
-        public int LapsDriven {
-            get {
-                return this.LapsDrivenField;
-            }
-            set {
-                if ((this.LapsDrivenField.Equals(value) != true)) {
-                    this.LapsDrivenField = value;
-                    this.RaisePropertyChanged("LapsDriven");
-                }
-            }
-        }
-        
-        [System.Runtime.Serialization.DataMemberAttribute()]
-        public int Rank {
-            get {
-                return this.RankField;
-            }
-            set {
-                if ((this.RankField.Equals(value) != true)) {
-                    this.RankField = value;
-                    this.RaisePropertyChanged("Rank");
-                }
-            }
-        }
-        
-        [System.Runtime.Serialization.DataMemberAttribute()]
-        public uint Time {
-            get {
-                return this.TimeField;
-            }
-            set {
-                if ((this.TimeField.Equals(value) != true)) {
-                    this.TimeField = value;
-                    this.RaisePropertyChanged("Time");
-                }
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="PluginReaction", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy")]
     [System.SerializableAttribute()]
+    [System.Runtime.Serialization.KnownTypeAttribute(typeof(object[]))]
     [System.Runtime.Serialization.KnownTypeAttribute(typeof(System.Version))]
-    [System.Runtime.Serialization.KnownTypeAttribute(typeof(MinoRatingPlugin.minoRatingServer.LeaderboardEntry[]))]
-    [System.Runtime.Serialization.KnownTypeAttribute(typeof(MinoRatingPlugin.minoRatingServer.LeaderboardEntry))]
     [System.Runtime.Serialization.KnownTypeAttribute(typeof(MinoRatingPlugin.minoRatingServer.PluginReaction[]))]
     [System.Runtime.Serialization.KnownTypeAttribute(typeof(MinoRatingPlugin.minoRatingServer.PluginReaction.ReactionType))]
-    [System.Runtime.Serialization.KnownTypeAttribute(typeof(object[]))]
+    [System.Runtime.Serialization.KnownTypeAttribute(typeof(MinoRatingPlugin.minoRatingServer.LeaderboardEntry[]))]
+    [System.Runtime.Serialization.KnownTypeAttribute(typeof(MinoRatingPlugin.minoRatingServer.LeaderboardEntry))]
     public partial class PluginReaction : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
         
         [System.NonSerializedAttribute()]
@@ -295,63 +186,172 @@ namespace MinoRatingPlugin.minoRatingServer {
         }
     }
     
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+    [System.Runtime.Serialization.DataContractAttribute(Name="LeaderboardEntry", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy")]
+    [System.SerializableAttribute()]
+    public partial class LeaderboardEntry : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
+        
+        [System.NonSerializedAttribute()]
+        private System.Runtime.Serialization.ExtensionDataObject extensionDataField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private int CarIdField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string DriverIdField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private int LapsDrivenField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private int RankField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private uint TimeField;
+        
+        [global::System.ComponentModel.BrowsableAttribute(false)]
+        public System.Runtime.Serialization.ExtensionDataObject ExtensionData {
+            get {
+                return this.extensionDataField;
+            }
+            set {
+                this.extensionDataField = value;
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public int CarId {
+            get {
+                return this.CarIdField;
+            }
+            set {
+                if ((this.CarIdField.Equals(value) != true)) {
+                    this.CarIdField = value;
+                    this.RaisePropertyChanged("CarId");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string DriverId {
+            get {
+                return this.DriverIdField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.DriverIdField, value) != true)) {
+                    this.DriverIdField = value;
+                    this.RaisePropertyChanged("DriverId");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public int LapsDriven {
+            get {
+                return this.LapsDrivenField;
+            }
+            set {
+                if ((this.LapsDrivenField.Equals(value) != true)) {
+                    this.LapsDrivenField = value;
+                    this.RaisePropertyChanged("LapsDriven");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public int Rank {
+            get {
+                return this.RankField;
+            }
+            set {
+                if ((this.RankField.Equals(value) != true)) {
+                    this.RankField = value;
+                    this.RaisePropertyChanged("Rank");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public uint Time {
+            get {
+                return this.TimeField;
+            }
+            set {
+                if ((this.TimeField.Equals(value) != true)) {
+                    this.TimeField = value;
+                    this.RaisePropertyChanged("Time");
+                }
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
     [System.ServiceModel.ServiceContractAttribute(ConfigurationName="minoRatingServer.ILiveDataDump")]
     public interface ILiveDataDump {
         
-        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/Tst", ReplyAction="http://tempuri.org/ILiveDataDump/TstResponse")]
-        void Tst();
-        
-        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/Tst", ReplyAction="http://tempuri.org/ILiveDataDump/TstResponse")]
-        System.Threading.Tasks.Task TstAsync();
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/NewSession", ReplyAction="http://tempuri.org/ILiveDataDump/NewSessionResponse")]
+        System.Guid NewSession(System.Guid lastId, string servername, string track, int sessionType, int laps, int waittime, int timeofday, int ambient, int road, string token, byte[] fingerprint, System.Version pluginVersion);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/NewSession", ReplyAction="http://tempuri.org/ILiveDataDump/NewSessionResponse")]
-        System.Guid NewSession(System.Guid lastId, string servername, string track, int sessionType, int laps, int waittime, int timeofday, int ambient, int road, string token, byte[] fingerprint);
-        
-        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/NewSession", ReplyAction="http://tempuri.org/ILiveDataDump/NewSessionResponse")]
-        System.Threading.Tasks.Task<System.Guid> NewSessionAsync(System.Guid lastId, string servername, string track, int sessionType, int laps, int waittime, int timeofday, int ambient, int road, string token, byte[] fingerprint);
+        System.Threading.Tasks.Task<System.Guid> NewSessionAsync(System.Guid lastId, string servername, string track, int sessionType, int laps, int waittime, int timeofday, int ambient, int road, string token, byte[] fingerprint, System.Version pluginVersion);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/EndSession", ReplyAction="http://tempuri.org/ILiveDataDump/EndSessionResponse")]
-        void EndSession(System.Guid lastId, string token, byte[] fingerprint);
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] EndSession(System.Guid lastId);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/EndSession", ReplyAction="http://tempuri.org/ILiveDataDump/EndSessionResponse")]
-        System.Threading.Tasks.Task EndSessionAsync(System.Guid lastId, string token, byte[] fingerprint);
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> EndSessionAsync(System.Guid lastId);
         
-        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/NewConnection", ReplyAction="http://tempuri.org/ILiveDataDump/NewConnectionResponse")]
-        void NewConnection(System.Guid sessionId, int carId, string car, string name, string driverId, string token);
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/ClientConnected", ReplyAction="http://tempuri.org/ILiveDataDump/ClientConnectedResponse")]
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] ClientConnected(System.Guid sessionId, int carId, string car, string name, string driverId);
         
-        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/NewConnection", ReplyAction="http://tempuri.org/ILiveDataDump/NewConnectionResponse")]
-        System.Threading.Tasks.Task NewConnectionAsync(System.Guid sessionId, int carId, string car, string name, string driverId, string token);
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/ClientConnected", ReplyAction="http://tempuri.org/ILiveDataDump/ClientConnectedResponse")]
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> ClientConnectedAsync(System.Guid sessionId, int carId, string car, string name, string driverId);
         
-        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/ClosedConnection", ReplyAction="http://tempuri.org/ILiveDataDump/ClosedConnectionResponse")]
-        void ClosedConnection(System.Guid sessionId, int carId, string car, string name, string driverId, string token);
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/ClientDisconnected", ReplyAction="http://tempuri.org/ILiveDataDump/ClientDisconnectedResponse")]
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] ClientDisconnected(System.Guid sessionId, int carId, string car, string name, string driverId);
         
-        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/ClosedConnection", ReplyAction="http://tempuri.org/ILiveDataDump/ClosedConnectionResponse")]
-        System.Threading.Tasks.Task ClosedConnectionAsync(System.Guid sessionId, int carId, string car, string name, string driverId, string token);
-        
-        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/LapCompleted", ReplyAction="http://tempuri.org/ILiveDataDump/LapCompletedResponse")]
-        MinoRatingPlugin.minoRatingServer.PluginReaction[] LapCompleted(System.Guid sessionId, int car, string driver, uint laptime, int cuts, float grip, MinoRatingPlugin.minoRatingServer.LeaderboardEntry[] leaderboard, string token);
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/ClientDisconnected", ReplyAction="http://tempuri.org/ILiveDataDump/ClientDisconnectedResponse")]
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> ClientDisconnectedAsync(System.Guid sessionId, int carId, string car, string name, string driverId);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/LapCompleted", ReplyAction="http://tempuri.org/ILiveDataDump/LapCompletedResponse")]
-        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> LapCompletedAsync(System.Guid sessionId, int car, string driver, uint laptime, int cuts, float grip, MinoRatingPlugin.minoRatingServer.LeaderboardEntry[] leaderboard, string token);
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] LapCompleted(System.Guid sessionId, int car, string driver, uint laptime, int cuts, float grip, MinoRatingPlugin.minoRatingServer.LeaderboardEntry[] leaderboard);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/LapCompleted", ReplyAction="http://tempuri.org/ILiveDataDump/LapCompletedResponse")]
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> LapCompletedAsync(System.Guid sessionId, int car, string driver, uint laptime, int cuts, float grip, MinoRatingPlugin.minoRatingServer.LeaderboardEntry[] leaderboard);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/DistanceDriven", ReplyAction="http://tempuri.org/ILiveDataDump/DistanceDrivenResponse")]
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] DistanceDriven(System.Guid sessionId, int car);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/DistanceDriven", ReplyAction="http://tempuri.org/ILiveDataDump/DistanceDrivenResponse")]
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> DistanceDrivenAsync(System.Guid sessionId, int car);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/Collision", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionResponse")]
-        MinoRatingPlugin.minoRatingServer.PluginReaction[] Collision(System.Guid sessionId, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z, string token);
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] Collision(System.Guid sessionId, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/Collision", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionResponse")]
-        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> CollisionAsync(System.Guid sessionId, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z, string token);
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> CollisionAsync(System.Guid sessionId, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/CollisionTreeEnded", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionTreeEndedResponse")]
-        MinoRatingPlugin.minoRatingServer.PluginReaction[] CollisionTreeEnded(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended, string token);
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] CollisionTreeEnded(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/CollisionTreeEnded", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionTreeEndedResponse")]
-        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> CollisionTreeEndedAsync(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended, string token);
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> CollisionTreeEndedAsync(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/RandomCarInfo", ReplyAction="http://tempuri.org/ILiveDataDump/RandomCarInfoResponse")]
-        void RandomCarInfo(System.Guid sessionId, int carId, string car, string name, string driverId, string token);
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] RandomCarInfo(System.Guid sessionId, int carId, string car, string name, string driverId);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/RandomCarInfo", ReplyAction="http://tempuri.org/ILiveDataDump/RandomCarInfoResponse")]
-        System.Threading.Tasks.Task RandomCarInfoAsync(System.Guid sessionId, int carId, string car, string name, string driverId, string token);
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> RandomCarInfoAsync(System.Guid sessionId, int carId, string car, string name, string driverId);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/GetVersion", ReplyAction="http://tempuri.org/ILiveDataDump/GetVersionResponse")]
         System.Version GetVersion();
@@ -360,16 +360,22 @@ namespace MinoRatingPlugin.minoRatingServer {
         System.Threading.Tasks.Task<System.Version> GetVersionAsync();
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/RequestDriverRating", ReplyAction="http://tempuri.org/ILiveDataDump/RequestDriverRatingResponse")]
-        MinoRatingPlugin.minoRatingServer.PluginReaction[] RequestDriverRating(System.Guid sessionId, int car, string token);
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] RequestDriverRating(System.Guid sessionId, int car);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/RequestDriverRating", ReplyAction="http://tempuri.org/ILiveDataDump/RequestDriverRatingResponse")]
-        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> RequestDriverRatingAsync(System.Guid sessionId, int car, string token);
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> RequestDriverRatingAsync(System.Guid sessionId, int car);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/RequestDriverLoaded", ReplyAction="http://tempuri.org/ILiveDataDump/RequestDriverLoadedResponse")]
-        MinoRatingPlugin.minoRatingServer.PluginReaction[] RequestDriverLoaded(System.Guid sessionId, int car, string token);
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] RequestDriverLoaded(System.Guid sessionId, int car);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/RequestDriverLoaded", ReplyAction="http://tempuri.org/ILiveDataDump/RequestDriverLoadedResponse")]
-        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> RequestDriverLoadedAsync(System.Guid sessionId, int car, string token);
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> RequestDriverLoadedAsync(System.Guid sessionId, int car);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/GetPendingActions", ReplyAction="http://tempuri.org/ILiveDataDump/GetPendingActionsResponse")]
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] GetPendingActions(System.Guid sessionId);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/GetPendingActions", ReplyAction="http://tempuri.org/ILiveDataDump/GetPendingActionsResponse")]
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> GetPendingActionsAsync(System.Guid sessionId);
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
@@ -399,76 +405,76 @@ namespace MinoRatingPlugin.minoRatingServer {
                 base(binding, remoteAddress) {
         }
         
-        public void Tst() {
-            base.Channel.Tst();
+        public System.Guid NewSession(System.Guid lastId, string servername, string track, int sessionType, int laps, int waittime, int timeofday, int ambient, int road, string token, byte[] fingerprint, System.Version pluginVersion) {
+            return base.Channel.NewSession(lastId, servername, track, sessionType, laps, waittime, timeofday, ambient, road, token, fingerprint, pluginVersion);
         }
         
-        public System.Threading.Tasks.Task TstAsync() {
-            return base.Channel.TstAsync();
+        public System.Threading.Tasks.Task<System.Guid> NewSessionAsync(System.Guid lastId, string servername, string track, int sessionType, int laps, int waittime, int timeofday, int ambient, int road, string token, byte[] fingerprint, System.Version pluginVersion) {
+            return base.Channel.NewSessionAsync(lastId, servername, track, sessionType, laps, waittime, timeofday, ambient, road, token, fingerprint, pluginVersion);
         }
         
-        public System.Guid NewSession(System.Guid lastId, string servername, string track, int sessionType, int laps, int waittime, int timeofday, int ambient, int road, string token, byte[] fingerprint) {
-            return base.Channel.NewSession(lastId, servername, track, sessionType, laps, waittime, timeofday, ambient, road, token, fingerprint);
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] EndSession(System.Guid lastId) {
+            return base.Channel.EndSession(lastId);
         }
         
-        public System.Threading.Tasks.Task<System.Guid> NewSessionAsync(System.Guid lastId, string servername, string track, int sessionType, int laps, int waittime, int timeofday, int ambient, int road, string token, byte[] fingerprint) {
-            return base.Channel.NewSessionAsync(lastId, servername, track, sessionType, laps, waittime, timeofday, ambient, road, token, fingerprint);
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> EndSessionAsync(System.Guid lastId) {
+            return base.Channel.EndSessionAsync(lastId);
         }
         
-        public void EndSession(System.Guid lastId, string token, byte[] fingerprint) {
-            base.Channel.EndSession(lastId, token, fingerprint);
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] ClientConnected(System.Guid sessionId, int carId, string car, string name, string driverId) {
+            return base.Channel.ClientConnected(sessionId, carId, car, name, driverId);
         }
         
-        public System.Threading.Tasks.Task EndSessionAsync(System.Guid lastId, string token, byte[] fingerprint) {
-            return base.Channel.EndSessionAsync(lastId, token, fingerprint);
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> ClientConnectedAsync(System.Guid sessionId, int carId, string car, string name, string driverId) {
+            return base.Channel.ClientConnectedAsync(sessionId, carId, car, name, driverId);
         }
         
-        public void NewConnection(System.Guid sessionId, int carId, string car, string name, string driverId, string token) {
-            base.Channel.NewConnection(sessionId, carId, car, name, driverId, token);
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] ClientDisconnected(System.Guid sessionId, int carId, string car, string name, string driverId) {
+            return base.Channel.ClientDisconnected(sessionId, carId, car, name, driverId);
         }
         
-        public System.Threading.Tasks.Task NewConnectionAsync(System.Guid sessionId, int carId, string car, string name, string driverId, string token) {
-            return base.Channel.NewConnectionAsync(sessionId, carId, car, name, driverId, token);
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> ClientDisconnectedAsync(System.Guid sessionId, int carId, string car, string name, string driverId) {
+            return base.Channel.ClientDisconnectedAsync(sessionId, carId, car, name, driverId);
         }
         
-        public void ClosedConnection(System.Guid sessionId, int carId, string car, string name, string driverId, string token) {
-            base.Channel.ClosedConnection(sessionId, carId, car, name, driverId, token);
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] LapCompleted(System.Guid sessionId, int car, string driver, uint laptime, int cuts, float grip, MinoRatingPlugin.minoRatingServer.LeaderboardEntry[] leaderboard) {
+            return base.Channel.LapCompleted(sessionId, car, driver, laptime, cuts, grip, leaderboard);
         }
         
-        public System.Threading.Tasks.Task ClosedConnectionAsync(System.Guid sessionId, int carId, string car, string name, string driverId, string token) {
-            return base.Channel.ClosedConnectionAsync(sessionId, carId, car, name, driverId, token);
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> LapCompletedAsync(System.Guid sessionId, int car, string driver, uint laptime, int cuts, float grip, MinoRatingPlugin.minoRatingServer.LeaderboardEntry[] leaderboard) {
+            return base.Channel.LapCompletedAsync(sessionId, car, driver, laptime, cuts, grip, leaderboard);
         }
         
-        public MinoRatingPlugin.minoRatingServer.PluginReaction[] LapCompleted(System.Guid sessionId, int car, string driver, uint laptime, int cuts, float grip, MinoRatingPlugin.minoRatingServer.LeaderboardEntry[] leaderboard, string token) {
-            return base.Channel.LapCompleted(sessionId, car, driver, laptime, cuts, grip, leaderboard, token);
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] DistanceDriven(System.Guid sessionId, int car) {
+            return base.Channel.DistanceDriven(sessionId, car);
         }
         
-        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> LapCompletedAsync(System.Guid sessionId, int car, string driver, uint laptime, int cuts, float grip, MinoRatingPlugin.minoRatingServer.LeaderboardEntry[] leaderboard, string token) {
-            return base.Channel.LapCompletedAsync(sessionId, car, driver, laptime, cuts, grip, leaderboard, token);
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> DistanceDrivenAsync(System.Guid sessionId, int car) {
+            return base.Channel.DistanceDrivenAsync(sessionId, car);
         }
         
-        public MinoRatingPlugin.minoRatingServer.PluginReaction[] Collision(System.Guid sessionId, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z, string token) {
-            return base.Channel.Collision(sessionId, car, otherCar, speed, splinepos, relativeX, relativeZ, x, z, token);
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] Collision(System.Guid sessionId, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z) {
+            return base.Channel.Collision(sessionId, car, otherCar, speed, splinepos, relativeX, relativeZ, x, z);
         }
         
-        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> CollisionAsync(System.Guid sessionId, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z, string token) {
-            return base.Channel.CollisionAsync(sessionId, car, otherCar, speed, splinepos, relativeX, relativeZ, x, z, token);
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> CollisionAsync(System.Guid sessionId, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z) {
+            return base.Channel.CollisionAsync(sessionId, car, otherCar, speed, splinepos, relativeX, relativeZ, x, z);
         }
         
-        public MinoRatingPlugin.minoRatingServer.PluginReaction[] CollisionTreeEnded(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended, string token) {
-            return base.Channel.CollisionTreeEnded(sessionId, car, otherCar, count, started, ended, token);
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] CollisionTreeEnded(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended) {
+            return base.Channel.CollisionTreeEnded(sessionId, car, otherCar, count, started, ended);
         }
         
-        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> CollisionTreeEndedAsync(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended, string token) {
-            return base.Channel.CollisionTreeEndedAsync(sessionId, car, otherCar, count, started, ended, token);
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> CollisionTreeEndedAsync(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended) {
+            return base.Channel.CollisionTreeEndedAsync(sessionId, car, otherCar, count, started, ended);
         }
         
-        public void RandomCarInfo(System.Guid sessionId, int carId, string car, string name, string driverId, string token) {
-            base.Channel.RandomCarInfo(sessionId, carId, car, name, driverId, token);
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] RandomCarInfo(System.Guid sessionId, int carId, string car, string name, string driverId) {
+            return base.Channel.RandomCarInfo(sessionId, carId, car, name, driverId);
         }
         
-        public System.Threading.Tasks.Task RandomCarInfoAsync(System.Guid sessionId, int carId, string car, string name, string driverId, string token) {
-            return base.Channel.RandomCarInfoAsync(sessionId, carId, car, name, driverId, token);
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> RandomCarInfoAsync(System.Guid sessionId, int carId, string car, string name, string driverId) {
+            return base.Channel.RandomCarInfoAsync(sessionId, carId, car, name, driverId);
         }
         
         public System.Version GetVersion() {
@@ -479,20 +485,28 @@ namespace MinoRatingPlugin.minoRatingServer {
             return base.Channel.GetVersionAsync();
         }
         
-        public MinoRatingPlugin.minoRatingServer.PluginReaction[] RequestDriverRating(System.Guid sessionId, int car, string token) {
-            return base.Channel.RequestDriverRating(sessionId, car, token);
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] RequestDriverRating(System.Guid sessionId, int car) {
+            return base.Channel.RequestDriverRating(sessionId, car);
         }
         
-        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> RequestDriverRatingAsync(System.Guid sessionId, int car, string token) {
-            return base.Channel.RequestDriverRatingAsync(sessionId, car, token);
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> RequestDriverRatingAsync(System.Guid sessionId, int car) {
+            return base.Channel.RequestDriverRatingAsync(sessionId, car);
         }
         
-        public MinoRatingPlugin.minoRatingServer.PluginReaction[] RequestDriverLoaded(System.Guid sessionId, int car, string token) {
-            return base.Channel.RequestDriverLoaded(sessionId, car, token);
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] RequestDriverLoaded(System.Guid sessionId, int car) {
+            return base.Channel.RequestDriverLoaded(sessionId, car);
         }
         
-        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> RequestDriverLoadedAsync(System.Guid sessionId, int car, string token) {
-            return base.Channel.RequestDriverLoadedAsync(sessionId, car, token);
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> RequestDriverLoadedAsync(System.Guid sessionId, int car) {
+            return base.Channel.RequestDriverLoadedAsync(sessionId, car);
+        }
+        
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] GetPendingActions(System.Guid sessionId) {
+            return base.Channel.GetPendingActions(sessionId);
+        }
+        
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> GetPendingActionsAsync(System.Guid sessionId) {
+            return base.Channel.GetPendingActionsAsync(sessionId);
         }
     }
 }

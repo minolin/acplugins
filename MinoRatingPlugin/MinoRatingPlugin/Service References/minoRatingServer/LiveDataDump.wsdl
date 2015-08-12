@@ -4,17 +4,11 @@
     <xsd:schema targetNamespace="http://tempuri.org/Imports">
       <xsd:import schemaLocation="http://localhost:805/minorating?xsd=xsd0" namespace="http://tempuri.org/" />
       <xsd:import schemaLocation="http://localhost:805/minorating?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
-      <xsd:import schemaLocation="http://localhost:805/minorating?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" />
-      <xsd:import schemaLocation="http://localhost:805/minorating?xsd=xsd3" namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
-      <xsd:import schemaLocation="http://localhost:805/minorating?xsd=xsd4" namespace="http://schemas.datacontract.org/2004/07/System" />
+      <xsd:import schemaLocation="http://localhost:805/minorating?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/System" />
+      <xsd:import schemaLocation="http://localhost:805/minorating?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" />
+      <xsd:import schemaLocation="http://localhost:805/minorating?xsd=xsd4" namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
     </xsd:schema>
   </wsdl:types>
-  <wsdl:message name="ILiveDataDump_Tst_InputMessage">
-    <wsdl:part name="parameters" element="tns:Tst" />
-  </wsdl:message>
-  <wsdl:message name="ILiveDataDump_Tst_OutputMessage">
-    <wsdl:part name="parameters" element="tns:TstResponse" />
-  </wsdl:message>
   <wsdl:message name="ILiveDataDump_NewSession_InputMessage">
     <wsdl:part name="parameters" element="tns:NewSession" />
   </wsdl:message>
@@ -27,23 +21,29 @@
   <wsdl:message name="ILiveDataDump_EndSession_OutputMessage">
     <wsdl:part name="parameters" element="tns:EndSessionResponse" />
   </wsdl:message>
-  <wsdl:message name="ILiveDataDump_NewConnection_InputMessage">
-    <wsdl:part name="parameters" element="tns:NewConnection" />
+  <wsdl:message name="ILiveDataDump_ClientConnected_InputMessage">
+    <wsdl:part name="parameters" element="tns:ClientConnected" />
   </wsdl:message>
-  <wsdl:message name="ILiveDataDump_NewConnection_OutputMessage">
-    <wsdl:part name="parameters" element="tns:NewConnectionResponse" />
+  <wsdl:message name="ILiveDataDump_ClientConnected_OutputMessage">
+    <wsdl:part name="parameters" element="tns:ClientConnectedResponse" />
   </wsdl:message>
-  <wsdl:message name="ILiveDataDump_ClosedConnection_InputMessage">
-    <wsdl:part name="parameters" element="tns:ClosedConnection" />
+  <wsdl:message name="ILiveDataDump_ClientDisconnected_InputMessage">
+    <wsdl:part name="parameters" element="tns:ClientDisconnected" />
   </wsdl:message>
-  <wsdl:message name="ILiveDataDump_ClosedConnection_OutputMessage">
-    <wsdl:part name="parameters" element="tns:ClosedConnectionResponse" />
+  <wsdl:message name="ILiveDataDump_ClientDisconnected_OutputMessage">
+    <wsdl:part name="parameters" element="tns:ClientDisconnectedResponse" />
   </wsdl:message>
   <wsdl:message name="ILiveDataDump_LapCompleted_InputMessage">
     <wsdl:part name="parameters" element="tns:LapCompleted" />
   </wsdl:message>
   <wsdl:message name="ILiveDataDump_LapCompleted_OutputMessage">
     <wsdl:part name="parameters" element="tns:LapCompletedResponse" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_DistanceDriven_InputMessage">
+    <wsdl:part name="parameters" element="tns:DistanceDriven" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_DistanceDriven_OutputMessage">
+    <wsdl:part name="parameters" element="tns:DistanceDrivenResponse" />
   </wsdl:message>
   <wsdl:message name="ILiveDataDump_Collision_InputMessage">
     <wsdl:part name="parameters" element="tns:Collision" />
@@ -81,11 +81,13 @@
   <wsdl:message name="ILiveDataDump_RequestDriverLoaded_OutputMessage">
     <wsdl:part name="parameters" element="tns:RequestDriverLoadedResponse" />
   </wsdl:message>
+  <wsdl:message name="ILiveDataDump_GetPendingActions_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetPendingActions" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_GetPendingActions_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetPendingActionsResponse" />
+  </wsdl:message>
   <wsdl:portType name="ILiveDataDump">
-    <wsdl:operation name="Tst">
-      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/Tst" message="tns:ILiveDataDump_Tst_InputMessage" />
-      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/TstResponse" message="tns:ILiveDataDump_Tst_OutputMessage" />
-    </wsdl:operation>
     <wsdl:operation name="NewSession">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/NewSession" message="tns:ILiveDataDump_NewSession_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/NewSessionResponse" message="tns:ILiveDataDump_NewSession_OutputMessage" />
@@ -94,17 +96,21 @@
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/EndSession" message="tns:ILiveDataDump_EndSession_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/EndSessionResponse" message="tns:ILiveDataDump_EndSession_OutputMessage" />
     </wsdl:operation>
-    <wsdl:operation name="NewConnection">
-      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/NewConnection" message="tns:ILiveDataDump_NewConnection_InputMessage" />
-      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/NewConnectionResponse" message="tns:ILiveDataDump_NewConnection_OutputMessage" />
+    <wsdl:operation name="ClientConnected">
+      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/ClientConnected" message="tns:ILiveDataDump_ClientConnected_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/ClientConnectedResponse" message="tns:ILiveDataDump_ClientConnected_OutputMessage" />
     </wsdl:operation>
-    <wsdl:operation name="ClosedConnection">
-      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/ClosedConnection" message="tns:ILiveDataDump_ClosedConnection_InputMessage" />
-      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/ClosedConnectionResponse" message="tns:ILiveDataDump_ClosedConnection_OutputMessage" />
+    <wsdl:operation name="ClientDisconnected">
+      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/ClientDisconnected" message="tns:ILiveDataDump_ClientDisconnected_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/ClientDisconnectedResponse" message="tns:ILiveDataDump_ClientDisconnected_OutputMessage" />
     </wsdl:operation>
     <wsdl:operation name="LapCompleted">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/LapCompleted" message="tns:ILiveDataDump_LapCompleted_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/LapCompletedResponse" message="tns:ILiveDataDump_LapCompleted_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="DistanceDriven">
+      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/DistanceDriven" message="tns:ILiveDataDump_DistanceDriven_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/DistanceDrivenResponse" message="tns:ILiveDataDump_DistanceDriven_OutputMessage" />
     </wsdl:operation>
     <wsdl:operation name="Collision">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/Collision" message="tns:ILiveDataDump_Collision_InputMessage" />
@@ -130,18 +136,13 @@
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/RequestDriverLoaded" message="tns:ILiveDataDump_RequestDriverLoaded_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/RequestDriverLoadedResponse" message="tns:ILiveDataDump_RequestDriverLoaded_OutputMessage" />
     </wsdl:operation>
+    <wsdl:operation name="GetPendingActions">
+      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/GetPendingActions" message="tns:ILiveDataDump_GetPendingActions_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/GetPendingActionsResponse" message="tns:ILiveDataDump_GetPendingActions_OutputMessage" />
+    </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="BasicHttpBinding_ILiveDataDump" type="tns:ILiveDataDump">
     <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
-    <wsdl:operation name="Tst">
-      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/Tst" style="document" />
-      <wsdl:input>
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output>
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
     <wsdl:operation name="NewSession">
       <soap:operation soapAction="http://tempuri.org/ILiveDataDump/NewSession" style="document" />
       <wsdl:input>
@@ -160,8 +161,8 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
-    <wsdl:operation name="NewConnection">
-      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/NewConnection" style="document" />
+    <wsdl:operation name="ClientConnected">
+      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/ClientConnected" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>
@@ -169,8 +170,8 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
-    <wsdl:operation name="ClosedConnection">
-      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/ClosedConnection" style="document" />
+    <wsdl:operation name="ClientDisconnected">
+      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/ClientDisconnected" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>
@@ -180,6 +181,15 @@
     </wsdl:operation>
     <wsdl:operation name="LapCompleted">
       <soap:operation soapAction="http://tempuri.org/ILiveDataDump/LapCompleted" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DistanceDriven">
+      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/DistanceDriven" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>
@@ -234,6 +244,15 @@
     </wsdl:operation>
     <wsdl:operation name="RequestDriverLoaded">
       <soap:operation soapAction="http://tempuri.org/ILiveDataDump/RequestDriverLoaded" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetPendingActions">
+      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/GetPendingActions" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>

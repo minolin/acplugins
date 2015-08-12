@@ -20,7 +20,7 @@ namespace acPlugins4net.messages
         public string Track { get; set; }
         public string Name { get; set; }
         public byte SessionType { get; set; }
-        public ushort TimeOfDay { get; set; }
+        public ushort SessionDuration { get; set; }
         public ushort Laps { get; set; }
         public ushort WaitTime { get; set; }
         public byte AmbientTemp { get; set; }
@@ -34,16 +34,16 @@ namespace acPlugins4net.messages
 
         #region wellformed stuff members - offer some more comfortable data conversion
 
-        public TimeSpan TimeOfDayTimespan
+        public TimeSpan SessionDurationTimespan
         {
             get
             {
-                return TimeSpan.FromMinutes(TimeOfDay);
+                return TimeSpan.FromMinutes(SessionDuration);
             }
 
             set
             {
-                TimeOfDay = Convert.ToUInt16(Math.Round(value.TotalMinutes, 0));
+                SessionDuration = Convert.ToUInt16(Math.Round(value.TotalMinutes, 0));
             }
         }
 
@@ -89,7 +89,7 @@ namespace acPlugins4net.messages
             TrackConfig = readString(br);
             Name = readString(br);
             SessionType = br.ReadByte();
-            TimeOfDay = br.ReadUInt16();
+            SessionDuration = br.ReadUInt16();
             Laps = br.ReadUInt16();
             WaitTime = br.ReadUInt16();
             AmbientTemp = br.ReadByte();
@@ -109,7 +109,7 @@ namespace acPlugins4net.messages
             writeString(bw, TrackConfig);
             writeString(bw, Name);
             bw.Write(SessionType);
-            bw.Write(TimeOfDay);
+            bw.Write(SessionDuration);
             bw.Write(Laps);
             bw.Write(WaitTime);
             bw.Write(AmbientTemp);
@@ -126,7 +126,7 @@ namespace acPlugins4net.messages
                 ServerName = this.ServerName,
                 SessionIndex = this.SessionIndex, 
                 SessionType = this.SessionType,
-                Time = this.TimeOfDay,
+                Time = this.SessionDuration,
                 WaitTime = this.WaitTime,
             };
         }

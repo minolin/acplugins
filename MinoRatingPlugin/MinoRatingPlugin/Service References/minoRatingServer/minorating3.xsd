@@ -1,9 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xs:schema xmlns:tns="http://schemas.microsoft.com/2003/10/Serialization/Arrays" elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <xs:complexType name="ArrayOfanyType">
+<xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import schemaLocation="http://localhost:805/minorating?xsd=xsd4" namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+  <xs:complexType name="ArrayOfPluginReaction">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="anyType" nillable="true" type="xs:anyType" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="PluginReaction" nillable="true" type="tns:PluginReaction" />
     </xs:sequence>
   </xs:complexType>
-  <xs:element name="ArrayOfanyType" nillable="true" type="tns:ArrayOfanyType" />
+  <xs:element name="ArrayOfPluginReaction" nillable="true" type="tns:ArrayOfPluginReaction" />
+  <xs:complexType name="PluginReaction">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="CarId" type="xs:unsignedByte" />
+      <xs:element minOccurs="0" name="Delay" type="xs:int" />
+      <xs:element minOccurs="0" name="Name" nillable="true" type="xs:string" />
+      <xs:element xmlns:q1="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="Parameters" nillable="true" type="q1:ArrayOfanyType" />
+      <xs:element minOccurs="0" name="Reaction" type="tns:PluginReaction.ReactionType" />
+      <xs:element minOccurs="0" name="SteamId" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Text" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="PluginReaction" nillable="true" type="tns:PluginReaction" />
+  <xs:simpleType name="PluginReaction.ReactionType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="None" />
+      <xs:enumeration value="Whisper" />
+      <xs:enumeration value="Broadcast" />
+      <xs:enumeration value="Ballast" />
+      <xs:enumeration value="Pit" />
+      <xs:enumeration value="Kick" />
+      <xs:enumeration value="Ban" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="PluginReaction.ReactionType" nillable="true" type="tns:PluginReaction.ReactionType" />
+  <xs:complexType name="ArrayOfLeaderboardEntry">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="LeaderboardEntry" nillable="true" type="tns:LeaderboardEntry" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfLeaderboardEntry" nillable="true" type="tns:ArrayOfLeaderboardEntry" />
+  <xs:complexType name="LeaderboardEntry">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="CarId" type="xs:int" />
+      <xs:element minOccurs="0" name="DriverId" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="LapsDriven" type="xs:int" />
+      <xs:element minOccurs="0" name="Rank" type="xs:int" />
+      <xs:element minOccurs="0" name="Time" type="xs:unsignedInt" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="LeaderboardEntry" nillable="true" type="tns:LeaderboardEntry" />
 </xs:schema>

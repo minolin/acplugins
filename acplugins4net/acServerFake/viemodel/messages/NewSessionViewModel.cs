@@ -5,7 +5,7 @@ using acPlugins4net.messages;
 
 namespace acServerFake.viemodel.messages
 {
-    class NewSessionViewModel : BaseMessageViewModel<MsgSessionInfo>
+    class NewSessionViewModel : BaseMessageViewModel<MsgNewSession>
     {
         #region New Session Properties
 
@@ -41,8 +41,8 @@ namespace acServerFake.viemodel.messages
 
         public ushort TimeOfDay
         {
-            get { return Message.TimeOfDay; }
-            set { Message.TimeOfDay = value; OnPropertyChanged("TimeOfDay"); }
+            get { return Message.SessionDuration; }
+            set { Message.SessionDuration = value; OnPropertyChanged("TimeOfDay"); }
         }
 
         public ushort Laps
@@ -85,7 +85,7 @@ namespace acServerFake.viemodel.messages
         public NewSessionViewModel()
         {
             // Quick & dirty: Some defaults to speed up tests
-            Message.Version = (byte)(AcServerPluginManager.RequiredProtocolVersion - 1);
+            Message.Version = (byte)(AcServerPluginManager.RequiredProtocolVersion);
             ServerName = "Fake Server Trackday";
             Track = "mugello";
             TrackConfig = "";

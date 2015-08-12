@@ -1,18 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xs:schema xmlns:tns="http://tempuri.org/" elementFormDefault="qualified" targetNamespace="http://tempuri.org/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:import schemaLocation="http://localhost:805/minorating?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
-  <xs:import schemaLocation="http://localhost:805/minorating?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" />
-  <xs:import schemaLocation="http://localhost:805/minorating?xsd=xsd4" namespace="http://schemas.datacontract.org/2004/07/System" />
-  <xs:element name="Tst">
-    <xs:complexType>
-      <xs:sequence />
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="TstResponse">
-    <xs:complexType>
-      <xs:sequence />
-    </xs:complexType>
-  </xs:element>
+  <xs:import schemaLocation="http://localhost:805/minorating?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/System" />
+  <xs:import schemaLocation="http://localhost:805/minorating?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" />
   <xs:element name="NewSession">
     <xs:complexType>
       <xs:sequence>
@@ -27,89 +17,106 @@
         <xs:element minOccurs="0" name="road" type="xs:int" />
         <xs:element minOccurs="0" name="token" nillable="true" type="xs:string" />
         <xs:element minOccurs="0" name="fingerprint" nillable="true" type="xs:base64Binary" />
+        <xs:element xmlns:q2="http://schemas.datacontract.org/2004/07/System" minOccurs="0" name="pluginVersion" nillable="true" type="q2:Version" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="NewSessionResponse">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q2="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="NewSessionResult" type="q2:guid" />
+        <xs:element xmlns:q3="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="NewSessionResult" type="q3:guid" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="EndSession">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q3="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="lastId" type="q3:guid" />
-        <xs:element minOccurs="0" name="token" nillable="true" type="xs:string" />
-        <xs:element minOccurs="0" name="fingerprint" nillable="true" type="xs:base64Binary" />
+        <xs:element xmlns:q4="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="lastId" type="q4:guid" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="EndSessionResponse">
     <xs:complexType>
-      <xs:sequence />
+      <xs:sequence>
+        <xs:element xmlns:q5="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="EndSessionResult" nillable="true" type="q5:ArrayOfPluginReaction" />
+      </xs:sequence>
     </xs:complexType>
   </xs:element>
-  <xs:element name="NewConnection">
+  <xs:element name="ClientConnected">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q4="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q4:guid" />
+        <xs:element xmlns:q6="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q6:guid" />
         <xs:element minOccurs="0" name="carId" type="xs:int" />
         <xs:element minOccurs="0" name="car" nillable="true" type="xs:string" />
         <xs:element minOccurs="0" name="name" nillable="true" type="xs:string" />
         <xs:element minOccurs="0" name="driverId" nillable="true" type="xs:string" />
-        <xs:element minOccurs="0" name="token" nillable="true" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
-  <xs:element name="NewConnectionResponse">
-    <xs:complexType>
-      <xs:sequence />
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="ClosedConnection">
+  <xs:element name="ClientConnectedResponse">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q5="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q5:guid" />
+        <xs:element xmlns:q7="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="ClientConnectedResult" nillable="true" type="q7:ArrayOfPluginReaction" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ClientDisconnected">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q8="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q8:guid" />
         <xs:element minOccurs="0" name="carId" type="xs:int" />
         <xs:element minOccurs="0" name="car" nillable="true" type="xs:string" />
         <xs:element minOccurs="0" name="name" nillable="true" type="xs:string" />
         <xs:element minOccurs="0" name="driverId" nillable="true" type="xs:string" />
-        <xs:element minOccurs="0" name="token" nillable="true" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
-  <xs:element name="ClosedConnectionResponse">
+  <xs:element name="ClientDisconnectedResponse">
     <xs:complexType>
-      <xs:sequence />
+      <xs:sequence>
+        <xs:element xmlns:q9="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="ClientDisconnectedResult" nillable="true" type="q9:ArrayOfPluginReaction" />
+      </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="LapCompleted">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q6="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q6:guid" />
+        <xs:element xmlns:q10="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q10:guid" />
         <xs:element minOccurs="0" name="car" type="xs:int" />
         <xs:element minOccurs="0" name="driver" nillable="true" type="xs:string" />
         <xs:element minOccurs="0" name="laptime" type="xs:unsignedInt" />
         <xs:element minOccurs="0" name="cuts" type="xs:int" />
         <xs:element minOccurs="0" name="grip" type="xs:float" />
-        <xs:element xmlns:q7="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="leaderboard" nillable="true" type="q7:ArrayOfLeaderboardEntry" />
-        <xs:element minOccurs="0" name="token" nillable="true" type="xs:string" />
+        <xs:element xmlns:q11="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="leaderboard" nillable="true" type="q11:ArrayOfLeaderboardEntry" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="LapCompletedResponse">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q8="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="LapCompletedResult" nillable="true" type="q8:ArrayOfPluginReaction" />
+        <xs:element xmlns:q12="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="LapCompletedResult" nillable="true" type="q12:ArrayOfPluginReaction" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="DistanceDriven">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q13="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q13:guid" />
+        <xs:element minOccurs="0" name="car" type="xs:int" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="DistanceDrivenResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q14="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="DistanceDrivenResult" nillable="true" type="q14:ArrayOfPluginReaction" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="Collision">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q9="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q9:guid" />
+        <xs:element xmlns:q15="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q15:guid" />
         <xs:element minOccurs="0" name="car" type="xs:int" />
         <xs:element minOccurs="0" name="otherCar" type="xs:int" />
         <xs:element minOccurs="0" name="speed" type="xs:float" />
@@ -118,52 +125,51 @@
         <xs:element minOccurs="0" name="relativeZ" type="xs:float" />
         <xs:element minOccurs="0" name="x" type="xs:float" />
         <xs:element minOccurs="0" name="z" type="xs:float" />
-        <xs:element minOccurs="0" name="token" nillable="true" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="CollisionResponse">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q10="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="CollisionResult" nillable="true" type="q10:ArrayOfPluginReaction" />
+        <xs:element xmlns:q16="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="CollisionResult" nillable="true" type="q16:ArrayOfPluginReaction" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="CollisionTreeEnded">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q11="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q11:guid" />
+        <xs:element xmlns:q17="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q17:guid" />
         <xs:element minOccurs="0" name="car" type="xs:int" />
         <xs:element minOccurs="0" name="otherCar" type="xs:int" />
         <xs:element minOccurs="0" name="count" type="xs:int" />
         <xs:element minOccurs="0" name="started" type="xs:dateTime" />
         <xs:element minOccurs="0" name="ended" type="xs:dateTime" />
-        <xs:element minOccurs="0" name="token" nillable="true" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="CollisionTreeEndedResponse">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q12="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="CollisionTreeEndedResult" nillable="true" type="q12:ArrayOfPluginReaction" />
+        <xs:element xmlns:q18="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="CollisionTreeEndedResult" nillable="true" type="q18:ArrayOfPluginReaction" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="RandomCarInfo">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q13="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q13:guid" />
+        <xs:element xmlns:q19="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q19:guid" />
         <xs:element minOccurs="0" name="carId" type="xs:int" />
         <xs:element minOccurs="0" name="car" nillable="true" type="xs:string" />
         <xs:element minOccurs="0" name="name" nillable="true" type="xs:string" />
         <xs:element minOccurs="0" name="driverId" nillable="true" type="xs:string" />
-        <xs:element minOccurs="0" name="token" nillable="true" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="RandomCarInfoResponse">
     <xs:complexType>
-      <xs:sequence />
+      <xs:sequence>
+        <xs:element xmlns:q20="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="RandomCarInfoResult" nillable="true" type="q20:ArrayOfPluginReaction" />
+      </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="GetVersion">
@@ -174,39 +180,51 @@
   <xs:element name="GetVersionResponse">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q14="http://schemas.datacontract.org/2004/07/System" minOccurs="0" name="GetVersionResult" nillable="true" type="q14:Version" />
+        <xs:element xmlns:q21="http://schemas.datacontract.org/2004/07/System" minOccurs="0" name="GetVersionResult" nillable="true" type="q21:Version" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="RequestDriverRating">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q15="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q15:guid" />
+        <xs:element xmlns:q22="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q22:guid" />
         <xs:element minOccurs="0" name="car" type="xs:int" />
-        <xs:element minOccurs="0" name="token" nillable="true" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="RequestDriverRatingResponse">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q16="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="RequestDriverRatingResult" nillable="true" type="q16:ArrayOfPluginReaction" />
+        <xs:element xmlns:q23="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="RequestDriverRatingResult" nillable="true" type="q23:ArrayOfPluginReaction" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="RequestDriverLoaded">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q17="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q17:guid" />
+        <xs:element xmlns:q24="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q24:guid" />
         <xs:element minOccurs="0" name="car" type="xs:int" />
-        <xs:element minOccurs="0" name="token" nillable="true" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="RequestDriverLoadedResponse">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q18="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="RequestDriverLoadedResult" nillable="true" type="q18:ArrayOfPluginReaction" />
+        <xs:element xmlns:q25="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="RequestDriverLoadedResult" nillable="true" type="q25:ArrayOfPluginReaction" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="GetPendingActions">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q26="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q26:guid" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="GetPendingActionsResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q27="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="GetPendingActionsResult" nillable="true" type="q27:ArrayOfPluginReaction" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

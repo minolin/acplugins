@@ -7,7 +7,7 @@ namespace acPlugins4net
 {
     public abstract class PluginMessage
     {
-        public ACSProtocol.MessageType Type { get; private set; }
+        public ACSProtocol.MessageType Type { get; protected internal set; }
 
         public PluginMessage(ACSProtocol.MessageType type)
         {

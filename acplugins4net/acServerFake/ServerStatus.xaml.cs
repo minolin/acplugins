@@ -23,6 +23,15 @@ namespace acServerFake
         public ServerStatus()
         {
             InitializeComponent();
+            Dispatcher.ShutdownStarted += Dispatcher_ShutdownStarted;
+        }
+
+        private void Dispatcher_ShutdownStarted(object sender, EventArgs e)
+        {
+            // Quickhack to close the UDP port upon shutdown - you would want to solve this via an behaviour
+            var vm = this.DataContext as viemodel.ServerViewModel;
+            if (vm != null)
+                vm.CloseUDPConnection();
         }
     }
 }
