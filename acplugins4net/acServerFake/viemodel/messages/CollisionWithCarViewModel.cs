@@ -23,8 +23,8 @@ namespace acServerFake.viemodel.messages
         {
             Message.CarId = 12;
             Message.OtherCarId = 7;
-            Message.RelativePosition = PluginMessage.Vector3f.RandomSmall();
-            Message.WorldPosition = PluginMessage.Vector3f.RandomBig();
+            Message.RelativePosition = Vector3f.RandomSmall();
+            Message.WorldPosition = Vector3f.RandomBig();
             Message.RelativeVelocity = 15.0f;
             Message.Subtype = (byte)ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_CAR;
         }

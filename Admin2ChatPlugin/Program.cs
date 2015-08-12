@@ -27,7 +27,7 @@ namespace Admin2ChatPlugin
             }
         }
 
-        public override bool OnCommandEntered(string cmd)
+        protected override bool OnCommandEntered(string cmd)
         {
             if (cmd.StartsWith("/chat "))
                 PluginManager.BroadcastChatMessage(cmd.Replace("/chat ", ""));
@@ -44,7 +44,7 @@ namespace Admin2ChatPlugin
                     car_id = Convert.ToInt32(cmd.Substring(0, indexOfSpace));
                     msg = cmd.Substring(indexOfSpace);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     Console.WriteLine("Sorry, didn't get that. Please use /w {car_id} text, for example /w 2 hi car2");
                     return false;
@@ -65,7 +65,7 @@ namespace Admin2ChatPlugin
                     car_id = Convert.ToInt32(cmd.Trim());
                     Console.WriteLine("Car Id is " + car_id);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     Console.WriteLine("Sorry, didn't get that. Please use /kick_id {car_id} text, for example /kick_id 2");
                     return false;
@@ -86,7 +86,7 @@ namespace Admin2ChatPlugin
                     session_id = Convert.ToInt32(cmd.Trim());
                     Console.WriteLine("Car Id is " + session_id);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     Console.WriteLine("Sorry, didn't get that. Please use /info {index}, -1 for current session");
                     return false;
@@ -107,7 +107,7 @@ namespace Admin2ChatPlugin
             return true;
         }
 
-        public override void OnChatMessage(MsgChat msg)
+        protected override void OnChatMessage(MsgChat msg)
         {
             base.OnChatMessage(msg);
             Console.WriteLine("CHAT_" + msg.CarId + ": " + msg.Message);
@@ -115,7 +115,7 @@ namespace Admin2ChatPlugin
 
 
         MsgSessionInfo last = null;
-        public override void OnSessionInfo(MsgSessionInfo msg)
+        protected override void OnSessionInfo(MsgSessionInfo msg)
         {
             Console.WriteLine("SessionInfo: " + msg.ServerName + ", " + msg.Name + ", " + msg.ElapsedMS + ", index = " + msg.CurrentSessionIndex + ",  WaitTime = " + msg.WaitTime);
             last = msg;

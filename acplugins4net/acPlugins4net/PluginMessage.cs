@@ -1,4 +1,5 @@
-﻿using acPlugins4net.kunos;
+﻿using acPlugins4net.helpers;
+using acPlugins4net.kunos;
 using System;
 using System.IO;
 using System.Text;
@@ -54,37 +55,6 @@ namespace acPlugins4net
 
         #region Helpers: (write & read binary stuff)
 
-        public struct Vector3f
-        {
-            public float x, y, z;
-            private static Random R = new Random();
-
-            public static Vector3f RandomSmall()
-            {
-                return new Vector3f()
-                {
-                    x = (float)(R.NextDouble() - 0.5) * 10,
-                    y = (float)(R.NextDouble() - 0.5),
-                    z = (float)(R.NextDouble() - 0.5) * 10,
-                };
-            }
-
-            public static Vector3f RandomBig()
-            {
-                return new Vector3f()
-                {
-                    x = (float)(R.NextDouble() - 0.5) * 1000,
-                    y = (float)(R.NextDouble() - 0.5) * 20,
-                    z = (float)(R.NextDouble() - 0.5) * 1000,
-                };
-            }
-
-            public override string ToString()
-            {
-                return "[" + x.ToString() + " , " + y.ToString() + " , " + z.ToString() + "]";
-            }
-        }
-
         protected static string readStringW(BinaryReader br)
         {
             // Read the length, 1 byte
@@ -122,18 +92,18 @@ namespace acPlugins4net
         {
             Vector3f res = new Vector3f();
 
-            res.x = br.ReadSingle();
-            res.y = br.ReadSingle();
-            res.z = br.ReadSingle();
+            res.X = br.ReadSingle();
+            res.Y = br.ReadSingle();
+            res.Z = br.ReadSingle();
 
             return res;
         }
 
         protected static void writeVector3f(BinaryWriter bw, Vector3f vec)
         {
-            bw.Write(vec.x);
-            bw.Write(vec.y);
-            bw.Write(vec.z);
+            bw.Write(vec.X);
+            bw.Write(vec.Y);
+            bw.Write(vec.Z);
         }
 
         #endregion
