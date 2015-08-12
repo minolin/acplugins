@@ -1,4 +1,5 @@
 ﻿using acPlugins4net;
+using acPlugins4net.helpers;
 using acPlugins4net.kunos;
 using acPlugins4net.messages;
 using System;
@@ -19,8 +20,8 @@ namespace acServerFake.viemodel.messages
         public CollisionWithEnvironmentViewModel()
         {
             Message.CarId = 12;
-            Message.RelativePosition = PluginMessage.Vector3f.RandomSmall();
-            Message.WorldPosition = PluginMessage.Vector3f.RandomBig();
+            Message.RelativePosition = Vector3f.RandomSmall();
+            Message.WorldPosition = Vector3f.RandomBig();
             Message.RelativeVelocity = 15.0f;
             Message.Subtype = (byte)ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_ENV;
         }

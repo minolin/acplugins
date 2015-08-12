@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using acPlugins4net.kunos;
+using acPlugins4net.helpers;
+
 namespace acPlugins4net.messages
 {
     public class MsgClientEvent : PluginMessage

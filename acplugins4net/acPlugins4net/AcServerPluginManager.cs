@@ -1,4 +1,5 @@
-﻿using acPlugins4net.configuration;
+﻿using acPlugins4net.info;
+using acPlugins4net.configuration;
 using acPlugins4net.helpers;
 using acPlugins4net.kunos;
 using acPlugins4net.messages;
@@ -13,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace acPlugins4net
 {
-    public class AcServerPluginManager : ILog
+    public sealed class AcServerPluginManager : ILog
     {
         static AcServerPluginManager()
         {
@@ -25,7 +26,7 @@ namespace acPlugins4net
         #region private fields
         private readonly DuplexUDPClient _UDP;
         private readonly WorkaroundHelper _Workarounds;
-        private readonly List<AcServerPluginBase> _plugins;
+        private readonly List<AcServerPlugin> _plugins;
         private readonly List<ExternalPluginInfo> _externalPlugins;
         private readonly Dictionary<ExternalPluginInfo, DuplexUDPClient> _openExternalPlugins;
         private readonly object lockObject = new object();
@@ -35,13 +36,17 @@ namespace acPlugins4net
         public readonly ILog Logger;
         public readonly IConfigManager Config;
 
-        public readonly ReadOnlyCollection<AcServerPluginBase> Plugins;
+        public readonly ReadOnlyCollection<AcServerPlugin> Plugins;
         public readonly ReadOnlyCollection<ExternalPluginInfo> ExternalPlugins;
+
+        public readonly List<ISessionReportHandler> SessionReportHandlers = new List<ISessionReportHandler>();
 
         /// <summary>
         /// The acServer UDP Protocol Version.
         /// </summary>
         public int ProtocolVersion { get; private set; }
+
+        public ushort RealtimeUpdateInterval { get; private set; }
 
         /// <summary>
         /// Gets or sets whether requests to the AC server should be logged.
@@ -49,6 +54,8 @@ namespace acPlugins4net
         /// Currently implemented: 0 = Off and 1 = On
         /// </summary>
         public int LogServerRequests { get; set; }
+
+        public int LogServerErrors { get; set; }
 
         /// <summary>
         /// Gets or sets the port on which the plugin manager receives messages from the AC server.
@@ -68,10 +75,32 @@ namespace acPlugins4net
         /// </summary>
         public int RemotePort { get; set; }
 
-        [Obsolete("Not yet, but once Kunos implements MaxClients as part of the session info, we should remove it")]
-        public int MaxClients { get; set; }
-
         public string AdminPassword { get; set; }
+        #endregion
+
+        #region session info stuff
+        private readonly Dictionary<byte, DriverInfo> carUsedByDictionary = new Dictionary<byte, DriverInfo>();
+        private int nextConnectionId = 1;
+        private SessionInfo currentSession = new SessionInfo();
+        private SessionInfo previousSession;
+
+        public SessionInfo CurrentSession
+        {
+            get { return currentSession; }
+        }
+
+        public SessionInfo PreviousSession
+        {
+            get { return previousSession; }
+        }
+
+        public bool TryGetDriverInfo(byte carId, out DriverInfo driver)
+        {
+            lock (lockObject)
+            {
+                return carUsedByDictionary.TryGetValue(carId, out driver);
+            }
+        }
         #endregion
 
         public AcServerPluginManager(ILog log = null, IConfigManager config = null)
@@ -79,7 +108,7 @@ namespace acPlugins4net
             Logger = log ?? new ConsoleLogger();
             Config = config ?? new AppConfigConfigurator();
 
-            _plugins = new List<AcServerPluginBase>();
+            _plugins = new List<AcServerPlugin>();
             Plugins = _plugins.AsReadOnly();
 
             _UDP = new DuplexUDPClient();
@@ -98,10 +127,25 @@ namespace acPlugins4net
             if (string.IsNullOrWhiteSpace(RemostHostname))
                 RemostHostname = "127.0.0.1";
             RemotePort = Config.GetSettingAsInt("ac_server_port", 11000);
-            MaxClients = Config.GetSettingAsInt("max_clients", 32);
+            this.currentSession.MaxClients = Config.GetSettingAsInt("max_clients", 32);
             AdminPassword = Config.GetSetting("admin_password");
 
             LogServerRequests = Config.GetSettingAsInt("log_server_requests", 1);
+            LogServerErrors = Config.GetSettingAsInt("log_server_errors", 1);
+
+            this.RealtimeUpdateInterval = (ushort)this.Config.GetSettingAsInt("realtime_update_interval", 1000);
+            string sessionReportHandlerType = this.Config.GetSetting("session_report_handlers");
+            if (!string.IsNullOrWhiteSpace(sessionReportHandlerType))
+            {
+                foreach (string handlerTypeStr in sessionReportHandlerType.Split(';'))
+                {
+                    string[] typeInfo = handlerTypeStr.Split(',');
+                    Assembly assembly = Assembly.Load(typeInfo[1]);
+                    Type type = assembly.GetType(typeInfo[0]);
+                    ISessionReportHandler reportHandler = (ISessionReportHandler)Activator.CreateInstance(type);
+                    this.SessionReportHandlers.Add(reportHandler);
+                }
+            }
         }
 
         /// <summary>
@@ -117,7 +161,7 @@ namespace acPlugins4net
                     return;
                 }
 
-                MaxClients = Convert.ToInt32(_Workarounds.FindServerConfigEntry("MAX_CLIENTS="));
+                this.currentSession.MaxClients = Convert.ToInt32(_Workarounds.FindServerConfigEntry("MAX_CLIENTS="));
                 AdminPassword = _Workarounds.FindServerConfigEntry("ADMIN_PASSWORD=");
 
                 // First we're getting the configured ports (read directly from the server_config.ini)
@@ -168,7 +212,7 @@ namespace acPlugins4net
                                 string[] typeInfo = pluginTypeStr.Split(',');
                                 Assembly assembly = Assembly.Load(typeInfo[1]);
                                 Type type = assembly.GetType(typeInfo[0]);
-                                AcServerPluginBase plugin = (AcServerPluginBase)Activator.CreateInstance(type);
+                                AcServerPlugin plugin = (AcServerPlugin)Activator.CreateInstance(type);
                                 this.AddPlugin(plugin);
                             }
                             catch (Exception ex)
@@ -217,7 +261,7 @@ namespace acPlugins4net
         }
 
 
-        public void AddPlugin(AcServerPluginBase plugin)
+        public void AddPlugin(AcServerPlugin plugin)
         {
             lock (lockObject)
             {
@@ -238,11 +282,11 @@ namespace acPlugins4net
 
                 _plugins.Add(plugin);
 
-                plugin.OnInitBase(this);
+                plugin.Initialize(this);
             }
         }
 
-        public void RemovePlugin(AcServerPluginBase plugin)
+        public void RemovePlugin(AcServerPlugin plugin)
         {
             lock (lockObject)
             {
@@ -311,6 +355,250 @@ namespace acPlugins4net
             }
         }
 
+
+        private DriverInfo getDriverReportForCarId(byte carId)
+        {
+            DriverInfo driverReport;
+            if (!carUsedByDictionary.TryGetValue(carId, out driverReport))
+            {
+                // it seems we missed the OnNewConnection for this driver
+                driverReport = new DriverInfo()
+                {
+                    ConnectionId = this.nextConnectionId++,
+                    ConnectedTimestamp = DateTime.UtcNow.Ticks, //obviously not correct but better than nothing
+                    DisconnectedTimestamp = -1,
+                    DriverGuid = string.Empty,
+                    DriverName = string.Empty,
+                    DriverTeam = string.Empty,
+                    CarId = carId,
+                    CarModel = string.Empty,
+                    CarSkin = string.Empty,
+                    BallastKG = 0,
+                    BestLap = 0,
+                    TotalTime = 0,
+                    LapCount = 0,
+                    Position = 0,
+                    Gap = string.Empty,
+                    Incidents = 0,
+                    Distance = 0.0f,
+                    IsAdmin = false
+                };
+
+                this.currentSession.Drivers.Add(driverReport);
+                this.carUsedByDictionary.Add(driverReport.CarId, driverReport);
+                this.RequestCarInfo(carId);
+            }
+            else if (string.IsNullOrEmpty(driverReport.DriverGuid))
+            {
+                // it seems we did not yet receive carInfo yet, request again
+                this.RequestCarInfo(carId);
+            }
+
+            return driverReport;
+        }
+
+        private void SetSessionInfo(MsgSessionInfo msg, bool startNewLog)
+        {
+            this.currentSession.ServerName = msg.ServerName;
+            this.currentSession.TrackName = msg.Track;
+            this.currentSession.TrackConfig = msg.TrackConfig;
+            this.currentSession.SessionName = msg.Name;
+            this.currentSession.SessionType = msg.SessionType;
+            this.currentSession.SessionDuration = msg.SessionDuration;
+            this.currentSession.LapCount = msg.Laps;
+            this.currentSession.WaitTime = msg.WaitTime;
+            this.currentSession.Timestamp = DateTime.UtcNow.Ticks;
+            this.currentSession.AmbientTemp = msg.AmbientTemp;
+            this.currentSession.RoadTemp = msg.RoadTemp;
+            this.currentSession.Weather = msg.Weather;
+            this.currentSession.RealtimeUpdateInterval = this.RealtimeUpdateInterval;
+
+            if (startNewLog && this.Logger is IFileLog)
+            {
+                ((IFileLog)this.Logger).StartLoggingToFile(
+                    new DateTime(this.currentSession.Timestamp, DateTimeKind.Utc).ToString("yyyyMMdd_HHmmss") + "_"
+                    + this.currentSession.TrackName + "_" + this.currentSession.SessionName + ".log");
+            }
+        }
+
+        private void FinalizeAndStartNewReport()
+        {
+            try
+            {
+                // if for some reason we did not get driver info for certain drivers, remove them and any associated laps and incidents
+                List<DriverInfo> invalidDrivers = this.currentSession.Drivers.Where(d => string.IsNullOrEmpty(d.DriverGuid)).ToList();
+                if (invalidDrivers.Count > 0)
+                {
+                    foreach (DriverInfo d in invalidDrivers)
+                    {
+                        this.currentSession.Drivers.Remove(d);
+                        this.currentSession.Laps.RemoveAll(l => l.ConnectionId == d.ConnectionId);
+                        this.currentSession.Incidents.RemoveAll(e => e.ConnectionId1 == d.ConnectionId || e.ConnectionId2 == d.ConnectionId);
+                    }
+                }
+
+                // update PlayerConnections with results
+                foreach (DriverInfo connection in this.currentSession.Drivers)
+                {
+                    List<LapInfo> laps = this.currentSession.Laps.Where(l => l.ConnectionId == connection.ConnectionId).ToList();
+                    List<LapInfo> validLaps = laps.Where(l => l.Cuts == 0).ToList();
+                    if (validLaps.Count > 0)
+                    {
+                        connection.BestLap = validLaps.Min(l => l.LapTime);
+                    }
+                    else if (this.currentSession.SessionType != (byte)MsgSessionInfo.SessionTypeEnum.Race)
+                    {
+                        // temporarily set BestLap to MaxValue for easier sorting for qualifying/practice results
+                        connection.BestLap = int.MaxValue;
+                    }
+
+                    if (laps.Count > 0)
+                    {
+                        connection.TotalTime = (uint)laps.Sum(l => l.LapTime);
+                        connection.LapCount = laps.Max(l => l.LapNo);
+                        connection.Incidents += laps.Sum(l => l.Cuts);
+                    }
+                }
+
+                if (this.currentSession.SessionType == (byte)MsgSessionInfo.SessionTypeEnum.Race) //if race
+                {
+                    ushort position = 1;
+
+                    // compute start position
+                    foreach (DriverInfo connection in this.currentSession.Drivers.Where(d => d.ConnectedTimestamp <= this.currentSession.Timestamp).OrderByDescending(d => d.StartPosNs))
+                    {
+                        connection.StartPosition = position++;
+                    }
+
+                    foreach (DriverInfo connection in this.currentSession.Drivers.Where(d => d.ConnectedTimestamp > this.currentSession.Timestamp).OrderBy(d => d.ConnectedTimestamp))
+                    {
+                        connection.StartPosition = position++;
+                    }
+
+                    // compute end position
+                    position = 1;
+                    int winnerlapcount = 0;
+                    uint winnertime = 0;
+
+                    List<DriverInfo> sortedDrivers = new List<DriverInfo>(this.currentSession.Drivers.Count);
+
+                    sortedDrivers.AddRange(this.currentSession.Drivers.Where(d => d.LapCount == currentSession.LapCount).OrderBy(this.currentSession.GetLastLapTimestamp));
+                    sortedDrivers.AddRange(this.currentSession.Drivers.Where(d => d.LapCount != currentSession.LapCount).OrderByDescending(d => d.LapCount).ThenByDescending(d => d.LastPosNs));
+
+                    foreach (DriverInfo connection in sortedDrivers)
+                    {
+                        if (position == 1)
+                        {
+                            winnerlapcount = connection.LapCount;
+                            winnertime = connection.TotalTime;
+                        }
+                        connection.Position = position++;
+
+                        if (connection.LapCount == winnerlapcount)
+                        {
+                            // is incorrect for players connected after race started
+                            connection.Gap = FormatTimespan((int)connection.TotalTime - (int)winnertime);
+                        }
+                        else
+                        {
+                            if (winnerlapcount - connection.LapCount == 1)
+                            {
+                                connection.Gap = "1 lap";
+                            }
+                            else
+                            {
+                                connection.Gap = (winnerlapcount - connection.LapCount) + " laps";
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    ushort position = 1;
+                    uint winnertime = 0;
+                    foreach (DriverInfo connection in this.currentSession.Drivers.OrderBy(d => d.BestLap))
+                    {
+                        if (position == 1)
+                        {
+                            winnertime = connection.BestLap;
+                        }
+
+                        connection.Position = position++;
+
+                        if (connection.BestLap == int.MaxValue)
+                        {
+                            connection.BestLap = 0; // reset bestlap
+                        }
+                        else
+                        {
+                            connection.Gap = FormatTimespan((int)connection.BestLap - (int)winnertime);
+                        }
+                    }
+                }
+
+                if (this.currentSession.Drivers.Count > 0)
+                {
+                    foreach (ISessionReportHandler handler in this.SessionReportHandlers)
+                    {
+                        try
+                        {
+                            handler.HandleReport(this.currentSession);
+                        }
+                        catch (Exception ex)
+                        {
+                            this.Log(ex);
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                previousSession = this.currentSession;
+                this.currentSession = new SessionInfo();
+
+                this.nextConnectionId = 1;
+
+                foreach (DriverInfo connection in previousSession.Drivers)
+                {
+                    DriverInfo found;
+                    if (this.carUsedByDictionary.TryGetValue(connection.CarId, out found) && found == connection)
+                    {
+                        DriverInfo recreatedConnection = new DriverInfo()
+                        {
+                            ConnectionId = this.nextConnectionId++,
+                            ConnectedTimestamp = found.ConnectedTimestamp,
+                            DisconnectedTimestamp = found.DisconnectedTimestamp, // should be not set yet
+                            DriverGuid = found.DriverGuid,
+                            DriverName = found.DriverName,
+                            DriverTeam = found.DriverTeam,
+                            CarId = found.CarId,
+                            CarModel = found.CarModel,
+                            CarSkin = found.CarSkin,
+                            BallastKG = found.BallastKG,
+                            BestLap = 0,
+                            TotalTime = 0,
+                            LapCount = 0,
+                            Position = 0,
+                            Gap = string.Empty,
+                            Incidents = 0,
+                            Distance = 0.0f,
+                            IsAdmin = found.IsAdmin
+                        };
+
+                        this.currentSession.Drivers.Add(recreatedConnection);
+                    }
+                }
+
+                // clear the dictionary of cars currently used
+                this.carUsedByDictionary.Clear();
+                foreach (DriverInfo recreatedConnection in this.currentSession.Drivers)
+                {
+                    this.carUsedByDictionary[recreatedConnection.CarId] = recreatedConnection;
+                }
+            }
+        }
+
+
         public bool IsConnected
         {
             get
@@ -319,7 +607,7 @@ namespace acPlugins4net
             }
         }
 
-        public virtual void Connect()
+        public void Connect()
         {
             lock (lockObject)
             {
@@ -331,11 +619,11 @@ namespace acPlugins4net
                 ProtocolVersion = -1;
                 _UDP.Open(ListeningPort, RemostHostname, RemotePort, MessageReceived, Log);
 
-                foreach (AcServerPluginBase plugin in _plugins)
+                foreach (AcServerPlugin plugin in _plugins)
                 {
                     try
                     {
-                        plugin.OnConnectedBase();
+                        plugin.OnConnected();
                     }
                     catch (Exception ex)
                     {
@@ -359,7 +647,7 @@ namespace acPlugins4net
             }
         }
 
-        protected virtual void MessageReceivedFromExternalPlugin(byte[] data)
+        private void MessageReceivedFromExternalPlugin(byte[] data)
         {
             _UDP.Send(data);
 
@@ -369,7 +657,7 @@ namespace acPlugins4net
             }
         }
 
-        public virtual void Disconnect()
+        public void Disconnect()
         {
             if (!IsConnected)
             {
@@ -393,11 +681,11 @@ namespace acPlugins4net
                 }
                 _openExternalPlugins.Clear();
 
-                foreach (AcServerPluginBase plugin in _plugins)
+                foreach (AcServerPlugin plugin in _plugins)
                 {
                     try
                     {
-                        plugin.OnDisconnectedBase();
+                        plugin.OnDisconnected();
                     }
                     catch (Exception ex)
                     {
@@ -407,7 +695,7 @@ namespace acPlugins4net
             }
         }
 
-        protected virtual void MessageReceived(byte[] data)
+        private void MessageReceived(byte[] data)
         {
             lock (lockObject)
             {
@@ -432,69 +720,65 @@ namespace acPlugins4net
                     }
                 }
 
-                foreach (AcServerPluginBase plugin in _plugins)
+                try
                 {
-                    try
+                    switch (msg.Type)
                     {
-                        switch (msg.Type)
-                        {
-                            case ACSProtocol.MessageType.ACSP_SESSION_INFO:
-                                plugin.OnSessionInfoBase((MsgSessionInfo)msg);
-                                break;
-                            case ACSProtocol.MessageType.ACSP_NEW_SESSION:
-                                plugin.OnNewSessionBase((MsgSessionInfo)msg);
-                                break;
-                            case ACSProtocol.MessageType.ACSP_NEW_CONNECTION:
-                                plugin.OnNewConnectionBase((MsgNewConnection)msg);
-                                break;
-                            case ACSProtocol.MessageType.ACSP_CONNECTION_CLOSED:
-                                plugin.OnConnectionClosedBase((MsgConnectionClosed)msg);
-                                break;
-                            case ACSProtocol.MessageType.ACSP_CAR_UPDATE:
-                                plugin.OnCarUpdateBase((MsgCarUpdate)msg);
-                                break;
-                            case ACSProtocol.MessageType.ACSP_CAR_INFO:
-                                plugin.OnCarInfoBase((MsgCarInfo)msg);
-                                break;
-                            case ACSProtocol.MessageType.ACSP_LAP_COMPLETED:
-                                plugin.OnLapCompletedBase((MsgLapCompleted)msg);
-                                break;
-                            case ACSProtocol.MessageType.ACSP_END_SESSION:
-                                plugin.OnSessionEndedBase((MsgSessionEnded)msg);
-                                break;
-                            case ACSProtocol.MessageType.ACSP_CLIENT_EVENT:
-                                plugin.OnCollisionBase((MsgClientEvent)msg);
-                                break;
-                            case ACSProtocol.MessageType.ACSP_VERSION:
-                                plugin.OnProtocolVersionBase((MsgVersionInfo)msg);
-                                break;
-                            case ACSProtocol.MessageType.ACSP_CLIENT_LOADED:
-                                plugin.OnClientLoadedBase((MsgClientLoaded)msg);
-                                break;
-                            case ACSProtocol.MessageType.ACSP_CHAT:
-                                plugin.OnChatMessageBase((MsgChat)msg);
-                                break;
-                            case ACSProtocol.MessageType.ACSP_ERROR:
-                                plugin.OnServerErrorBase((MsgError)msg);
-                                break;
-                            case ACSProtocol.MessageType.ACSP_REALTIMEPOS_INTERVAL:
-                            case ACSProtocol.MessageType.ACSP_GET_CAR_INFO:
-                            case ACSProtocol.MessageType.ACSP_SEND_CHAT:
-                            case ACSProtocol.MessageType.ACSP_BROADCAST_CHAT:
-                            case ACSProtocol.MessageType.ACSP_GET_SESSION_INFO:
-                                throw new Exception("Received unexpected MessageType (for a plugin): " + msg.Type);
-                            case ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_CAR:
-                            case ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_ENV:
-                            case ACSProtocol.MessageType.ERROR_BYTE:
-                            default:
-                                throw new Exception("Unknown MessageType: " + msg.Type + ", probably because Minolin didn't know the byte values for the new ACSP-Fields.");
-                                //throw new Exception("Received wrong or unknown MessageType: " + msg.Type);
-                        }
+                        case ACSProtocol.MessageType.ACSP_SESSION_INFO:
+                            this.OnSessionInfo((MsgSessionInfo)msg);
+                            break;
+                        case ACSProtocol.MessageType.ACSP_NEW_SESSION:
+                            this.OnNewSession((MsgSessionInfo)msg);
+                            break;
+                        case ACSProtocol.MessageType.ACSP_NEW_CONNECTION:
+                            this.OnNewConnection((MsgNewConnection)msg);
+                            break;
+                        case ACSProtocol.MessageType.ACSP_CONNECTION_CLOSED:
+                            this.OnConnectionClosed((MsgConnectionClosed)msg);
+                            break;
+                        case ACSProtocol.MessageType.ACSP_CAR_UPDATE:
+                            this.OnCarUpdate((MsgCarUpdate)msg);
+                            break;
+                        case ACSProtocol.MessageType.ACSP_CAR_INFO:
+                            this.OnCarInfo((MsgCarInfo)msg);
+                            break;
+                        case ACSProtocol.MessageType.ACSP_LAP_COMPLETED:
+                            this.OnLapCompleted((MsgLapCompleted)msg);
+                            break;
+                        case ACSProtocol.MessageType.ACSP_END_SESSION:
+                            this.OnSessionEnded((MsgSessionEnded)msg);
+                            break;
+                        case ACSProtocol.MessageType.ACSP_CLIENT_EVENT:
+                            this.OnCollision((MsgClientEvent)msg);
+                            break;
+                        case ACSProtocol.MessageType.ACSP_VERSION:
+                            this.OnProtocolVersion((MsgVersionInfo)msg);
+                            break;
+                        case ACSProtocol.MessageType.ACSP_CLIENT_LOADED:
+                            this.OnClientLoaded((MsgClientLoaded)msg);
+                            break;
+                        case ACSProtocol.MessageType.ACSP_CHAT:
+                            this.OnChatMessage((MsgChat)msg);
+                            break;
+                        case ACSProtocol.MessageType.ACSP_ERROR:
+                            this.OnServerError((MsgError)msg);
+                            break;
+                        case ACSProtocol.MessageType.ACSP_REALTIMEPOS_INTERVAL:
+                        case ACSProtocol.MessageType.ACSP_GET_CAR_INFO:
+                        case ACSProtocol.MessageType.ACSP_SEND_CHAT:
+                        case ACSProtocol.MessageType.ACSP_BROADCAST_CHAT:
+                        case ACSProtocol.MessageType.ACSP_GET_SESSION_INFO:
+                            throw new Exception("Received unexpected MessageType (for a plugin): " + msg.Type);
+                        case ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_CAR:
+                        case ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_ENV:
+                        case ACSProtocol.MessageType.ERROR_BYTE:
+                        default:
+                            throw new Exception("Received wrong or unknown MessageType: " + msg.Type);
                     }
-                    catch (Exception ex)
-                    {
-                        Log(ex);
-                    }
+                }
+                catch (Exception ex)
+                {
+                    this.Log(ex);
                 }
 
                 foreach (DuplexUDPClient externalPluginUdp in _openExternalPlugins.Values)
@@ -504,15 +788,536 @@ namespace acPlugins4net
             }
         }
 
+        private void OnConnected()
+        {
+            try
+            {
+                // if we do not receive the session Info in the next 3 seconds request info (async)
+                ThreadPool.QueueUserWorkItem(o =>
+                {
+                    Thread.Sleep(3000);
+                    if (this.ProtocolVersion == -1)
+                    {
+                        this.RequestSessionInfo(-1);
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Log(ex);
+            }
+
+            foreach (AcServerPlugin plugin in _plugins)
+            {
+                try
+                {
+                    plugin.OnConnected();
+                }
+                catch (Exception ex)
+                {
+                    Log(ex);
+                }
+            }
+        }
+
+        private void OnDisconnected()
+        {
+            try
+            {
+                this.FinalizeAndStartNewReport();
+                this.carUsedByDictionary.Clear();
+                this.currentSession = new SessionInfo();
+            }
+            catch (Exception ex)
+            {
+                Log(ex);
+            }
+
+            foreach (AcServerPlugin plugin in _plugins)
+            {
+                try
+                {
+                    plugin.OnDisconnected();
+                }
+                catch (Exception ex)
+                {
+                    Log(ex);
+                }
+            }
+        }
+
+        private void OnSessionInfo(MsgSessionInfo msg)
+        {
+            try
+            {
+                bool firstSessionInfo = this.currentSession.SessionType == 0;
+                this.SetSessionInfo(msg, firstSessionInfo);
+                if (firstSessionInfo)
+                {
+                    // first time we received session info, also enable real time update
+                    if (this.RealtimeUpdateInterval > 0)
+                    {
+                        this.EnableRealtimeReport(RealtimeUpdateInterval);
+                    }
+                    // request car info for all cars
+                    for (int i = 0; i < this.currentSession.MaxClients; i++)
+                    {
+                        this.RequestCarInfo((byte)i);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log(ex);
+            }
+
+            foreach (AcServerPlugin plugin in _plugins)
+            {
+                try
+                {
+                    plugin.OnSessionInfo(msg);
+                }
+                catch (Exception ex)
+                {
+                    Log(ex);
+                }
+            }
+        }
+
+        private void OnNewSession(MsgSessionInfo msg)
+        {
+            try
+            {
+                this.FinalizeAndStartNewReport();
+
+                this.SetSessionInfo(msg, true);
+
+                if (RealtimeUpdateInterval > 0)
+                {
+                    this.EnableRealtimeReport(RealtimeUpdateInterval);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log(ex);
+            }
+
+            foreach (AcServerPlugin plugin in _plugins)
+            {
+                try
+                {
+                    plugin.OnNewSession(msg);
+                }
+                catch (Exception ex)
+                {
+                    Log(ex);
+                }
+            }
+        }
+
+        private void OnSessionEnded(MsgSessionEnded msg)
+        {
+            foreach (AcServerPlugin plugin in _plugins)
+            {
+                try
+                {
+                    plugin.OnSessionEnded(msg);
+                }
+                catch (Exception ex)
+                {
+                    Log(ex);
+                }
+            }
+        }
+
+        private void OnNewConnection(MsgNewConnection msg)
+        {
+            try
+            {
+                DriverInfo newConnection = new DriverInfo()
+                {
+                    ConnectionId = this.nextConnectionId++,
+                    ConnectedTimestamp = -1,
+                    DisconnectedTimestamp = -1,
+                    DriverGuid = msg.DriverGuid,
+                    DriverName = msg.DriverName,
+                    DriverTeam = string.Empty, // missing in msg
+                    CarId = msg.CarId,
+                    CarModel = msg.CarModel,
+                    CarSkin = msg.CarSkin,
+                    BallastKG = 0, // missing in msg
+                    BestLap = 0,
+                    TotalTime = 0,
+                    LapCount = 0,
+                    Position = 0,
+                    Gap = string.Empty,
+                    Incidents = 0,
+                    Distance = 0.0f,
+                    IsAdmin = false
+                };
+
+                this.currentSession.Drivers.Add(newConnection);
+
+                if (!this.carUsedByDictionary.ContainsKey(newConnection.CarId))
+                {
+                    this.carUsedByDictionary.Add(newConnection.CarId, newConnection);
+                }
+                else
+                {
+                    this.carUsedByDictionary[msg.CarId] = newConnection;
+                    this.Log(new Exception("Car already in used by another driver"));
+                }
+
+                // request car info to get additional info and check when driver really is connected
+                this.RequestCarInfo(msg.CarId);
+            }
+            catch (Exception ex)
+            {
+                Log(ex);
+            }
+
+            foreach (AcServerPlugin plugin in _plugins)
+            {
+                try
+                {
+                    plugin.OnNewConnection(msg);
+                }
+                catch (Exception ex)
+                {
+                    Log(ex);
+                }
+            }
+        }
+
+        private void OnConnectionClosed(MsgConnectionClosed msg)
+        {
+            try
+            {
+                DriverInfo driverReport;
+                if (this.carUsedByDictionary.TryGetValue(msg.CarId, out driverReport))
+                {
+                    if (msg.DriverGuid == msg.DriverGuid)
+                    {
+                        driverReport.DisconnectedTimestamp = DateTime.UtcNow.Ticks;
+                        this.carUsedByDictionary.Remove(msg.CarId);
+                    }
+                    else
+                    {
+                        this.Log(new Exception("MsgOnConnectionClosed DriverGuid does not match Guid of connected driver"));
+                    }
+                }
+                else
+                {
+                    this.Log(new Exception("Car was not known to be in use"));
+                }
+            }
+            catch (Exception ex)
+            {
+                Log(ex);
+            }
+
+            foreach (AcServerPlugin plugin in _plugins)
+            {
+                try
+                {
+                    plugin.OnConnectionClosed(msg);
+                }
+                catch (Exception ex)
+                {
+                    Log(ex);
+                }
+            }
+        }
+
+        private void OnCarInfo(MsgCarInfo msg)
+        {
+            try
+            {
+                DriverInfo driverReport;
+                if (carUsedByDictionary.TryGetValue(msg.CarId, out driverReport))
+                {
+                    driverReport.CarModel = msg.CarModel;
+                    driverReport.CarSkin = msg.CarSkin;
+                    driverReport.DriverName = msg.DriverName;
+                    driverReport.DriverTeam = msg.DriverTeam;
+                    driverReport.DriverGuid = msg.DriverGuid;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log(ex);
+            }
+
+            foreach (AcServerPlugin plugin in _plugins)
+            {
+                try
+                {
+                    plugin.OnCarInfo(msg);
+                }
+                catch (Exception ex)
+                {
+                    Log(ex);
+                }
+            }
+        }
+
+        private void OnCarUpdate(MsgCarUpdate msg)
+        {
+            try
+            {
+                // ignore updates in the first 10 seconds of the session
+                if (DateTime.UtcNow.Ticks - currentSession.Timestamp > 10 * 10000000)
+                {
+                    DriverInfo driver = this.getDriverReportForCarId(msg.CarId);
+                    driver.UpdatePosition(msg.WorldPosition, msg.Velocity, msg.NormalizedSplinePosition);
+
+                    //if (sw == null)
+                    //{
+                    //    sw = new StreamWriter(@"c:\workspace\positions.csv");
+                    //    sw.AutoFlush = true;
+                    //}
+                    //sw.WriteLine(ToSingle3(msg.WorldPosition).ToString() + ", " + ToSingle3(msg.Velocity).Length());
+                }
+            }
+            catch (Exception ex)
+            {
+                Log(ex);
+            }
+
+            foreach (AcServerPlugin plugin in _plugins)
+            {
+                try
+                {
+                    plugin.OnCarUpdate(msg);
+                }
+                catch (Exception ex)
+                {
+                    Log(ex);
+                }
+            }
+        }
+
+        private void OnCollision(MsgClientEvent msg)
+        {
+            try
+            {
+                // ignore collisions in the first 5 seconds of the session
+                if (DateTime.UtcNow.Ticks - currentSession.Timestamp > 5 * 10000000)
+                {
+                    DriverInfo driver = this.getDriverReportForCarId(msg.CarId);
+                    bool withOtherCar = msg.Subtype == (byte)ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_CAR;
+
+                    driver.Incidents += withOtherCar ? 2 : 1; // TODO only if relVel > thresh
+
+                    DriverInfo driver2 = null;
+                    if (withOtherCar && msg.OtherCarId >= 0)
+                    {
+                        driver2 = this.getDriverReportForCarId(msg.OtherCarId);
+                        driver2.Incidents += 2; // TODO only if relVel > thresh
+                    }
+
+                    this.currentSession.Incidents.Add(
+                        new IncidentInfo()
+                        {
+                            Type = msg.Subtype,
+                            Timestamp = DateTime.UtcNow.Ticks,
+                            ConnectionId1 = driver.ConnectionId,
+                            ConnectionId2 = withOtherCar ? driver2.ConnectionId : -1,
+                            ImpactSpeed = msg.RelativeVelocity,
+                            WorldPosition = msg.WorldPosition,
+                            RelPosition = msg.RelativePosition,
+                        });
+                }
+            }
+            catch (Exception ex)
+            {
+                Log(ex);
+            }
+
+            foreach (AcServerPlugin plugin in _plugins)
+            {
+                try
+                {
+                    plugin.OnCollision(msg);
+                }
+                catch (Exception ex)
+                {
+                    Log(ex);
+                }
+            }
+        }
+
+        private void OnLapCompleted(MsgLapCompleted msg)
+        {
+            try
+            {
+                DriverInfo driver = this.getDriverReportForCarId(msg.CarId);
+                driver.LastPosNs = 0.0f;
+                byte position = 0;
+                ushort lapNo = 0;
+                for (int i = 0; i < msg.LeaderboardSize; i++)
+                {
+                    if (msg.Leaderboard[i].CarId == msg.CarId)
+                    {
+                        position = (byte)(i + 1);
+                        lapNo = msg.Leaderboard[i].Laps;
+                        break;
+                    }
+                }
+
+                LapInfo lap = new LapInfo()
+                {
+                    ConnectionId = driver.ConnectionId,
+                    Timestamp = DateTime.UtcNow.Ticks,
+                    LapTime =msg.Laptime,
+                    LapNo = lapNo,
+                    Position = position,
+                    Cuts = msg.Cuts,
+                    GripLevel = msg.GripLevel
+                };
+
+                this.currentSession.Laps.Add(lap);
+            }
+            catch (Exception ex)
+            {
+                Log(ex);
+            }
+
+            foreach (AcServerPlugin plugin in _plugins)
+            {
+                try
+                {
+                    plugin.OnLapCompleted(msg);
+                }
+                catch (Exception ex)
+                {
+                    Log(ex);
+                }
+            }
+        }
+
+        private void OnClientLoaded(MsgClientLoaded msg)
+        {
+            foreach (AcServerPlugin plugin in _plugins)
+            {
+                try
+                {
+                    plugin.OnClientLoaded(msg);
+                }
+                catch (Exception ex)
+                {
+                    Log(ex);
+                }
+            }
+        }
+
+        private void OnChatMessage(MsgChat msg)
+        {
+            try
+            {
+                DriverInfo driver;
+                if (this.TryGetDriverInfo(msg.CarId, out driver))
+                {
+                    if (!driver.IsAdmin && !string.IsNullOrWhiteSpace(AdminPassword)
+                        && msg.Message.StartsWith("/admin ", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        driver.IsAdmin = msg.Message.Substring("/admin ".Length).Equals(AdminPassword);
+                    }
+
+                    if (driver.IsAdmin)
+                    {
+                        if (msg.Message.StartsWith("/send_chat ", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            int carIdStartIdx = "/send_chat ".Length;
+                            int carIdEndIdx = msg.Message.IndexOf(' ', carIdStartIdx);
+                            byte carId;
+                            if (carIdEndIdx > carIdStartIdx && byte.TryParse(msg.Message.Substring(carIdStartIdx, carIdEndIdx - carIdStartIdx), out carId))
+                            {
+                                string chatMsg = msg.Message.Substring(carIdEndIdx);
+                                SendChatMessage(carId, chatMsg);
+                            }
+                            else
+                            {
+                                SendChatMessage(msg.CarId, "Invalid car id provided");
+                            }
+                        }
+                        else if (msg.Message.StartsWith("/broadcast ", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            string broadcastMsg = msg.Message.Substring("/broadcast ".Length);
+                            BroadcastChatMessage(broadcastMsg);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log(ex);
+            }
+
+            foreach (AcServerPlugin plugin in _plugins)
+            {
+                try
+                {
+                    plugin.OnChatMessage(msg);
+                }
+                catch (Exception ex)
+                {
+                    Log(ex);
+                }
+            }
+        }
+
+        private void OnProtocolVersion(MsgVersionInfo msg)
+        {
+            foreach (AcServerPlugin plugin in _plugins)
+            {
+                try
+                {
+                    plugin.OnProtocolVersion(msg);
+                }
+                catch (Exception ex)
+                {
+                    Log(ex);
+                }
+            }
+        }
+
+        private void OnServerError(MsgError msg)
+        {
+            try
+            {
+                if (this.LogServerErrors > 0)
+                {
+                    this.Log("ServerError: " + msg.ErrorMessage);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log(ex);
+            }
+
+            foreach (AcServerPlugin plugin in _plugins)
+            {
+                try
+                {
+                    plugin.OnServerError(msg);
+                }
+                catch (Exception ex)
+                {
+                    Log(ex);
+                }
+            }
+        }
+
         public void ProcessEnteredCommand(string cmd)
         {
             lock (lockObject)
             {
-                foreach (AcServerPluginBase plugin in _plugins)
+                foreach (AcServerPlugin plugin in _plugins)
                 {
                     try
                     {
-                        if (!plugin.OnCommandEnteredBase(cmd))
+                        if (!plugin.OnCommandEntered(cmd))
                         {
                             break;
                         }
@@ -527,7 +1332,7 @@ namespace acPlugins4net
 
         #region Requests to the AcServer
 
-        public virtual void RequestCarInfo(byte carId)
+        public void RequestCarInfo(byte carId)
         {
             var carInfoRequest = new RequestCarInfo() { CarId = carId };
             _UDP.Send(carInfoRequest.ToBinary());
@@ -537,7 +1342,7 @@ namespace acPlugins4net
             }
         }
 
-        public virtual void BroadcastChatMessage(string msg)
+        public void BroadcastChatMessage(string msg)
         {
             var chatRequest = new RequestBroadcastChat() { ChatMessage = msg };
             _UDP.Send(chatRequest.ToBinary());
@@ -547,7 +1352,7 @@ namespace acPlugins4net
             }
         }
 
-        public virtual void SendChatMessage(byte car_id, string msg)
+        public void SendChatMessage(byte car_id, string msg)
         {
             var chatRequest = new RequestSendChat() { CarId = car_id, ChatMessage = msg };
             _UDP.Send(chatRequest.ToBinary());
@@ -557,8 +1362,11 @@ namespace acPlugins4net
             }
         }
 
-        public virtual void EnableRealtimeReport(UInt16 interval)
+        public void EnableRealtimeReport(UInt16 interval)
         {
+            this.RealtimeUpdateInterval = interval;
+            this.currentSession.RealtimeUpdateInterval = interval;
+
             var enableRealtimeReportRequest = new RequestRealtimeInfo { Interval = interval };
             _UDP.Send(enableRealtimeReportRequest.ToBinary());
             if (LogServerRequests > 0)
@@ -571,7 +1379,7 @@ namespace acPlugins4net
         /// Request a SessionInfo object, use -1 for the current session
         /// </summary>
         /// <param name="sessionIndex"></param>
-        public virtual void RequestSessionInfo(Int16 sessionIndex)
+        public void RequestSessionInfo(Int16 sessionIndex)
         {
             var sessionRequest = new RequestSessionInfo() { SessionIndex = sessionIndex };
             _UDP.Send(sessionRequest.ToBinary());
@@ -604,19 +1412,28 @@ namespace acPlugins4net
 
         #region for convenience ILog is implemented by plugin manager
 
-        public virtual void Log(string message)
+        public void Log(string message)
         {
             Logger.Log(message);
         }
 
-        public virtual void Log(Exception ex)
+        public void Log(Exception ex)
         {
             Logger.Log(ex);
         }
 
         #endregion
 
-        protected virtual void LogRequestToServer(PluginMessage msg)
+        #region some helper methods
+        public static string FormatTimespan(int timespan)
+        {
+            int minutes = timespan / 1000 / 60;
+            double seconds = (timespan - minutes * 1000 * 60) / 1000.0;
+            return string.Format("{0:00}:{1:00.000}", minutes, seconds);
+        }
+        #endregion
+
+        private void LogRequestToServer(PluginMessage msg)
         {
             Log("Sent Request: " + msg);
         }

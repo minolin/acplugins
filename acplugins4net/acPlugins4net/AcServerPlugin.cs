@@ -1,217 +1,62 @@
-﻿using acPlugins4net.configuration;
+﻿using System;
 using acPlugins4net.helpers;
 using acPlugins4net.messages;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace acPlugins4net
 {
-    public abstract class AcServerPlugin : AcServerPluginBase
+    public abstract class AcServerPlugin
     {
         public AcServerPluginManager PluginManager { get; private set; }
 
-        public IConfigManager Config { get; private set; }
-
-        protected internal byte[] _fingerprint;
-
-        #region Cache and Helpers
-
-        private ConcurrentDictionary<int, MsgCarInfo> _CarInfo = null;
-        public IDictionary<int, MsgCarInfo> CarInfo { get { return _CarInfo; } }
-
-        #endregion
-
         protected AcServerPlugin(string pluginName = null)
-            : base(pluginName)
         {
+            PluginName = pluginName ?? GetType().Name;
         }
 
-        #region sealed overrides of BaseAcServerPlugin methods - usually a call of base.EventHandler(), but this one is more secure
-
-        protected internal sealed override void OnInitBase(AcServerPluginManager manager)
+        public string PluginName
         {
-            PluginManager = manager;
-            Config = manager.Config;
-            _CarInfo = new ConcurrentDictionary<int, MsgCarInfo>(10, 64);
-            _fingerprint = Hash(Config.GetSetting("ac_server_directory") + PluginManager.RemotePort);
-            OnInit();
+            get;
+            protected set;
         }
 
-        protected internal sealed override void OnConnectedBase()
+        internal void Initialize(AcServerPluginManager manager)
         {
-            OnConnected();
+            this.PluginManager = manager;
+            this.OnInit();
         }
 
-        protected internal sealed override void OnDisconnectedBase()
-        {
-            OnDisconnected();
-        }
+        protected internal virtual void OnInit() { }
 
-        /// <summary>
-        /// Called when a command was entered.
-        /// </summary>
-        /// <param name="cmd">The command.</param>
-        /// <returns>Whether the command should be passed to the next plugin.</returns>
-        protected internal sealed override bool OnCommandEnteredBase(string cmd)
-        {
-            return OnCommandEntered(cmd);
-        }
+        protected internal virtual void OnConnected() { }
 
-        protected internal sealed override void OnNewSessionBase(MsgSessionInfo msg)
-        {
-            CarInfo.Clear();
-            for (byte i = 0; i < PluginManager.MaxClients; i++)
-            {
-                PluginManager.RequestCarInfo(i);
-            }
-            OnNewSession(msg);
-        }
+        protected internal virtual void OnDisconnected() { }
 
-        protected internal sealed override void OnCarInfoBase(MsgCarInfo msg)
-        {
-            _CarInfo.AddOrUpdate(msg.CarId, msg, (key, val) => val);
-            OnCarInfo(msg);
-        }
+        protected internal virtual bool OnCommandEntered(string cmd) { return true; }
 
-        protected internal sealed override void OnNewConnectionBase(MsgNewConnection msg)
-        {
-            var carInfo = new MsgCarInfo()
-            {
-                CarId = msg.CarId,
-                CarModel = msg.CarModel,
-                CarSkin = msg.CarSkin,
-                DriverGuid = msg.DriverGuid,
-                DriverName = msg.DriverName,
-                IsConnected = true,
-            };
-            _CarInfo.AddOrUpdate(msg.CarId, carInfo, (key, val) => val);
-            OnNewConnection(msg);
-        }
+        protected internal virtual void OnSessionInfo(MsgSessionInfo msg) { }
 
-        protected internal sealed override void OnConnectionClosedBase(MsgConnectionClosed msg)
-        {
-            var carInfo = new MsgCarInfo()
-            {
-                CarId = msg.CarId,
-                CarModel = msg.CarModel,
-                CarSkin = msg.CarSkin,
-                DriverGuid = string.Empty,
-                DriverName = string.Empty,
-                IsConnected = false,
-            };
-            _CarInfo.AddOrUpdate(msg.CarId, carInfo, (key, val) => val);
-            OnConnectionClosed(msg);
-        }
+        protected internal virtual void OnNewSession(MsgSessionInfo msg) { }
 
-        protected internal sealed override void OnSessionEndedBase(MsgSessionEnded msg)
-        {
-            OnSessionEnded(msg);
-        }
+        protected internal virtual void OnSessionEnded(MsgSessionEnded msg) { }
 
-        protected internal sealed override void OnCarUpdateBase(MsgCarUpdate msg)
-        {
-            OnCarUpdate(msg);
-        }
+        protected internal virtual void OnNewConnection(MsgNewConnection msg) { }
 
-        protected internal sealed override void OnLapCompletedBase(MsgLapCompleted msg)
-        {
-            OnLapCompleted(msg);
-        }
+        protected internal virtual void OnConnectionClosed(MsgConnectionClosed msg) { }
 
-        protected internal sealed override void OnCollisionBase(MsgClientEvent msg)
-        {
-            OnCollision(msg);
-        }
+        protected internal virtual void OnCarInfo(MsgCarInfo msg) { }
 
-        protected internal sealed override void OnChatMessageBase(MsgChat msg)
-        {
-            OnChatMessage(msg);
-        }
+        protected internal virtual void OnCarUpdate(MsgCarUpdate msg) { }
 
-        protected internal sealed override void OnClientLoadedBase(MsgClientLoaded msg)
-        {
-            OnClientLoaded(msg);
-        }
+        protected internal virtual void OnCollision(MsgClientEvent msg) { }
 
-        protected internal sealed override void OnSessionInfoBase(MsgSessionInfo msg)
-        {
-            OnSessionInfo(msg);
-        }
+        protected internal virtual void OnLapCompleted(MsgLapCompleted msg) { }
 
-        protected internal sealed override void OnServerErrorBase(MsgError msg)
-        {
-            OnServerError(msg);
-        }
+        protected internal virtual void OnClientLoaded(MsgClientLoaded msg) { }
 
-        protected internal override void OnProtocolVersionBase(MsgVersionInfo msg)
-        {
-            OnProtocolVersion(msg);
-        }
+        protected internal virtual void OnChatMessage(MsgChat msg) { }
 
-        #endregion
+        protected internal virtual void OnProtocolVersion(MsgVersionInfo msg) { }
 
-        #region overridable event handlers
-
-        /// <summary>
-        /// Called when a command was entered.
-        /// </summary>
-        /// <param name="cmd">The command.</param>
-        /// <returns>Whether the command should be passed to the next plugin.</returns>
-        public virtual bool OnCommandEntered(string cmd)
-        {
-#pragma warning disable 618
-            OnConsoleCommand(cmd); // obviously remove these lines when workarounds are no longer needed
-#pragma warning restore 618
-            return true;
-        }
-
-        public virtual void OnInit() { }
-        public virtual void OnConnected() { }
-        public virtual void OnDisconnected() { }
-
-        public virtual void OnNewSession(MsgSessionInfo msg) { }
-        public virtual void OnSessionEnded(MsgSessionEnded msg) { }
-        public virtual void OnConnectionClosed(MsgConnectionClosed msg) { }
-        public virtual void OnNewConnection(MsgNewConnection msg) { }
-        public virtual void OnCarInfo(MsgCarInfo msg) { }
-        public virtual void OnCarUpdate(MsgCarUpdate msg) { }
-        public virtual void OnLapCompleted(MsgLapCompleted msg) { }
-        public virtual void OnCollision(MsgClientEvent msg) { }
-        public virtual void OnSessionInfo(MsgSessionInfo msg) { }
-        public virtual void OnClientLoaded(MsgClientLoaded msg) { }
-        public virtual void OnChatMessage(MsgChat msg) { }
-        public virtual void OnServerError(MsgError msg) { }
-        public virtual void OnProtocolVersion(MsgVersionInfo msg) { }
-
-        #endregion
-
-        #region workarounds so that plugins developed with old AcServerPlugin are compiling
-
-        [Obsolete("Use PluginManager.BroadcastChatMessage instead")]
-        protected internal void BroadcastChatMessage(string msg)
-        {
-            this.PluginManager.BroadcastChatMessage(msg);
-        }
-
-        [Obsolete("Use PluginManager.SendChatMessage instead")]
-        protected internal void SendChatMessage(byte car_id, string msg)
-        {
-            this.PluginManager.SendChatMessage(car_id, msg);
-        }
-
-        [Obsolete("Use PluginManager.EnableRealtimeReport instead")]
-        protected internal void EnableRealtimeReport(UInt16 interval)
-        {
-            this.PluginManager.EnableRealtimeReport(interval);
-        }
-
-        [Obsolete("Only for compatibility with plugins developed for old AcServerPlugin, override OnCommandEntered instead")]
-        public virtual void OnConsoleCommand(string cmd) { }
-
-        #endregion
+        protected internal virtual void OnServerError(MsgError msg) { }
     }
 }
