@@ -13,7 +13,7 @@ namespace acPlugins4net.info
         [DataMember]
         public long Timestamp { get; set; }
         [DataMember]
-        public uint LapTime { get; set; }
+        public uint Laptime { get; set; }
         [DataMember]
         public float LapLength { get; set; }
         [DataMember]

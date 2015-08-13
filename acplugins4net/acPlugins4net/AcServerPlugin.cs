@@ -1,6 +1,7 @@
 ﻿using System;
 using acPlugins4net.helpers;
 using acPlugins4net.messages;
+using acPlugins4net.info;
 
 namespace acPlugins4net
 {
@@ -33,6 +34,7 @@ namespace acPlugins4net
 
         protected internal virtual bool OnCommandEntered(string cmd) { return true; }
 
+        #region handlers for raw acServer messages
         protected internal virtual void OnSessionInfo(MsgSessionInfo msg) { }
 
         protected internal virtual void OnNewSession(MsgSessionInfo msg) { }
@@ -58,11 +60,18 @@ namespace acPlugins4net
         protected internal virtual void OnProtocolVersion(MsgVersionInfo msg) { }
 
         protected internal virtual void OnServerError(MsgError msg) { }
+        #endregion event handlers for raw acServer messages
 
+        #region handlers for events refined by PluginManager
         /// <summary>
         /// This is triggered after all realtime reports per interval have arrived - they are now
         /// up-to-date and can be accessed via the DriverInfo mechanics
         /// </summary>
         protected internal virtual void OnBulkCarUpdateFinished() { }
+
+        protected internal virtual void OnLapCompleted(LapInfo msg) { }
+
+        protected internal virtual void OnCollision(IncidentInfo msg) { }
+        #endregion handlers for events refined by PluginManager
     }
 }

@@ -82,10 +82,9 @@ namespace acPlugins4net
 
         #region session info stuff
         private readonly Dictionary<byte, DriverInfo> carUsedByDictionary = new Dictionary<byte, DriverInfo>();
-        private int nextConnectionId = 1;
         private int lastCarUpdateCarId = -1;
         private SessionInfo currentSession = new SessionInfo();
-        private SessionInfo previousSession;
+        private SessionInfo previousSession = new SessionInfo();
 
         public SessionInfo CurrentSession
         {
@@ -103,6 +102,11 @@ namespace acPlugins4net
             {
                 return carUsedByDictionary.TryGetValue(carId, out driver);
             }
+        }
+
+        public DriverInfo GetDriver(int connectionId)
+        {
+            return this.currentSession.Drivers[connectionId];
         }
         #endregion
 
@@ -165,7 +169,7 @@ namespace acPlugins4net
                     return;
                 }
 
-                this.currentSession.MaxClients = Convert.ToInt32(_Workarounds.FindServerConfigEntry("MAX_CLIENTS="));
+                this.currentSession.MaxClients = Convert.ToInt32(_Workarounds.FindServerConfigEntry("MAX_CLIENTS=")); // TODO can be removed when MaxClients added to MsgSessionInfo
                 AdminPassword = _Workarounds.FindServerConfigEntry("ADMIN_PASSWORD=");
 
                 // First we're getting the configured ports (read directly from the server_config.ini)
@@ -367,24 +371,9 @@ namespace acPlugins4net
                 // it seems we missed the OnNewConnection for this driver
                 driverReport = new DriverInfo()
                 {
-                    ConnectionId = this.nextConnectionId++,
+                    ConnectionId = this.currentSession.Drivers.Count(),
                     ConnectedTimestamp = DateTime.UtcNow.Ticks, //obviously not correct but better than nothing
-                    DisconnectedTimestamp = -1,
-                    DriverGuid = string.Empty,
-                    DriverName = string.Empty,
-                    DriverTeam = string.Empty,
-                    CarId = carId,
-                    CarModel = string.Empty,
-                    CarSkin = string.Empty,
-                    BallastKG = 0,
-                    BestLap = 0,
-                    TotalTime = 0,
-                    LapCount = 0,
-                    Position = 0,
-                    Gap = string.Empty,
-                    Incidents = 0,
-                    Distance = 0.0f,
-                    IsAdmin = false
+                    CarId = carId
                 };
 
                 this.currentSession.Drivers.Add(driverReport);
@@ -429,18 +418,6 @@ namespace acPlugins4net
         {
             try
             {
-                // if for some reason we did not get driver info for certain drivers, remove them and any associated laps and incidents
-                List<DriverInfo> invalidDrivers = this.currentSession.Drivers.Where(d => string.IsNullOrEmpty(d.DriverGuid)).ToList();
-                if (invalidDrivers.Count > 0)
-                {
-                    foreach (DriverInfo d in invalidDrivers)
-                    {
-                        this.currentSession.Drivers.Remove(d);
-                        this.currentSession.Laps.RemoveAll(l => l.ConnectionId == d.ConnectionId);
-                        this.currentSession.Incidents.RemoveAll(e => e.ConnectionId1 == d.ConnectionId || e.ConnectionId2 == d.ConnectionId);
-                    }
-                }
-
                 // update PlayerConnections with results
                 foreach (DriverInfo connection in this.currentSession.Drivers)
                 {
@@ -448,7 +425,7 @@ namespace acPlugins4net
                     List<LapInfo> validLaps = laps.Where(l => l.Cuts == 0).ToList();
                     if (validLaps.Count > 0)
                     {
-                        connection.BestLap = validLaps.Min(l => l.LapTime);
+                        connection.BestLap = validLaps.Min(l => l.Laptime);
                     }
                     else if (this.currentSession.SessionType != (byte)MsgSessionInfo.SessionTypeEnum.Race)
                     {
@@ -458,7 +435,7 @@ namespace acPlugins4net
 
                     if (laps.Count > 0)
                     {
-                        connection.TotalTime = (uint)laps.Sum(l => l.LapTime);
+                        connection.TotalTime = (uint)laps.Sum(l => l.Laptime);
                         connection.LapCount = laps.Max(l => l.LapNo);
                         connection.Incidents += laps.Sum(l => l.Cuts);
                     }
@@ -469,12 +446,17 @@ namespace acPlugins4net
                     ushort position = 1;
 
                     // compute start position
-                    foreach (DriverInfo connection in this.currentSession.Drivers.Where(d => d.ConnectedTimestamp <= this.currentSession.Timestamp).OrderByDescending(d => d.StartSplinePos))
+                    foreach (DriverInfo connection in this.currentSession.Drivers.Where(d => d.ConnectedTimestamp >= 0 && d.ConnectedTimestamp <= this.currentSession.Timestamp).OrderByDescending(d => d.StartSplinePos))
                     {
                         connection.StartPosition = position++;
                     }
 
-                    foreach (DriverInfo connection in this.currentSession.Drivers.Where(d => d.ConnectedTimestamp > this.currentSession.Timestamp).OrderBy(d => d.ConnectedTimestamp))
+                    foreach (DriverInfo connection in this.currentSession.Drivers.Where(d => d.ConnectedTimestamp >= 0 && d.ConnectedTimestamp > this.currentSession.Timestamp).OrderBy(d => d.ConnectedTimestamp))
+                    {
+                        connection.StartPosition = position++;
+                    }
+
+                    foreach (DriverInfo connection in this.currentSession.Drivers.Where(d => d.ConnectedTimestamp < 0))
                     {
                         connection.StartPosition = position++;
                     }
@@ -486,7 +468,7 @@ namespace acPlugins4net
 
                     List<DriverInfo> sortedDrivers = new List<DriverInfo>(this.currentSession.Drivers.Count);
 
-                    sortedDrivers.AddRange(this.currentSession.Drivers.Where(d => d.LapCount == currentSession.LapCount).OrderBy(this.currentSession.GetLastLapTimestamp));
+                    sortedDrivers.AddRange(this.currentSession.Drivers.Where(d => d.LapCount == currentSession.LapCount).OrderBy(GetLastLapTimestamp));
                     sortedDrivers.AddRange(this.currentSession.Drivers.Where(d => d.LapCount != currentSession.LapCount).OrderByDescending(d => d.LapCount).ThenByDescending(d => d.LastSplinePos));
 
                     foreach (DriverInfo connection in sortedDrivers)
@@ -557,11 +539,9 @@ namespace acPlugins4net
             }
             finally
             {
-                previousSession = this.currentSession;
+                this.previousSession = this.currentSession;
                 this.currentSession = new SessionInfo();
                 this.currentSession.MaxClients = previousSession.MaxClients; // TODO can be removed when MaxClients added to MsgSessionInfo
-
-                this.nextConnectionId = 1;
                 this.lastCarUpdateCarId = -1;
 
                 foreach (DriverInfo connection in previousSession.Drivers)
@@ -571,7 +551,7 @@ namespace acPlugins4net
                     {
                         DriverInfo recreatedConnection = new DriverInfo()
                         {
-                            ConnectionId = this.nextConnectionId++,
+                            ConnectionId = this.currentSession.Drivers.Count(),
                             ConnectedTimestamp = found.ConnectedTimestamp,
                             DisconnectedTimestamp = found.DisconnectedTimestamp, // should be not set yet
                             DriverGuid = found.DriverGuid,
@@ -581,13 +561,6 @@ namespace acPlugins4net
                             CarModel = found.CarModel,
                             CarSkin = found.CarSkin,
                             BallastKG = found.BallastKG,
-                            BestLap = 0,
-                            TotalTime = 0,
-                            LapCount = 0,
-                            Position = 0,
-                            Gap = string.Empty,
-                            Incidents = 0,
-                            Distance = 0.0f,
                             IsAdmin = found.IsAdmin
                         };
 
@@ -599,7 +572,7 @@ namespace acPlugins4net
                 this.carUsedByDictionary.Clear();
                 foreach (DriverInfo recreatedConnection in this.currentSession.Drivers)
                 {
-                    this.carUsedByDictionary[recreatedConnection.CarId] = recreatedConnection;
+                    this.carUsedByDictionary.Add(recreatedConnection.CarId, recreatedConnection);
                 }
             }
         }
@@ -832,10 +805,8 @@ namespace acPlugins4net
             try
             {
                 this.FinalizeAndStartNewReport();
+                this.currentSession.Drivers.Clear();
                 this.carUsedByDictionary.Clear();
-                this.currentSession = new SessionInfo();
-                this.nextConnectionId = 1;
-                this.lastCarUpdateCarId = -1;
             }
             catch (Exception ex)
             {
@@ -945,36 +916,29 @@ namespace acPlugins4net
             {
                 DriverInfo newConnection = new DriverInfo()
                 {
-                    ConnectionId = this.nextConnectionId++,
-                    ConnectedTimestamp = -1,
-                    DisconnectedTimestamp = -1,
+                    ConnectionId = this.currentSession.Drivers.Count(),
                     DriverGuid = msg.DriverGuid,
                     DriverName = msg.DriverName,
                     DriverTeam = string.Empty, // missing in msg
                     CarId = msg.CarId,
                     CarModel = msg.CarModel,
                     CarSkin = msg.CarSkin,
-                    BallastKG = 0, // missing in msg
-                    BestLap = 0,
-                    TotalTime = 0,
-                    LapCount = 0,
-                    Position = 0,
-                    Gap = string.Empty,
-                    Incidents = 0,
-                    Distance = 0.0f,
-                    IsAdmin = false
+                    BallastKG = 0 // missing in msg
                 };
 
                 this.currentSession.Drivers.Add(newConnection);
 
-                if (!this.carUsedByDictionary.ContainsKey(newConnection.CarId))
+                DriverInfo otherDriver;
+                if (this.carUsedByDictionary.TryGetValue(newConnection.CarId, out otherDriver))
                 {
-                    this.carUsedByDictionary.Add(newConnection.CarId, newConnection);
+                    // should not happen
+                    this.Log(new Exception("Car already in used by another driver"));
+                    otherDriver.DisconnectedTimestamp = DateTime.UtcNow.Ticks;
+                    this.carUsedByDictionary[msg.CarId] = newConnection;
                 }
                 else
                 {
-                    this.carUsedByDictionary[msg.CarId] = newConnection;
-                    this.Log(new Exception("Car already in used by another driver"));
+                    this.carUsedByDictionary.Add(newConnection.CarId, newConnection);
                 }
 
                 // request car info to get additional info and check when driver really is connected
@@ -1153,17 +1117,30 @@ namespace acPlugins4net
                         driver2.Incidents += 2; // TODO only if relVel > thresh
                     }
 
-                    this.currentSession.Incidents.Add(
-                        new IncidentInfo()
+                    IncidentInfo incident = new IncidentInfo()
+                    {
+                        Type = msg.Subtype,
+                        Timestamp = DateTime.UtcNow.Ticks,
+                        ConnectionId1 = driver.ConnectionId,
+                        ConnectionId2 = withOtherCar ? driver2.ConnectionId : -1,
+                        ImpactSpeed = msg.RelativeVelocity,
+                        WorldPosition = msg.WorldPosition,
+                        RelPosition = msg.RelativePosition,
+                    };
+
+                    this.currentSession.Incidents.Add(incident);
+
+                    foreach (AcServerPlugin plugin in _plugins)
+                    {
+                        try
                         {
-                            Type = msg.Subtype,
-                            Timestamp = DateTime.UtcNow.Ticks,
-                            ConnectionId1 = driver.ConnectionId,
-                            ConnectionId2 = withOtherCar ? driver2.ConnectionId : -1,
-                            ImpactSpeed = msg.RelativeVelocity,
-                            WorldPosition = msg.WorldPosition,
-                            RelPosition = msg.RelativePosition,
-                        });
+                            plugin.OnCollision(incident);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log(ex);
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -1206,7 +1183,7 @@ namespace acPlugins4net
 
                 if (!this.currentSession.MissedSessionStart && this.currentSession.SessionType == (byte)MsgSessionInfo.SessionTypeEnum.Race)
                 {
-                    // for race compute Position based on own stats info (better with disconnected drivers)
+                    // for race compute Position based on own info (better with disconnected drivers)
                     position = (ushort)(this.currentSession.Laps.Count(l => l.LapNo == lapNo) + 1);
                 }
 
@@ -1214,7 +1191,7 @@ namespace acPlugins4net
                 {
                     ConnectionId = driver.ConnectionId,
                     Timestamp = DateTime.UtcNow.Ticks,
-                    LapTime = msg.Laptime,
+                    Laptime = msg.Laptime,
                     LapLength = lapLength,
                     LapNo = lapNo,
                     Position = position,
@@ -1223,6 +1200,18 @@ namespace acPlugins4net
                 };
 
                 this.currentSession.Laps.Add(lap);
+
+                foreach (AcServerPlugin plugin in _plugins)
+                {
+                    try
+                    {
+                        plugin.OnLapCompleted(lap);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log(ex);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -1476,6 +1465,16 @@ namespace acPlugins4net
             int minutes = timespan / 1000 / 60;
             double seconds = (timespan - minutes * 1000 * 60) / 1000.0;
             return string.Format("{0:00}:{1:00.000}", minutes, seconds);
+        }
+
+        private long GetLastLapTimestamp(DriverInfo driver)
+        {
+            LapInfo lapReport = this.currentSession.Laps.FirstOrDefault(l => l.ConnectionId == driver.ConnectionId && l.LapNo == driver.LapCount);
+            if (lapReport != null)
+            {
+                return lapReport.Timestamp;
+            }
+            return long.MaxValue;
         }
         #endregion
 

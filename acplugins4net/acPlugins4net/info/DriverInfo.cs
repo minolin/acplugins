@@ -21,22 +21,15 @@ namespace acPlugins4net.info
 
         #endregion
 
-        public DriverInfo()
-        {
-            this.StartSplinePos = -1.0f;
-            this.LastSplinePos = -1.0f;
-            this.ConnectedTimestamp = -1;
-        }
-
         private const double MaxSpeed = 1000; // km/h
         private const double MinSpeed = 5; // km/h
 
         [DataMember]
         public int ConnectionId { get; set; }
         [DataMember]
-        public long ConnectedTimestamp { get; set; }
+        public long ConnectedTimestamp { get; set; } = -1;
         [DataMember]
-        public long DisconnectedTimestamp { get; set; }
+        public long DisconnectedTimestamp { get; set; } = -1;
         [DataMember]
         public string DriverGuid { get; set; }
         [DataMember]
@@ -70,9 +63,9 @@ namespace acPlugins4net.info
         [DataMember]
         public float TopSpeed { get; set; } // km/h
         [DataMember]
-        public float StartSplinePos { get; set; }
+        public float StartSplinePos { get; set; } = -1f;
         [DataMember]
-        public float LastSplinePos { get; set; }
+        public float LastSplinePos { get; set; } = -1f;
         [DataMember]
         public bool IsAdmin { get; set; }
 
@@ -91,6 +84,7 @@ namespace acPlugins4net.info
         private float lapDistance;
         private float lapStartSplinePos = -1f;
 
+        #region getter for some 'realtime' positional info
         public float LapDistance
         {
             get
@@ -141,6 +135,7 @@ namespace acPlugins4net.info
                 return lastSplinePos;
             }
         }
+        #endregion
 
         // That cache<MsgCarUpdate> should be replaced by a cache<CarUpdateThing> that also stores
         // the timestamp, otherwise calculations are always squishy (and e.g. dependent on the interval)
@@ -211,7 +206,7 @@ namespace acPlugins4net.info
             this.lastTime = currTime;
         }
 
-        internal float OnLapCompleted()
+        public float OnLapCompleted()
         {
             float lastSplinePos = this.LastSplinePos;
             if (lastSplinePos < 0.5)

@@ -9,21 +9,8 @@ namespace acPlugins4net.info
     [DataContract]
     public class SessionInfo
     {
-        public SessionInfo()
-        {
-            this.MissedSessionStart = true;
-            this.SessionName = "Unknown";
-            this.SessionType = 0;
-            this.Timestamp = DateTime.UtcNow.Ticks;
-            this.Weather = "Unknown";
-            this.Drivers = new List<DriverInfo>();
-            this.Laps = new List<LapInfo>();
-            this.Incidents = new List<IncidentInfo>();
-            this.MaxClients = 32;
-        }
-
         [DataMember]
-        public bool MissedSessionStart { get; set; }
+        public bool MissedSessionStart { get; set; } = true;
         [DataMember]
         public string ServerName { get; set; }
         [DataMember]
@@ -41,7 +28,7 @@ namespace acPlugins4net.info
         [DataMember]
         public ushort WaitTime { get; set; }
         [DataMember]
-        public long Timestamp { get; set; }
+        public long Timestamp { get; set; } = DateTime.UtcNow.Ticks;
         [DataMember]
         public byte AmbientTemp { get; set; }
         [DataMember]
@@ -53,22 +40,11 @@ namespace acPlugins4net.info
         [DataMember]
         public int RealtimeUpdateInterval { get; set; }
         [DataMember]
-        public List<DriverInfo> Drivers { get; set; }
+        public List<DriverInfo> Drivers { get; set; } = new List<DriverInfo>();
         [DataMember]
-        public List<LapInfo> Laps { get; set; }
+        public List<LapInfo> Laps { get; set; } = new List<LapInfo>();
         [DataMember]
-        public List<IncidentInfo> Incidents { get; set; }
-
-
-        public long GetLastLapTimestamp(DriverInfo driver)
-        {
-            LapInfo lapReport = this.Laps.FirstOrDefault(l => l.ConnectionId == driver.ConnectionId && l.LapNo == driver.LapCount);
-            if (lapReport != null)
-            {
-                return lapReport.Timestamp;
-            }
-            return long.MaxValue;
-        }
+        public List<IncidentInfo> Incidents { get; set; } = new List<IncidentInfo>();
 
         /// <summary>
         /// Computes the distance to the closest opponent.
