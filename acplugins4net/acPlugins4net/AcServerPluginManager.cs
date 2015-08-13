@@ -48,7 +48,7 @@ namespace acPlugins4net
 
         public ushort RealtimeUpdateInterval { get; private set; }
 
-        public bool StartNewLogOnNewSession { get; set; }
+        public int StartNewLogOnNewSession { get; set; }
 
         /// <summary>
         /// Gets or sets whether requests to the AC server should be logged.
@@ -110,11 +110,11 @@ namespace acPlugins4net
         }
         #endregion
 
-        public AcServerPluginManager(ILog log = null, IConfigManager config = null, bool startNewLogOnNewSession = false)
+        public AcServerPluginManager(ILog log = null, IConfigManager config = null)
         {
             Logger = log ?? new ConsoleLogger();
             Config = config ?? new AppConfigConfigurator();
-            StartNewLogOnNewSession = startNewLogOnNewSession;
+
 
             _plugins = new List<AcServerPlugin>();
             Plugins = _plugins.AsReadOnly();
@@ -138,6 +138,7 @@ namespace acPlugins4net
             this.currentSession.MaxClients = Config.GetSettingAsInt("max_clients", 32); // TODO can be removed when MaxClients added to MsgSessionInfo
             AdminPassword = Config.GetSetting("admin_password");
 
+            StartNewLogOnNewSession = Config.GetSettingAsInt("start_new_log_on_new_session", 0);
             LogServerRequests = Config.GetSettingAsInt("log_server_requests", 1);
             LogServerErrors = Config.GetSettingAsInt("log_server_errors", 1);
 
@@ -406,7 +407,7 @@ namespace acPlugins4net
             this.currentSession.RealtimeUpdateInterval = this.RealtimeUpdateInterval;
             // TODO set MaxClients when added to msg
 
-            if (startNewLog && this.StartNewLogOnNewSession && this.Logger is IFileLog)
+            if (startNewLog && this.StartNewLogOnNewSession > 0 && this.Logger is IFileLog)
             {
                 ((IFileLog)this.Logger).StartLoggingToFile(
                     new DateTime(this.currentSession.Timestamp, DateTimeKind.Utc).ToString("yyyyMMdd_HHmmss") + "_"
