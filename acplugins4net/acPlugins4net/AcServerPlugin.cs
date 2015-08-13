@@ -58,5 +58,11 @@ namespace acPlugins4net
         protected internal virtual void OnProtocolVersion(MsgVersionInfo msg) { }
 
         protected internal virtual void OnServerError(MsgError msg) { }
+
+        /// <summary>
+        /// This is triggered after all realtime reports per interval have arrived - they are now
+        /// up-to-date and can be accessed via the DriverInfo mechanics
+        /// </summary>
+        protected internal virtual void OnBulkCarUpdateFinished() { }
     }
 }

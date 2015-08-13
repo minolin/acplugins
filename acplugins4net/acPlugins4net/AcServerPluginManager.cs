@@ -355,7 +355,6 @@ namespace acPlugins4net
             }
         }
 
-
         private DriverInfo getDriverReportForCarId(byte carId)
         {
             DriverInfo driverReport;
@@ -1069,7 +1068,7 @@ namespace acPlugins4net
                 if (DateTime.UtcNow.Ticks - currentSession.Timestamp > 10 * 10000000)
                 {
                     DriverInfo driver = this.getDriverReportForCarId(msg.CarId);
-                    driver.UpdatePosition(msg.WorldPosition, msg.Velocity, msg.NormalizedSplinePosition);
+                    driver.UpdatePosition(msg);
 
                     //if (sw == null)
                     //{
@@ -1077,6 +1076,30 @@ namespace acPlugins4net
                     //    sw.AutoFlush = true;
                     //}
                     //sw.WriteLine(ToSingle3(msg.WorldPosition).ToString() + ", " + ToSingle3(msg.Velocity).Length());
+                }
+
+                // Now we check if this could be the last CarUpdate message in this round (they seem to be sent in a bulk and ordered by carId)
+                // For a first try, we'll just check for the biggest carId in the drivers - and hope the add and removes are in synch.
+                if(carUsedByDictionary.Any() && msg.CarId == carUsedByDictionary.Keys.Max()) // Keys.Max() should be replaced by a buffer that respects add/remove drivers
+                {
+                    // Ok, this was the last one, so the last updates are like a snapshot within a milisecond or less.
+                    // Great spot to examine positions, overtakes and stuff where multiple cars are compared to each other
+
+                    // maybe this.OnBulkCarUpdateFinished(); ?
+
+                    // In every case we let the plugins do their calculations - before even raising the OnCarUpdate(msg). This function could
+                    // take advantage of updated DriverInfos
+                    foreach (AcServerPlugin plugin in _plugins)
+                    {
+                        try
+                        {
+                            plugin.OnBulkCarUpdateFinished();
+                        }
+                        catch (Exception ex)
+                        {
+                            Log(ex);
+                        }
+                    }
                 }
             }
             catch (Exception ex)

@@ -8,6 +8,19 @@ namespace acPlugins4net.info
     [DataContract]
     public class DriverInfo
     {
+        #region MsgCarUpdate cache  -  No idea how we use this, and if it's cool at all
+
+        /// <summary>
+        /// Defines how many MsgCarUpdates are cached (for a look in the past)
+        /// </summary>
+        [IgnoreDataMember]
+        public static int MsgCarUpdateCacheSize { get; set; } = 0;
+        [IgnoreDataMember]
+        private LinkedList<messages.MsgCarUpdate> _carUpdateCache = new LinkedList<messages.MsgCarUpdate>();
+        public LinkedListNode<messages.MsgCarUpdate> LastCarUpdate { get { return _carUpdateCache.Last; } }
+
+        #endregion
+
         public DriverInfo()
         {
             this.StartPosNs = -1.0f;
@@ -107,6 +120,25 @@ namespace acPlugins4net.info
             get
             {
                 return this.ConnectedTimestamp != -1 && this.DisconnectedTimestamp == -1;
+            }
+        }
+
+        // That cache<MsgCarUpdate> should be replaced by a cache<CarUpdateThing> that also stores
+        // the timestamp, otherwise calculations are always squishy (and e.g. dependent on the interval)
+        public void UpdatePosition(messages.MsgCarUpdate msg)
+        {
+            UpdatePosition(msg.WorldPosition, msg.Velocity, msg.NormalizedSplinePosition);
+            if (MsgCarUpdateCacheSize > 0)
+            {
+                var node = _carUpdateCache.AddLast(msg);
+                if (_carUpdateCache.Count > MsgCarUpdateCacheSize)
+                    _carUpdateCache.RemoveFirst();
+
+                if (_carUpdateCache.Count > 1)
+                {
+                    // We could easily do car-specifc stuff here, e.g. calculate the distance driven between the intervals,
+                    // or a python-app like delta - maybe even a loss of control
+                }
             }
         }
 

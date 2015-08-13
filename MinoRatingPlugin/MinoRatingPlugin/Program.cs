@@ -23,6 +23,8 @@ namespace MinoRatingPlugin
 
         protected internal byte[] _fingerprint;
 
+
+        #region Init code
         static void Main(string[] args)
         {
             try
@@ -31,12 +33,13 @@ namespace MinoRatingPlugin
                 pluginManager.LoadInfoFromServerConfig();
                 pluginManager.AddPlugin(new MinoratingPlugin());
                 pluginManager.LoadPluginsFromAppConfig();
+                DriverInfo.MsgCarUpdateCacheSize = 10;
                 RunPluginInConsole.RunUntilAborted(pluginManager);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-        }
+            }
         }
 
         protected internal byte[] Hash(string s)
@@ -87,9 +90,13 @@ namespace MinoRatingPlugin
             });
         }
 
+        #endregion
+
+        #region Simpler event overrides
+
         protected override void OnSessionInfo(MsgSessionInfo msg)
         {
-            if(msg.Type == ACSProtocol.MessageType.ACSP_NEW_SESSION || CurrentSessionGuid == Guid.Empty)
+            if (msg.Type == ACSProtocol.MessageType.ACSP_NEW_SESSION || CurrentSessionGuid == Guid.Empty)
                 OnNewSession(msg);
         }
 
@@ -133,6 +140,52 @@ namespace MinoRatingPlugin
             }
         }
 
+
+        protected override void OnCarInfo(MsgCarInfo msg)
+        {
+            PluginManager.Log("CarInfo: " + msg.CarId + ", " + msg.DriverName + "@" + msg.CarModel);
+
+            string driverName = msg.DriverName;
+            string driverGuid = msg.DriverGuid;
+
+            if (!msg.IsConnected)
+            {
+                driverName = "";
+                driverGuid = "";
+            }
+
+            HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, driverName, driverGuid));
+        }
+
+        protected override void OnChatMessage(MsgChat msg)
+        {
+            if (!msg.IsCommand)
+                return;
+
+            var split = msg.Message.Split(' ');
+            if (split.Length > 0)
+            {
+                switch (split[0])
+                {
+                    case "/mr":
+                    case "/minorating":
+                        HandleClientActions(LiveDataServer.RequestDriverRating(CurrentSessionGuid, msg.CarId));
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        protected override void OnClientLoaded(MsgClientLoaded msg)
+        {
+            HandleClientActions(LiveDataServer.RequestDriverRating(CurrentSessionGuid, msg.CarId));
+            HandleClientActions(LiveDataServer.RequestDriverLoaded(CurrentSessionGuid, msg.CarId));
+        }
+
+        #endregion
+
+        #region Contact handling
         private List<CollisionBag> contactTrees = new List<CollisionBag>();
 
         protected override void OnCollision(MsgClientEvent msg)
@@ -177,7 +230,96 @@ namespace MinoRatingPlugin
                 contactTrees.Remove(bag);
             HandleClientActions(LiveDataServer.CollisionTreeEnded(CurrentSessionGuid, bag.First, bag.Second, bag.Count, bag.Started, bag.LastCollision));
         }
+        #endregion
 
+        #region Distance driven & behaviour analysis
+
+        private float TrackLength = 0.0f;
+
+        protected override void OnBulkCarUpdateFinished()
+        {
+            if (TrackLength == 0f && false) // A fucking mess this is. Tried cool and then simpler things; I won't get it working right :( See https://github.com/minolin/acplugins/issues/24
+            {
+                // As long as we have no SplinePos->Meters factor, well just put every single (world-position/splinepos) pair we
+                // can get into a big list and try to calc it. This will happen once per server start (= possible track change) only
+                var list = new List<SplinePosCalculationHelper>();
+                PluginManager.CurrentSession.Drivers.ForEach((driverInfo) =>
+                {
+                    var node = driverInfo.LastCarUpdate;
+                    while (node != null)
+                    {
+                        list.Add(new SplinePosCalculationHelper(node.Value));
+                        node = node.Previous;
+                    }
+                });
+
+                TryCalcSplinePos(list);
+            }
+
+            if (TrackLength > 0)
+            {
+                // as soon as there is a TrackLength we can easily estimate the gap between cars by multiplying the spline pos 
+                // with the track length. Tomorrow.
+
+            }
+        }
+
+        private void TryCalcSplinePos(List<SplinePosCalculationHelper> list)
+        {
+            // We try to shape the SplinePos-factor by calculating all the world positions
+            // until we have a very marginally error left
+            // Edit: No, we won't. Wth the math fucked me today (although I'm not sure if math or double precision with huge numbers)
+            double totalTrackLengths = 0;
+            int totalCount = 0;
+
+            for (int i = 0; i < list.Count && list.Count > 1; i++)
+                for (int j = i + 1; j < list.Count; j++)
+                    if (list[i].CalcDifference(list[j], ref totalTrackLengths))
+                        totalCount++;
+
+            // we will ignore this, if not enough points have been regarded. Let's say a single car should do the calculations
+            // if on the track, then the calculation should kick with the cache size. Tricky stuff, if the Cache is too small we should wait for 1 or 2 other cars.
+            // 5 points on the track would at give 15 results
+            if (totalCount > 15)
+            {
+                TrackLength = (float)(totalTrackLengths / totalCount);
+                PluginManager.BroadcastChatMessage(string.Format("The track is {0:N0}m / {1:F1} = {2:N0} long", totalTrackLengths, totalCount, TrackLength));
+            }
+        }
+
+        internal class SplinePosCalculationHelper
+        {
+            Vector3f WorldPos;
+            float SplinePos;
+
+            internal SplinePosCalculationHelper(MsgCarUpdate msg)
+            {
+                WorldPos = msg.WorldPosition;
+                SplinePos = msg.NormalizedSplinePosition;
+            }
+
+            internal bool CalcDifference(SplinePosCalculationHelper other, ref double resultSum)
+            {
+                var m = Math.Abs((other.WorldPos - this.WorldPos).Length());
+                var s = Math.Abs(other.SplinePos - this.SplinePos);
+                while (s < 0)
+                    s++;
+                while (s > 1)
+                    s--;
+
+                if (m < 22.2f // We will be much better with higher values. The pit limit is 22.2 m/s, after that we will have a pretty good estimate 
+                    || s > 0.5) // The finish line is nasty and could lead to 0.99 difference - ignore that 
+                    return false;
+
+                // I tried to sum both meters and spline-diff for a more precise result - didn't happen. No idea why.
+                resultSum += (m / s);
+                return true;
+            }
+        }
+
+        #endregion
+
+        #region Helpers & stuff
         private void HandleClientActions(PluginReaction[] actions)
         {
             if (actions == null)
@@ -257,46 +399,6 @@ namespace MinoRatingPlugin
             return array;
         }
 
-        protected override void OnCarInfo(MsgCarInfo msg)
-        {
-            PluginManager.Log("CarInfo: " + msg.CarId + ", " + msg.DriverName + "@" + msg.CarModel);
-
-            string driverName = msg.DriverName;
-            string driverGuid = msg.DriverGuid;
-
-            if (!msg.IsConnected)
-            {
-                driverName = "";
-                driverGuid = "";
-            }
-
-            HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, driverName, driverGuid));
-        }
-
-        protected override void OnChatMessage(MsgChat msg)
-        {
-            if (!msg.IsCommand)
-                return;
-
-            var split = msg.Message.Split(' ');
-            if (split.Length > 0)
-            {
-                switch (split[0])
-                {
-                    case "/mr":
-                    case "/minorating":
-                        HandleClientActions(LiveDataServer.RequestDriverRating(CurrentSessionGuid, msg.CarId));
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
-        protected override void OnClientLoaded(MsgClientLoaded msg)
-        {
-            HandleClientActions(LiveDataServer.RequestDriverRating(CurrentSessionGuid, msg.CarId));
-            HandleClientActions(LiveDataServer.RequestDriverLoaded(CurrentSessionGuid, msg.CarId));
-        }
+        #endregion
     }
 }
