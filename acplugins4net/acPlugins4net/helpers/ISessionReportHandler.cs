@@ -1,4 +1,6 @@
-﻿namespace acPlugins4net.info
+﻿using acPlugins4net.info;
+
+namespace acPlugins4net.helpers
 {
     public interface ISessionReportHandler
     {

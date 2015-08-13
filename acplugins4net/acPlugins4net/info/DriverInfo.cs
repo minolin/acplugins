@@ -23,8 +23,8 @@ namespace acPlugins4net.info
 
         public DriverInfo()
         {
-            this.StartPosNs = -1.0f;
-            this.LastPosNs = -1.0f;
+            this.StartSplinePos = -1.0f;
+            this.LastSplinePos = -1.0f;
             this.ConnectedTimestamp = -1;
         }
 
@@ -70,15 +70,42 @@ namespace acPlugins4net.info
         [DataMember]
         public float TopSpeed { get; set; } // km/h
         [DataMember]
-        public float StartPosNs { get; set; }
+        public float StartSplinePos { get; set; }
         [DataMember]
-        public float LastPosNs { get; set; }
+        public float LastSplinePos { get; set; }
         [DataMember]
         public bool IsAdmin { get; set; }
+
+        public bool IsConnected
+        {
+            get
+            {
+                return this.ConnectedTimestamp != -1 && this.DisconnectedTimestamp == -1;
+            }
+        }
 
         private int lastTime = -1;
         private Vector3f lastPos, lastVel;
         private float lastSplinePos;
+
+        private float lapDistance;
+        private float lapStartSplinePos = -1f;
+
+        public float LapDistance
+        {
+            get
+            {
+                return this.lapDistance;
+            }
+        }
+
+        public float LapStartSplinePos
+        {
+            get
+            {
+                return this.lapStartSplinePos;
+            }
+        }
 
         /// <summary>
         /// <see cref="Environment.TickCount"/> of the last position update.
@@ -115,19 +142,11 @@ namespace acPlugins4net.info
             }
         }
 
-        public bool IsConnected
-        {
-            get
-            {
-                return this.ConnectedTimestamp != -1 && this.DisconnectedTimestamp == -1;
-            }
-        }
-
         // That cache<MsgCarUpdate> should be replaced by a cache<CarUpdateThing> that also stores
         // the timestamp, otherwise calculations are always squishy (and e.g. dependent on the interval)
-        public void UpdatePosition(messages.MsgCarUpdate msg)
+        public void UpdatePosition(messages.MsgCarUpdate msg, int realtimeUpdateInterval)
         {
-            UpdatePosition(msg.WorldPosition, msg.Velocity, msg.NormalizedSplinePosition);
+            UpdatePosition(msg.WorldPosition, msg.Velocity, msg.NormalizedSplinePosition, realtimeUpdateInterval);
             if (MsgCarUpdateCacheSize > 0)
             {
                 var node = _carUpdateCache.AddLast(msg);
@@ -142,11 +161,16 @@ namespace acPlugins4net.info
             }
         }
 
-        public void UpdatePosition(Vector3f pos, Vector3f vel, float s)
+        public void UpdatePosition(Vector3f pos, Vector3f vel, float s, int realtimeUpdateInterval)
         {
-            if (StartPosNs == -1.0f)
+            if (this.StartSplinePos == -1.0f)
             {
-                StartPosNs = s > 0.5f ? s - 1.0f : s;
+                this.StartSplinePos = s > 0.5f ? s - 1.0f : s;
+            }
+
+            if (this.lapStartSplinePos == -1.0f)
+            {
+                this.lapStartSplinePos = s > 0.5f ? s - 1.0f : s;
             }
 
             float currentSpeed = vel.Length() * 3.6f;
@@ -156,22 +180,53 @@ namespace acPlugins4net.info
             }
 
             int currTime = Environment.TickCount;
-            if (this.lastTime > 0)
+            int elapsedSinceLastUpdate = currTime - this.lastTime;
+            if (this.lastTime > 0 && elapsedSinceLastUpdate < 3 * realtimeUpdateInterval)
             {
                 float d = (pos - lastPos).Length();
+                float speed = d / elapsedSinceLastUpdate / 1000 * 3.6f;
 
-                float speed = d / (currTime - this.lastTime) / 1000 * 3.6f;
-
-                if (speed < MaxSpeed && currentSpeed > MinSpeed)
+                if (speed < MaxSpeed)
                 {
+                    // no warp detected
+                    this.lapDistance += d;
                     this.Distance += d;
-                    this.LastPosNs = s;
+
+                    if (currentSpeed > MinSpeed)
+                    {
+                        // don't update LastSplinePos if car is moving very slowly (was send to box?)
+                        this.LastSplinePos = s;
+                    }
+                }
+                else
+                {
+                    // probably warped to box
+                    this.lapDistance = 0;
+                    this.lapStartSplinePos = s > 0.5f ? s - 1.0f : s;
                 }
             }
             this.lastPos = pos;
             this.lastVel = vel;
             this.lastSplinePos = s;
             this.lastTime = currTime;
+        }
+
+        internal float OnLapCompleted()
+        {
+            float lastSplinePos = this.LastSplinePos;
+            if (lastSplinePos < 0.5)
+            {
+                lastSplinePos += 1f;
+            }
+
+            float splinePosDiff = lastSplinePos - this.lapStartSplinePos;
+            float lapLength = this.lapDistance / splinePosDiff;
+
+            this.lapStartSplinePos = lastSplinePos - 1f;
+            this.lapDistance = 0f;
+            this.lastSplinePos = 0.0f;
+
+            return lapLength;
         }
     }
 }

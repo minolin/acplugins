@@ -48,6 +48,8 @@ namespace acPlugins4net
 
         public ushort RealtimeUpdateInterval { get; private set; }
 
+        public bool StartNewLogOnNewSession { get; set; }
+
         /// <summary>
         /// Gets or sets whether requests to the AC server should be logged.
         /// Can be set via app.config setting "log_server_requests". Default is 1.
@@ -81,7 +83,7 @@ namespace acPlugins4net
         #region session info stuff
         private readonly Dictionary<byte, DriverInfo> carUsedByDictionary = new Dictionary<byte, DriverInfo>();
         private int nextConnectionId = 1;
-        private int lastCarUpdateCarId;
+        private int lastCarUpdateCarId = -1;
         private SessionInfo currentSession = new SessionInfo();
         private SessionInfo previousSession;
 
@@ -104,10 +106,11 @@ namespace acPlugins4net
         }
         #endregion
 
-        public AcServerPluginManager(ILog log = null, IConfigManager config = null)
+        public AcServerPluginManager(ILog log = null, IConfigManager config = null, bool startNewLogOnNewSession = false)
         {
             Logger = log ?? new ConsoleLogger();
             Config = config ?? new AppConfigConfigurator();
+            StartNewLogOnNewSession = startNewLogOnNewSession;
 
             _plugins = new List<AcServerPlugin>();
             Plugins = _plugins.AsReadOnly();
@@ -128,7 +131,7 @@ namespace acPlugins4net
             if (string.IsNullOrWhiteSpace(RemostHostname))
                 RemostHostname = "127.0.0.1";
             RemotePort = Config.GetSettingAsInt("ac_server_port", 11000);
-            this.currentSession.MaxClients = Config.GetSettingAsInt("max_clients", 32);
+            this.currentSession.MaxClients = Config.GetSettingAsInt("max_clients", 32); // TODO can be removed when MaxClients added to MsgSessionInfo
             AdminPassword = Config.GetSetting("admin_password");
 
             LogServerRequests = Config.GetSettingAsInt("log_server_requests", 1);
@@ -412,8 +415,9 @@ namespace acPlugins4net
             this.currentSession.RoadTemp = msg.RoadTemp;
             this.currentSession.Weather = msg.Weather;
             this.currentSession.RealtimeUpdateInterval = this.RealtimeUpdateInterval;
+            // TODO set MaxClients when added to msg
 
-            if (startNewLog && this.Logger is IFileLog)
+            if (startNewLog && this.StartNewLogOnNewSession && this.Logger is IFileLog)
             {
                 ((IFileLog)this.Logger).StartLoggingToFile(
                     new DateTime(this.currentSession.Timestamp, DateTimeKind.Utc).ToString("yyyyMMdd_HHmmss") + "_"
@@ -465,7 +469,7 @@ namespace acPlugins4net
                     ushort position = 1;
 
                     // compute start position
-                    foreach (DriverInfo connection in this.currentSession.Drivers.Where(d => d.ConnectedTimestamp <= this.currentSession.Timestamp).OrderByDescending(d => d.StartPosNs))
+                    foreach (DriverInfo connection in this.currentSession.Drivers.Where(d => d.ConnectedTimestamp <= this.currentSession.Timestamp).OrderByDescending(d => d.StartSplinePos))
                     {
                         connection.StartPosition = position++;
                     }
@@ -483,7 +487,7 @@ namespace acPlugins4net
                     List<DriverInfo> sortedDrivers = new List<DriverInfo>(this.currentSession.Drivers.Count);
 
                     sortedDrivers.AddRange(this.currentSession.Drivers.Where(d => d.LapCount == currentSession.LapCount).OrderBy(this.currentSession.GetLastLapTimestamp));
-                    sortedDrivers.AddRange(this.currentSession.Drivers.Where(d => d.LapCount != currentSession.LapCount).OrderByDescending(d => d.LapCount).ThenByDescending(d => d.LastPosNs));
+                    sortedDrivers.AddRange(this.currentSession.Drivers.Where(d => d.LapCount != currentSession.LapCount).OrderByDescending(d => d.LapCount).ThenByDescending(d => d.LastSplinePos));
 
                     foreach (DriverInfo connection in sortedDrivers)
                     {
@@ -555,9 +559,10 @@ namespace acPlugins4net
             {
                 previousSession = this.currentSession;
                 this.currentSession = new SessionInfo();
+                this.currentSession.MaxClients = previousSession.MaxClients; // TODO can be removed when MaxClients added to MsgSessionInfo
 
                 this.nextConnectionId = 1;
-                this.lastCarUpdateCarId = 0;
+                this.lastCarUpdateCarId = -1;
 
                 foreach (DriverInfo connection in previousSession.Drivers)
                 {
@@ -830,7 +835,7 @@ namespace acPlugins4net
                 this.carUsedByDictionary.Clear();
                 this.currentSession = new SessionInfo();
                 this.nextConnectionId = 1;
-                this.lastCarUpdateCarId = 0;
+                this.lastCarUpdateCarId = -1;
             }
             catch (Exception ex)
             {
@@ -893,7 +898,7 @@ namespace acPlugins4net
             try
             {
                 this.FinalizeAndStartNewReport();
-
+                this.currentSession.MissedSessionStart = false;
                 this.SetSessionInfo(msg, true);
 
                 if (RealtimeUpdateInterval > 0)
@@ -1101,7 +1106,7 @@ namespace acPlugins4net
                 if (DateTime.UtcNow.Ticks - currentSession.Timestamp > 10 * 10000000)
                 {
                     DriverInfo driver = this.getDriverReportForCarId(msg.CarId);
-                    driver.UpdatePosition(msg);
+                    driver.UpdatePosition(msg, this.RealtimeUpdateInterval);
 
                     //if (sw == null)
                     //{
@@ -1184,8 +1189,10 @@ namespace acPlugins4net
             try
             {
                 DriverInfo driver = this.getDriverReportForCarId(msg.CarId);
-                driver.LastPosNs = 0.0f;
-                byte position = 0;
+
+                float lapLength = driver.OnLapCompleted();
+
+                ushort position = 0;
                 ushort lapNo = 0;
                 for (int i = 0; i < msg.LeaderboardSize; i++)
                 {
@@ -1197,11 +1204,18 @@ namespace acPlugins4net
                     }
                 }
 
+                if (!this.currentSession.MissedSessionStart && this.currentSession.SessionType == (byte)MsgSessionInfo.SessionTypeEnum.Race)
+                {
+                    // for race compute Position based on own stats info (better with disconnected drivers)
+                    position = (ushort)(this.currentSession.Laps.Count(l => l.LapNo == lapNo) + 1);
+                }
+
                 LapInfo lap = new LapInfo()
                 {
                     ConnectionId = driver.ConnectionId,
                     Timestamp = DateTime.UtcNow.Ticks,
                     LapTime = msg.Laptime,
+                    LapLength = lapLength,
                     LapNo = lapNo,
                     Position = position,
                     Cuts = msg.Cuts,

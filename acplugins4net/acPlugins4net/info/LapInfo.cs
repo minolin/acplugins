@@ -15,6 +15,8 @@ namespace acPlugins4net.info
         [DataMember]
         public uint LapTime { get; set; }
         [DataMember]
+        public float LapLength { get; set; }
+        [DataMember]
         public ushort LapNo { get; set; }
         [DataMember]
         public ushort Position { get; set; }

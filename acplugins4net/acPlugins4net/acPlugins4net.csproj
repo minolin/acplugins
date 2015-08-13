@@ -63,7 +63,8 @@
     <Compile Include="helpers\Vector3f.cs" />
     <Compile Include="helpers\WorkaroundHelper.cs" />
     <Compile Include="AcServerPlugin.cs" />
-    <Compile Include="info\ISessionReportHandler.cs" />
+    <Compile Include="helpers\ISessionReportHandler.cs" />
+    <Compile Include="helpers\XmlSessionReportWriter.cs" />
     <Compile Include="info\LapInfo.cs" />
     <Compile Include="info\IncidentInfo.cs" />
     <Compile Include="info\DriverInfo.cs" />

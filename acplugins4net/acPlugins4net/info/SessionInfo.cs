@@ -11,6 +11,7 @@ namespace acPlugins4net.info
     {
         public SessionInfo()
         {
+            this.MissedSessionStart = true;
             this.SessionName = "Unknown";
             this.SessionType = 0;
             this.Timestamp = DateTime.UtcNow.Ticks;
@@ -21,6 +22,8 @@ namespace acPlugins4net.info
             this.MaxClients = 32;
         }
 
+        [DataMember]
+        public bool MissedSessionStart { get; set; }
         [DataMember]
         public string ServerName { get; set; }
         [DataMember]
@@ -55,6 +58,7 @@ namespace acPlugins4net.info
         public List<LapInfo> Laps { get; set; }
         [DataMember]
         public List<IncidentInfo> Incidents { get; set; }
+
 
         public long GetLastLapTimestamp(DriverInfo driver)
         {
