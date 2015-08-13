@@ -81,6 +81,7 @@ namespace acPlugins4net
         #region session info stuff
         private readonly Dictionary<byte, DriverInfo> carUsedByDictionary = new Dictionary<byte, DriverInfo>();
         private int nextConnectionId = 1;
+        private int lastCarUpdateCarId;
         private SessionInfo currentSession = new SessionInfo();
         private SessionInfo previousSession;
 
@@ -556,6 +557,7 @@ namespace acPlugins4net
                 this.currentSession = new SessionInfo();
 
                 this.nextConnectionId = 1;
+                this.lastCarUpdateCarId = 0;
 
                 foreach (DriverInfo connection in previousSession.Drivers)
                 {
@@ -618,16 +620,13 @@ namespace acPlugins4net
                 ProtocolVersion = -1;
                 _UDP.Open(ListeningPort, RemostHostname, RemotePort, MessageReceived, Log);
 
-                foreach (AcServerPlugin plugin in _plugins)
+                try
                 {
-                    try
-                    {
-                        plugin.OnConnected();
-                    }
-                    catch (Exception ex)
-                    {
-                        Log(ex);
-                    }
+                    this.OnConnected();
+                }
+                catch (Exception ex)
+                {
+                    Log(ex);
                 }
 
                 foreach (ExternalPluginInfo externalPlugin in _externalPlugins)
@@ -667,29 +666,33 @@ namespace acPlugins4net
 
             lock (lockObject)
             {
-                foreach (DuplexUDPClient externalPluginUdp in _openExternalPlugins.Values)
+                try
                 {
-                    try
+                    foreach (DuplexUDPClient externalPluginUdp in _openExternalPlugins.Values)
                     {
-                        externalPluginUdp.Close();
+                        try
+                        {
+                            externalPluginUdp.Close();
+                        }
+                        catch (Exception ex)
+                        {
+                            Log(ex);
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        Log(ex);
-                    }
+                    _openExternalPlugins.Clear();
                 }
-                _openExternalPlugins.Clear();
-
-                foreach (AcServerPlugin plugin in _plugins)
+                catch (Exception ex)
                 {
-                    try
-                    {
-                        plugin.OnDisconnected();
-                    }
-                    catch (Exception ex)
-                    {
-                        Log(ex);
-                    }
+                    Log(ex);
+                }
+
+                try
+                {
+                    this.OnDisconnected();
+                }
+                catch (Exception ex)
+                {
+                    Log(ex);
                 }
             }
         }
@@ -826,6 +829,8 @@ namespace acPlugins4net
                 this.FinalizeAndStartNewReport();
                 this.carUsedByDictionary.Clear();
                 this.currentSession = new SessionInfo();
+                this.nextConnectionId = 1;
+                this.lastCarUpdateCarId = 0;
             }
             catch (Exception ex)
             {
@@ -1064,23 +1069,12 @@ namespace acPlugins4net
         {
             try
             {
-                // ignore updates in the first 10 seconds of the session
-                if (DateTime.UtcNow.Ticks - currentSession.Timestamp > 10 * 10000000)
-                {
-                    DriverInfo driver = this.getDriverReportForCarId(msg.CarId);
-                    driver.UpdatePosition(msg);
+                // We check if this is the first CarUpdate message for this round (they seem to be sent in a bulk and ordered by carId)
+                // If that's the case we trigger OnBulkCarUpdateFinished
 
-                    //if (sw == null)
-                    //{
-                    //    sw = new StreamWriter(@"c:\workspace\positions.csv");
-                    //    sw.AutoFlush = true;
-                    //}
-                    //sw.WriteLine(ToSingle3(msg.WorldPosition).ToString() + ", " + ToSingle3(msg.Velocity).Length());
-                }
-
-                // Now we check if this could be the last CarUpdate message in this round (they seem to be sent in a bulk and ordered by carId)
-                // For a first try, we'll just check for the biggest carId in the drivers - and hope the add and removes are in synch.
-                if(carUsedByDictionary.Any() && msg.CarId == carUsedByDictionary.Keys.Max()) // Keys.Max() should be replaced by a buffer that respects add/remove drivers
+                // the trick with the connectedDriversCount is used as a failsafe when single messages are received out of order
+                int connectedDriversCount = this.CurrentSession.Drivers.Count(d => d.IsConnected);
+                if (this.lastCarUpdateCarId - msg.CarId >= connectedDriversCount / 2)
                 {
                     // Ok, this was the last one, so the last updates are like a snapshot within a milisecond or less.
                     // Great spot to examine positions, overtakes and stuff where multiple cars are compared to each other
@@ -1100,6 +1094,21 @@ namespace acPlugins4net
                             Log(ex);
                         }
                     }
+                }
+                this.lastCarUpdateCarId = msg.CarId;
+
+                // ignore updates in the first 10 seconds of the session
+                if (DateTime.UtcNow.Ticks - currentSession.Timestamp > 10 * 10000000)
+                {
+                    DriverInfo driver = this.getDriverReportForCarId(msg.CarId);
+                    driver.UpdatePosition(msg);
+
+                    //if (sw == null)
+                    //{
+                    //    sw = new StreamWriter(@"c:\workspace\positions.csv");
+                    //    sw.AutoFlush = true;
+                    //}
+                    //sw.WriteLine(ToSingle3(msg.WorldPosition).ToString() + ", " + ToSingle3(msg.Velocity).Length());
                 }
             }
             catch (Exception ex)
@@ -1192,7 +1201,7 @@ namespace acPlugins4net
                 {
                     ConnectionId = driver.ConnectionId,
                     Timestamp = DateTime.UtcNow.Ticks,
-                    LapTime =msg.Laptime,
+                    LapTime = msg.Laptime,
                     LapNo = lapNo,
                     Position = position,
                     Cuts = msg.Cuts,
