@@ -49,8 +49,13 @@ __all__ = [
     "GetSessionInfo",
     "SetSessionInfo",
     "KickUser",
+    "SESST_PRACTICE",
+    "SESST_QUALIFY",
+    "SESST_RACE",
+    "SESST_DRAG",
+    "SESST_DRIFT",
     ]
-    
+
 PROTOCOL_VERSION = 2
 
 ACSP_NEW_SESSION = 50
@@ -74,10 +79,17 @@ ACSP_CE_COLLISION_WITH_ENV = 11
 ACSP_REALTIMEPOS_INTERVAL = 200
 ACSP_GET_CAR_INFO = 201
 ACSP_SEND_CHAT = 202 # Sends chat to one car
-ACSP_BROADCAST_CHAT = 203 # Sends chat to everybody 
+ACSP_BROADCAST_CHAT = 203 # Sends chat to everybody
 ACSP_GET_SESSION_INFO = 204
 ACSP_SET_SESSION_INFO = 205
 ACSP_KICK_USER = 206
+
+# enum for session type
+SESST_PRACTICE = 1
+SESST_QUALIFY = 2
+SESST_RACE = 3
+SESST_DRAG = 4
+SESST_DRIFT = 5
 
 class ProtocolVersionMismatch(RuntimeError):
     pass
@@ -101,7 +113,7 @@ class NewSession(GenericPacket):
         ('roadTemp', Uint8),
         ('wheather', Ascii),
         ('elapsedMS', Int32),
-    )       
+    )
 
 class SessionInfo(NewSession):
     packetId = ACSP_SESSION_INFO
@@ -114,7 +126,7 @@ class CollisionEnv(GenericPacket):
         ('worldPos', Vector3f),
         ('relPos', Vector3f),
     )
-    
+
 class CollisionCar(GenericPacket):
     packetId = ACSP_CLIENT_EVENT
     _content = (
@@ -124,7 +136,7 @@ class CollisionCar(GenericPacket):
         ('worldPos', Vector3f),
         ('relPos', Vector3f),
     )
-    
+
 class ClientEvent:
     packetId = ACSP_CLIENT_EVENT
     def from_buffer(self, buffer, idx):
@@ -145,13 +157,13 @@ class CarInfo(GenericPacket):
         ('driverTeam', UTF32),
         ('driverGuid', UTF32),
     )
-    
+
 class EndSession(GenericPacket):
     packetId = ACSP_END_SESSION
     _content = (
         ('filename', UTF32),
     )
-    
+
 class CarUpdate(GenericPacket):
     packetId = ACSP_CAR_UPDATE
     _content = (
@@ -172,7 +184,7 @@ class NewConnection(GenericPacket):
         ('carModel', Ascii), # this is different type than CarInfo
         ('carSkin', Ascii),  # this is different type than CarInfo
     )
-    
+
 class ConnectionClosed(GenericPacket):
     packetId = ACSP_CONNECTION_CLOSED
     _content = (
@@ -182,7 +194,7 @@ class ConnectionClosed(GenericPacket):
         ('carModel', Ascii), # this is different type than CarInfo
         ('carSkin', Ascii),  # this is different type than CarInfo
     )
-    
+
 class LeaderboardEntry(GenericPacket):
     packetId = ACSP_LAP_COMPLETED
     _content = (
@@ -217,7 +229,7 @@ class ChatEvent(GenericPacket):
         ('carId', Uint8),
         ('message', UTF32),
     )
-    
+
 class ClientLoaded(GenericPacket):
     packetId = ACSP_CLIENT_LOADED
     _content = (
@@ -235,32 +247,32 @@ class GetCarInfo(GenericPacket):
     _content = (
         ('carId', Uint8),
     )
-    
+
 class EnableRealtimeReport(GenericPacket):
     packetId = ACSP_REALTIMEPOS_INTERVAL
     _content = (
         ('intervalMS', Uint16),
     )
-    
+
 class SendChat(GenericPacket):
     packetId = ACSP_SEND_CHAT
     _content = (
         ('carId', Uint8),
         ('message', UTF32),
     )
-    
+
 class BroadcastChat(GenericPacket):
     packetId = ACSP_BROADCAST_CHAT
     _content = (
         ('message', UTF32),
     )
-    
+
 class GetSessionInfo(GenericPacket):
     packetId = ACSP_GET_SESSION_INFO
     _content = (
         ('sessionIndex', Int16),
     )
-    
+
 class SetSessionInfo(GenericPacket):
     packetId = ACSP_SET_SESSION_INFO
     _content = (
@@ -271,23 +283,23 @@ class SetSessionInfo(GenericPacket):
         ('timeSeconds', Uint32),
         ('waitTimeSeconds', Uint32),
     )
-    
+
 class KickUser(GenericPacket):
     packetId = ACSP_KICK_USER
     _content = (
         ('carId', Uint8),
     )
-    
+
 eventMap = {
 }
-for e in [NewSession, 
+for e in [NewSession,
           SessionInfo,
           EndSession,
-          ClientEvent, 
-          CarInfo, 
-          CarUpdate, 
-          NewConnection, 
-          ConnectionClosed, 
+          ClientEvent,
+          CarInfo,
+          CarUpdate,
+          NewConnection,
+          ConnectionClosed,
           LapCompleted,
           ProtocolVersion,
           ChatEvent,
@@ -307,4 +319,3 @@ def parse(buffer):
                 raise ProtocolVersionMismatch("Expected version %d, got version %d" % (PROTOCOL_VERSION,r.version))
         return r
     return None
-    
