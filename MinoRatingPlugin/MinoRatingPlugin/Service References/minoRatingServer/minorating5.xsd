@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xs:schema xmlns:tns="http://tempuri.org/" elementFormDefault="qualified" targetNamespace="http://tempuri.org/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <xs:import schemaLocation="http://localhost:805/minorating?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
-  <xs:import schemaLocation="http://localhost:805/minorating?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/System" />
-  <xs:import schemaLocation="http://localhost:805/minorating?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" />
+  <xs:import schemaLocation="http://localhost:806/minorating?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+  <xs:import schemaLocation="http://localhost:806/minorating?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/System" />
+  <xs:import schemaLocation="http://localhost:806/minorating?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" />
   <xs:element name="NewSession">
     <xs:complexType>
       <xs:sequence>
@@ -12,9 +12,10 @@
         <xs:element minOccurs="0" name="sessionType" type="xs:int" />
         <xs:element minOccurs="0" name="laps" type="xs:int" />
         <xs:element minOccurs="0" name="waittime" type="xs:int" />
-        <xs:element minOccurs="0" name="timeofday" type="xs:int" />
+        <xs:element minOccurs="0" name="sessionDurationMinutes" type="xs:int" />
         <xs:element minOccurs="0" name="ambient" type="xs:int" />
         <xs:element minOccurs="0" name="road" type="xs:int" />
+        <xs:element minOccurs="0" name="elapsedMs" type="xs:int" />
         <xs:element minOccurs="0" name="token" nillable="true" type="xs:string" />
         <xs:element minOccurs="0" name="fingerprint" nillable="true" type="xs:base64Binary" />
         <xs:element xmlns:q2="http://schemas.datacontract.org/2004/07/System" minOccurs="0" name="pluginVersion" nillable="true" type="q2:Version" />
@@ -103,6 +104,10 @@
       <xs:sequence>
         <xs:element xmlns:q13="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q13:guid" />
         <xs:element minOccurs="0" name="car" type="xs:int" />
+        <xs:element minOccurs="0" name="distanceDriven" type="xs:float" />
+        <xs:element minOccurs="0" name="distanceAttackRange" type="xs:float" />
+        <xs:element minOccurs="0" name="distanceCombatrange" type="xs:float" />
+        <xs:element minOccurs="0" name="attacks" type="xs:int" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

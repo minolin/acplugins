@@ -107,7 +107,7 @@ namespace MinoRatingPlugin
             PluginManager.Log("OnNewSession: " + msg.Name + "@" + msg.ServerName);
             PluginManager.Log("===============================");
             PluginManager.Log("===============================");
-            CurrentSessionGuid = LiveDataServer.NewSession(CurrentSessionGuid, msg.ServerName, msg.Track + "[" + msg.TrackConfig + "]", msg.SessionType, msg.Laps, msg.WaitTime, msg.SessionDuration, msg.AmbientTemp, msg.RoadTemp, TrustToken, _fingerprint, PluginVersion);
+            CurrentSessionGuid = LiveDataServer.NewSession(CurrentSessionGuid, msg.ServerName, msg.Track + "[" + msg.TrackConfig + "]", msg.SessionType, msg.Laps, msg.WaitTime, msg.SessionDuration, msg.AmbientTemp, msg.RoadTemp, msg.ElapsedMS, TrustToken, _fingerprint, PluginVersion);
         }
 
         protected override void OnNewConnection(MsgNewConnection msg)
@@ -235,6 +235,41 @@ namespace MinoRatingPlugin
         #region Distance driven & behaviour analysis
 
         private float TrackLength = 0.0f;
+        private Dictionary<DriverInfo, DistanceHelper> _distancesToReport = new Dictionary<DriverInfo, DistanceHelper>();
+
+        protected override void OnCarUpdate(DriverInfo di)
+        {
+            if (!_distancesToReport.ContainsKey(di))
+                _distancesToReport.Add(di, new DistanceHelper());
+
+            var dh = _distancesToReport[di];
+            // Generally, the meters driven are stored
+            dh.metersDriven += di.LastDistanceTraveled;
+
+            // Then we'll check this interval (we're talking about a second or similar)
+            // for driving in attack range (let's say.. inside 20m) or even combating (maybe 8m)
+            if (di.CurrentDistanceToClosestCar < 8 && di.CurrentDistanceToClosestCar != 0)
+                dh.metersCombatRange += di.LastDistanceTraveled;
+            else if (di.CurrentDistanceToClosestCar < 20 && di.CurrentDistanceToClosestCar != 0)
+                dh.metersAttackRange += di.LastDistanceTraveled;
+
+        }
+
+        class DistanceHelper
+        {
+            public float metersDriven;
+            public float metersAttackRange;
+            public float metersCombatRange;
+            public int overtakes;
+
+            internal void Clear()
+            {
+                metersDriven = 0;
+                metersAttackRange = 0;
+                metersCombatRange = 0;
+                overtakes = 0;
+            }
+        }
 
         protected override void OnBulkCarUpdateFinished()
         {
@@ -261,6 +296,28 @@ namespace MinoRatingPlugin
                 // as soon as there is a TrackLength we can easily estimate the gap between cars by multiplying the spline pos 
                 // with the track length. Tomorrow.
 
+            }
+
+            // Now we can report the distances driven to the minorating backend.
+            foreach (var di in PluginManager.CurrentSession.Drivers)
+            {
+                // We won't report it per-secod or whatever interval is set, so we need to group by
+                // sensible stuff - this needs to be tracked in the _reportedDistance
+                if (!_distancesToReport.ContainsKey(di))
+                    _distancesToReport.Add(di, new DistanceHelper());
+
+                var distanceCached = _distancesToReport[di];
+                // Then we'll do it in different resolutions; the first meters are more important than the later ones
+                if (di.Distance > 2000 && distanceCached.metersDriven > 2000) // After 2km, we'll just report in big chunks
+                {
+                    HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached.metersDriven, distanceCached.metersAttackRange, distanceCached.metersCombatRange, distanceCached.overtakes));
+                    _distancesToReport[di].Clear();
+                }
+                else if (di.Distance < 2000 && distanceCached.metersDriven > 100) // 100m is about "left pits", so we'll report this until 
+                {
+                    HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached.metersDriven, distanceCached.metersAttackRange, distanceCached.metersCombatRange, distanceCached.overtakes));
+                    _distancesToReport[di].Clear();
+                }
             }
         }
 

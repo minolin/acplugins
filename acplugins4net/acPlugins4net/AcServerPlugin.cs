@@ -72,6 +72,9 @@ namespace acPlugins4net
         protected internal virtual void OnLapCompleted(LapInfo msg) { }
 
         protected internal virtual void OnCollision(IncidentInfo msg) { }
+
+        protected internal virtual void OnCarUpdate(DriverInfo driverInfo) { }
+
         #endregion handlers for events refined by PluginManager
     }
 }

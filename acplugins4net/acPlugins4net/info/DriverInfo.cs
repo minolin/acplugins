@@ -53,13 +53,15 @@ namespace acPlugins4net.info
         [DataMember]
         public ushort StartPosition { get; set; } // only set for race session
         [DataMember]
-        public ushort Position { get; set; }
+        public ushort Position { get; set; } // rename to e.g. Grid- or RacePosition? Easily mixed up with the Vector3 Positions
         [DataMember]
         public string Gap { get; set; }
         [DataMember]
         public int Incidents { get; set; }
         [DataMember]
         public float Distance { get; set; }
+        [IgnoreDataMember]
+        public float CurrentSpeed { get; set; } // km/h
         [DataMember]
         public float TopSpeed { get; set; } // km/h
         [DataMember]
@@ -82,6 +84,7 @@ namespace acPlugins4net.info
         private float lastSplinePos;
 
         private float lapDistance;
+        private float lastDistanceTraveled;
         private float lapStartSplinePos = -1f;
 
         #region getter for some 'realtime' positional info
@@ -90,6 +93,15 @@ namespace acPlugins4net.info
             get
             {
                 return this.lapDistance;
+            }
+        }
+
+        [IgnoreDataMember]
+        public float LastDistanceTraveled
+        {
+            get
+            {
+                return this.lastDistanceTraveled;
             }
         }
 
@@ -135,6 +147,14 @@ namespace acPlugins4net.info
                 return lastSplinePos;
             }
         }
+
+        /// <summary>
+        /// Expresses the distance in meters to the nearest car, either in front or back, ignoring positions.
+        /// Zero if there is new other (moving) car
+        /// </summary>
+        [IgnoreDataMember]
+        public float CurrentDistanceToClosestCar { get; set; }
+
         #endregion
 
         // That cache<MsgCarUpdate> should be replaced by a cache<CarUpdateThing> that also stores
@@ -168,10 +188,10 @@ namespace acPlugins4net.info
                 this.lapStartSplinePos = s > 0.5f ? s - 1.0f : s;
             }
 
-            float currentSpeed = vel.Length() * 3.6f;
-            if (currentSpeed < MaxSpeed && currentSpeed > TopSpeed)
+            CurrentSpeed = vel.Length() * 3.6f;
+            if (CurrentSpeed < MaxSpeed && CurrentSpeed > TopSpeed)
             {
-                this.TopSpeed = currentSpeed;
+                this.TopSpeed = CurrentSpeed;
             }
 
             int currTime = Environment.TickCount;
@@ -181,13 +201,14 @@ namespace acPlugins4net.info
                 float d = (pos - lastPos).Length();
                 float speed = d / elapsedSinceLastUpdate / 1000 * 3.6f;
 
-                if (speed < MaxSpeed)
+                if (! (speed > 30 && vel.X == 0 && vel.Z == 0)) // If the car was moving according (speed), but the vel is 2d-zero now, the car has either good brakes or is warped
                 {
                     // no warp detected
                     this.lapDistance += d;
                     this.Distance += d;
+                    this.lastDistanceTraveled = d;
 
-                    if (currentSpeed > MinSpeed)
+                    if (CurrentSpeed > MinSpeed)
                     {
                         // don't update LastSplinePos if car is moving very slowly (was send to box?)
                         this.LastSplinePos = s;

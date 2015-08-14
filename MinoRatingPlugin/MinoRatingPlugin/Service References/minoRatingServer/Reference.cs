@@ -17,12 +17,12 @@ namespace MinoRatingPlugin.minoRatingServer {
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="PluginReaction", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy")]
     [System.SerializableAttribute()]
-    [System.Runtime.Serialization.KnownTypeAttribute(typeof(object[]))]
-    [System.Runtime.Serialization.KnownTypeAttribute(typeof(System.Version))]
     [System.Runtime.Serialization.KnownTypeAttribute(typeof(MinoRatingPlugin.minoRatingServer.PluginReaction[]))]
     [System.Runtime.Serialization.KnownTypeAttribute(typeof(MinoRatingPlugin.minoRatingServer.PluginReaction.ReactionType))]
     [System.Runtime.Serialization.KnownTypeAttribute(typeof(MinoRatingPlugin.minoRatingServer.LeaderboardEntry[]))]
     [System.Runtime.Serialization.KnownTypeAttribute(typeof(MinoRatingPlugin.minoRatingServer.LeaderboardEntry))]
+    [System.Runtime.Serialization.KnownTypeAttribute(typeof(object[]))]
+    [System.Runtime.Serialization.KnownTypeAttribute(typeof(System.Version))]
     public partial class PluginReaction : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
         
         [System.NonSerializedAttribute()]
@@ -300,10 +300,10 @@ namespace MinoRatingPlugin.minoRatingServer {
     public interface ILiveDataDump {
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/NewSession", ReplyAction="http://tempuri.org/ILiveDataDump/NewSessionResponse")]
-        System.Guid NewSession(System.Guid lastId, string servername, string track, int sessionType, int laps, int waittime, int timeofday, int ambient, int road, string token, byte[] fingerprint, System.Version pluginVersion);
+        System.Guid NewSession(System.Guid lastId, string servername, string track, int sessionType, int laps, int waittime, int sessionDurationMinutes, int ambient, int road, int elapsedMs, string token, byte[] fingerprint, System.Version pluginVersion);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/NewSession", ReplyAction="http://tempuri.org/ILiveDataDump/NewSessionResponse")]
-        System.Threading.Tasks.Task<System.Guid> NewSessionAsync(System.Guid lastId, string servername, string track, int sessionType, int laps, int waittime, int timeofday, int ambient, int road, string token, byte[] fingerprint, System.Version pluginVersion);
+        System.Threading.Tasks.Task<System.Guid> NewSessionAsync(System.Guid lastId, string servername, string track, int sessionType, int laps, int waittime, int sessionDurationMinutes, int ambient, int road, int elapsedMs, string token, byte[] fingerprint, System.Version pluginVersion);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/EndSession", ReplyAction="http://tempuri.org/ILiveDataDump/EndSessionResponse")]
         MinoRatingPlugin.minoRatingServer.PluginReaction[] EndSession(System.Guid lastId);
@@ -330,10 +330,10 @@ namespace MinoRatingPlugin.minoRatingServer {
         System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> LapCompletedAsync(System.Guid sessionId, int car, string driver, uint laptime, int cuts, float grip, MinoRatingPlugin.minoRatingServer.LeaderboardEntry[] leaderboard);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/DistanceDriven", ReplyAction="http://tempuri.org/ILiveDataDump/DistanceDrivenResponse")]
-        MinoRatingPlugin.minoRatingServer.PluginReaction[] DistanceDriven(System.Guid sessionId, int car);
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] DistanceDriven(System.Guid sessionId, int car, [System.ServiceModel.MessageParameterAttribute(Name="distanceDriven")] float distanceDriven1, float distanceAttackRange, float distanceCombatrange, int attacks);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/DistanceDriven", ReplyAction="http://tempuri.org/ILiveDataDump/DistanceDrivenResponse")]
-        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> DistanceDrivenAsync(System.Guid sessionId, int car);
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> DistanceDrivenAsync(System.Guid sessionId, int car, float distanceDriven, float distanceAttackRange, float distanceCombatrange, int attacks);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/Collision", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionResponse")]
         MinoRatingPlugin.minoRatingServer.PluginReaction[] Collision(System.Guid sessionId, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z);
@@ -405,12 +405,12 @@ namespace MinoRatingPlugin.minoRatingServer {
                 base(binding, remoteAddress) {
         }
         
-        public System.Guid NewSession(System.Guid lastId, string servername, string track, int sessionType, int laps, int waittime, int timeofday, int ambient, int road, string token, byte[] fingerprint, System.Version pluginVersion) {
-            return base.Channel.NewSession(lastId, servername, track, sessionType, laps, waittime, timeofday, ambient, road, token, fingerprint, pluginVersion);
+        public System.Guid NewSession(System.Guid lastId, string servername, string track, int sessionType, int laps, int waittime, int sessionDurationMinutes, int ambient, int road, int elapsedMs, string token, byte[] fingerprint, System.Version pluginVersion) {
+            return base.Channel.NewSession(lastId, servername, track, sessionType, laps, waittime, sessionDurationMinutes, ambient, road, elapsedMs, token, fingerprint, pluginVersion);
         }
         
-        public System.Threading.Tasks.Task<System.Guid> NewSessionAsync(System.Guid lastId, string servername, string track, int sessionType, int laps, int waittime, int timeofday, int ambient, int road, string token, byte[] fingerprint, System.Version pluginVersion) {
-            return base.Channel.NewSessionAsync(lastId, servername, track, sessionType, laps, waittime, timeofday, ambient, road, token, fingerprint, pluginVersion);
+        public System.Threading.Tasks.Task<System.Guid> NewSessionAsync(System.Guid lastId, string servername, string track, int sessionType, int laps, int waittime, int sessionDurationMinutes, int ambient, int road, int elapsedMs, string token, byte[] fingerprint, System.Version pluginVersion) {
+            return base.Channel.NewSessionAsync(lastId, servername, track, sessionType, laps, waittime, sessionDurationMinutes, ambient, road, elapsedMs, token, fingerprint, pluginVersion);
         }
         
         public MinoRatingPlugin.minoRatingServer.PluginReaction[] EndSession(System.Guid lastId) {
@@ -445,12 +445,12 @@ namespace MinoRatingPlugin.minoRatingServer {
             return base.Channel.LapCompletedAsync(sessionId, car, driver, laptime, cuts, grip, leaderboard);
         }
         
-        public MinoRatingPlugin.minoRatingServer.PluginReaction[] DistanceDriven(System.Guid sessionId, int car) {
-            return base.Channel.DistanceDriven(sessionId, car);
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] DistanceDriven(System.Guid sessionId, int car, float distanceDriven1, float distanceAttackRange, float distanceCombatrange, int attacks) {
+            return base.Channel.DistanceDriven(sessionId, car, distanceDriven1, distanceAttackRange, distanceCombatrange, attacks);
         }
         
-        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> DistanceDrivenAsync(System.Guid sessionId, int car) {
-            return base.Channel.DistanceDrivenAsync(sessionId, car);
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> DistanceDrivenAsync(System.Guid sessionId, int car, float distanceDriven, float distanceAttackRange, float distanceCombatrange, int attacks) {
+            return base.Channel.DistanceDrivenAsync(sessionId, car, distanceDriven, distanceAttackRange, distanceCombatrange, attacks);
         }
         
         public MinoRatingPlugin.minoRatingServer.PluginReaction[] Collision(System.Guid sessionId, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z) {
