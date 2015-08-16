@@ -78,6 +78,8 @@ namespace acPlugins4net
         public int RemotePort { get; set; }
 
         public string AdminPassword { get; set; }
+
+        public int ServerBlacklistMode { get; set; } = -1;
         #endregion
 
         #region session info stuff
@@ -172,6 +174,7 @@ namespace acPlugins4net
 
                 this.currentSession.MaxClients = Convert.ToInt32(_Workarounds.FindServerConfigEntry("MAX_CLIENTS=")); // TODO can be removed when MaxClients added to MsgSessionInfo
                 AdminPassword = _Workarounds.FindServerConfigEntry("ADMIN_PASSWORD=");
+                ServerBlacklistMode = Convert.ToInt32(_Workarounds.FindServerConfigEntry("BLACKLIST_MODE="));
 
                 // First we're getting the configured ports (read directly from the server_config.ini)
                 string acServerPortString = _Workarounds.FindServerConfigEntry("UDP_PLUGIN_LOCAL_PORT=");
@@ -1037,6 +1040,7 @@ namespace acPlugins4net
 
         private void OnCarUpdate(MsgCarUpdate msg)
         {
+            DriverInfo driver = null;
             try
             {
                 // We check if this is the first CarUpdate message for this round (they seem to be sent in a bulk and ordered by carId)
@@ -1049,7 +1053,7 @@ namespace acPlugins4net
                     // Ok, this was the last one, so the last updates are like a snapshot within a milisecond or less.
                     // Great spot to examine positions, overtakes and stuff where multiple cars are compared to each other
 
-                    // maybe this.OnBulkCarUpdateFinished(); ?
+                    this.OnBulkCarUpdateFinished();
 
                     // In every case we let the plugins do their calculations - before even raising the OnCarUpdate(msg). This function could
                     // take advantage of updated DriverInfos
@@ -1070,7 +1074,7 @@ namespace acPlugins4net
                 // ignore updates in the first 10 seconds of the session
                 if (DateTime.UtcNow.Ticks - currentSession.Timestamp > 10 * 10000000)
                 {
-                    DriverInfo driver = this.getDriverReportForCarId(msg.CarId);
+                    driver = this.getDriverReportForCarId(msg.CarId);
                     driver.UpdatePosition(msg, this.RealtimeUpdateInterval);
 
                     //if (sw == null)
@@ -1090,6 +1094,8 @@ namespace acPlugins4net
             {
                 try
                 {
+                    if(driver != null)
+                        plugin.OnCarUpdate(driver);
                     plugin.OnCarUpdate(msg);
                 }
                 catch (Exception ex)
@@ -1097,6 +1103,25 @@ namespace acPlugins4net
                     Log(ex);
                 }
             }
+        }
+
+        private void OnBulkCarUpdateFinished()
+        {
+            // So we'll try to compare the cars towards each other, because currently all DriverInfos
+            // are up-to-date and comparable
+
+            // First: CurrentDistanceToClosestCar
+            // We'll just do a simple list of the moving cars that is ordered by the SplinePos. This doesn't respect
+            // finding the position across the finish line, but this is a minor thing for now
+            CurrentSession.Drivers.ForEach(x => x.CurrentDistanceToClosestCar = 0);
+            var sortedDrivers = CurrentSession.Drivers.Where(x => x.CurrentSpeed > 30).OrderBy(x => x.LastSplinePos).ToArray();
+            if (sortedDrivers.Length > 1)
+                for (int i = 1; i < sortedDrivers.Length; i++)
+                {
+                    var driver = sortedDrivers[i - 1];
+                    var next = sortedDrivers[i];
+                    driver.CurrentDistanceToClosestCar = (driver.LastPosition - next.LastPosition).Length();
+                }
         }
 
         private void OnCollision(MsgClientEvent msg)

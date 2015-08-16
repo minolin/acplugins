@@ -80,20 +80,20 @@
     <None Include="Service References\minoRatingServer\configuration.svcinfo" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Service References\minoRatingServer\LiveDataDump1.wsdl" />
-    <None Include="Service References\minoRatingServer\minorating5.xsd">
+    <None Include="Service References\minoRatingServer\LiveDataDump.wsdl" />
+    <None Include="Service References\minoRatingServer\minorating.xsd">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Service References\minoRatingServer\minorating51.xsd">
+    <None Include="Service References\minoRatingServer\minorating1.xsd">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Service References\minoRatingServer\minorating52.xsd">
+    <None Include="Service References\minoRatingServer\minorating2.xsd">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Service References\minoRatingServer\minorating53.xsd">
+    <None Include="Service References\minoRatingServer\minorating3.xsd">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Service References\minoRatingServer\minorating54.xsd">
+    <None Include="Service References\minoRatingServer\minorating4.xsd">
       <SubType>Designer</SubType>
     </None>
     <None Include="Service References\minoRatingServer\MinoRatingPlugin.minoRatingServer.PluginReaction.datasource">
@@ -112,7 +112,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
-    <None Include="Service References\minoRatingServer\minorating1.disco" />
+    <None Include="Service References\minoRatingServer\minorating.disco" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

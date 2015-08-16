@@ -19,16 +19,16 @@
     <ServiceContractMappings />
   </ClientOptions>
   <MetadataSources>
-    <MetadataSource Address="http://localhost:806/minorating" Protocol="http" SourceId="1" />
+    <MetadataSource Address="http://localhost:805/minorating" Protocol="http" SourceId="1" />
   </MetadataSources>
   <Metadata>
-    <MetadataFile FileName="minorating5.xsd" MetadataType="Schema" ID="75403adf-8abc-42e5-95df-fdacd9c292f1" SourceId="1" SourceUrl="http://localhost:806/minorating?xsd=xsd0" />
-    <MetadataFile FileName="minorating51.xsd" MetadataType="Schema" ID="405b1541-ac26-4f35-ab56-86d631176472" SourceId="1" SourceUrl="http://localhost:806/minorating?xsd=xsd3" />
-    <MetadataFile FileName="LiveDataDump1.wsdl" MetadataType="Wsdl" ID="239f6f76-b9e8-4112-9d96-8cf7a9ac01f3" SourceId="1" SourceUrl="http://localhost:806/minorating?wsdl" />
-    <MetadataFile FileName="minorating52.xsd" MetadataType="Schema" ID="b367e619-6d2f-45f1-bdce-debc075ad1f2" SourceId="1" SourceUrl="http://localhost:806/minorating?xsd=xsd4" />
-    <MetadataFile FileName="minorating53.xsd" MetadataType="Schema" ID="349cab02-07c0-4296-9110-81bd4eefc5b9" SourceId="1" SourceUrl="http://localhost:806/minorating?xsd=xsd1" />
-    <MetadataFile FileName="minorating54.xsd" MetadataType="Schema" ID="9d4fb7b9-af2f-4156-a1a8-a67a8b81dd42" SourceId="1" SourceUrl="http://localhost:806/minorating?xsd=xsd2" />
-    <MetadataFile FileName="minorating1.disco" MetadataType="Disco" ID="eca62234-ceab-4f79-b4e5-04c6a2c674a5" SourceId="1" SourceUrl="http://localhost:806/minorating?disco" />
+    <MetadataFile FileName="minorating.xsd" MetadataType="Schema" ID="4bcbb1c4-b902-46d6-ac8a-a0033ecde35a" SourceId="1" SourceUrl="http://localhost:805/minorating?xsd=xsd1" />
+    <MetadataFile FileName="minorating1.xsd" MetadataType="Schema" ID="042f5962-42c6-4d79-a2c7-74358003560f" SourceId="1" SourceUrl="http://localhost:805/minorating?xsd=xsd4" />
+    <MetadataFile FileName="LiveDataDump.wsdl" MetadataType="Wsdl" ID="575443e4-f408-4c8d-91ec-258ede868100" SourceId="1" SourceUrl="http://localhost:805/minorating?wsdl" />
+    <MetadataFile FileName="minorating2.xsd" MetadataType="Schema" ID="6eda5fee-578f-44e3-af56-87bd7cc0d692" SourceId="1" SourceUrl="http://localhost:805/minorating?xsd=xsd2" />
+    <MetadataFile FileName="minorating.disco" MetadataType="Disco" ID="bfbdf36b-7513-49cf-8e2e-e602c371643b" SourceId="1" SourceUrl="http://localhost:805/minorating?disco" />
+    <MetadataFile FileName="minorating3.xsd" MetadataType="Schema" ID="54d967a7-8894-4f8b-ac3a-bd35610404c0" SourceId="1" SourceUrl="http://localhost:805/minorating?xsd=xsd0" />
+    <MetadataFile FileName="minorating4.xsd" MetadataType="Schema" ID="e4e46449-feed-48ab-9e1c-3797d50cc9a7" SourceId="1" SourceUrl="http://localhost:805/minorating?xsd=xsd3" />
   </Metadata>
   <Extensions>
     <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />

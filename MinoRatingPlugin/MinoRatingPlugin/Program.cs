@@ -19,7 +19,7 @@ namespace MinoRatingPlugin
         public LiveDataDumpClient LiveDataServer { get; set; }
         public string TrustToken { get; set; }
         public Guid CurrentSessionGuid { get; set; }
-        public static Version PluginVersion = new Version(0, 4, 0);
+        public static Version PluginVersion = new Version(1, 0, 0);
 
         protected internal byte[] _fingerprint;
 
@@ -52,9 +52,9 @@ namespace MinoRatingPlugin
             _fingerprint = Hash(PluginManager.Config.GetSetting("ac_server_directory") + PluginManager.RemotePort);
 
 #if DEBUG
-            LiveDataServer = new LiveDataDumpClient(new BasicHttpBinding(), new EndpointAddress("http://localhost:806/minorating"));
+            LiveDataServer = new LiveDataDumpClient(new BasicHttpBinding(), new EndpointAddress("http://localhost:805/minorating"));
 #else
-            LiveDataServer = new LiveDataDumpClient(new BasicHttpBinding(), new EndpointAddress("http://plugin.minorating.com:806/minorating"));
+            LiveDataServer = new LiveDataDumpClient(new BasicHttpBinding(), new EndpointAddress("http://plugin.minorating.com:805/minorating"));
 #endif
 
             TrustToken = PluginManager.Config.GetSetting("server_trust_token");
@@ -73,21 +73,31 @@ namespace MinoRatingPlugin
                     var serverVersion = LiveDataServer.GetVersion();
                     PluginManager.Log("Connection to server with version: " + serverVersion);
 
-                    if (serverVersion > PluginVersion)
+                    if (serverVersion.Major > PluginVersion.Major)
                     {
                         PluginManager.Log("================================");
                         PluginManager.Log("================================");
-                        PluginManager.Log("Version mismatch, your plugin seems to be outdated. Please consider downloading a new one from the forums");
-                        PluginManager.Log("For the moment we'll do our best and try to go on.");
-                        PluginManager.Log("================================");
+                        PluginManager.Log("Version mismatch, minorating.com requires a newer version (" + serverVersion + " vs. " + PluginVersion + ")");
+                        Environment.Exit(2);
                     }
                 }
                 catch (Exception ex)
                 {
                     PluginManager.Log("Error connecting to the remote server :(");
                     PluginManager.Log(ex);
+                    Environment.Exit(1);
                 }
             });
+
+            // Let's have a look if the acServer is already running
+            try
+            {
+                PluginManager.RequestSessionInfo(-1);
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("No acServer detected, waiting for a NewSession event");
+            }
         }
 
         #endregion
@@ -96,6 +106,7 @@ namespace MinoRatingPlugin
 
         protected override void OnSessionInfo(MsgSessionInfo msg)
         {
+
             if (msg.Type == ACSProtocol.MessageType.ACSP_NEW_SESSION || CurrentSessionGuid == Guid.Empty)
                 OnNewSession(msg);
         }
@@ -107,13 +118,51 @@ namespace MinoRatingPlugin
             PluginManager.Log("OnNewSession: " + msg.Name + "@" + msg.ServerName);
             PluginManager.Log("===============================");
             PluginManager.Log("===============================");
-            CurrentSessionGuid = LiveDataServer.NewSession(CurrentSessionGuid, msg.ServerName, msg.Track + "[" + msg.TrackConfig + "]", msg.SessionType, msg.Laps, msg.WaitTime, msg.SessionDuration, msg.AmbientTemp, msg.RoadTemp, msg.ElapsedMS, TrustToken, _fingerprint, PluginVersion);
+
+            PluginManager.Log("Trying to find the autokick-options");
+            int sessionContactsToKick;
+            int sessionMassAccidentsToKick;
+            int sessionKickMode;
+            try
+            {
+                if (PluginManager.ServerBlacklistMode == -1)
+                    throw new Exception("Couldn't read ServerBlacklist mode.");
+                else if (PluginManager.ServerBlacklistMode > 0)
+                    throw new Exception("Autokicks are only allowed with BLACKLIST_MODE=0");
+
+                sessionKickMode = PluginManager.ServerBlacklistMode;
+
+                sessionContactsToKick = PluginManager.Config.GetSettingAsInt("autokick_after_contacts", "No config setting for 'autokick_after_contacts' found");
+                if(sessionContactsToKick <= 0)
+                    PluginManager.Log("Autokick after x contacts: disabled");
+                else
+                    PluginManager.Log("Autokick after " + sessionContactsToKick + " contacts: enabled");
+
+                sessionMassAccidentsToKick = PluginManager.Config.GetSettingAsInt("autokick_after_mass_accidents", "No config setting for 'autokick_after_mass_accidents' found");
+                if (sessionMassAccidentsToKick <= 0)
+                    PluginManager.Log("Autokick after x mass accidents: disabled");
+                else
+                    PluginManager.Log("Autokick after " + sessionMassAccidentsToKick + " mass accidents: enabled");
+            }
+            catch (Exception ex)
+            {
+                PluginManager.Log("Failed: No autokicks configured. Reason: " + ex.Message);
+                sessionContactsToKick = -1;
+                sessionMassAccidentsToKick = -1;
+                sessionKickMode = -1;
+            }
+
+            CurrentSessionGuid = LiveDataServer.NewSession(CurrentSessionGuid, msg.ServerName, msg.Track + "[" + msg.TrackConfig + "]"
+                , msg.SessionType, msg.Laps, msg.WaitTime, msg.SessionDuration, msg.AmbientTemp, msg.RoadTemp, msg.ElapsedMS
+                , TrustToken, _fingerprint, PluginVersion, sessionContactsToKick, sessionMassAccidentsToKick, sessionKickMode);
+            for (byte i = 0; i < 36; i++)
+                PluginManager.RequestCarInfo(i);
         }
 
         protected override void OnNewConnection(MsgNewConnection msg)
         {
             PluginManager.Log("OnNewConnection: " + msg.DriverName + "@" + msg.CarModel);
-            HandleClientActions(LiveDataServer.ClientConnected(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid));
+            HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, true));
         }
 
         protected override void OnSessionEnded(MsgSessionEnded msg)
@@ -125,36 +174,35 @@ namespace MinoRatingPlugin
         protected override void OnConnectionClosed(MsgConnectionClosed msg)
         {
             PluginManager.Log("OnConnectionClosed: " + msg.DriverName + "@" + msg.CarModel);
-            HandleClientActions(LiveDataServer.ClientDisconnected(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.CarSkin, msg.DriverGuid));
+            HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, "", "", "", false));
         }
 
         protected override void OnLapCompleted(MsgLapCompleted msg)
         {
+            PluginManager.Log(DateTime.Now.TimeOfDay.ToString() + "- OnLapCompleted: " + msg.CarId + ": " + TimeSpan.FromMilliseconds(msg.Laptime));
             DriverInfo driver;
             if (!PluginManager.TryGetDriverInfo(msg.CarId, out driver))
                 PluginManager.Log("Error; car_id " + msg.CarId + " was not known by the PluginManager :(");
             else
             {
+                if (!_distancesToReport.ContainsKey(driver))
+                    _distancesToReport.Add(driver, new MRDistanceHelper());
                 PluginManager.Log("LapCompleted by " + driver.DriverName + ": " + TimeSpan.FromMilliseconds(msg.Laptime));
-                HandleClientActions(LiveDataServer.LapCompleted(CurrentSessionGuid, msg.CarId, driver.DriverGuid, msg.Laptime, msg.Cuts, msg.GripLevel, ConvertLB(msg.Leaderboard)));
+                HandleClientActions(LiveDataServer.LapCompleted(CurrentSessionGuid, msg.CarId, driver.DriverGuid, msg.Laptime, msg.Cuts, msg.GripLevel, ConvertLB(msg.Leaderboard), _distancesToReport[driver]));
             }
         }
 
 
         protected override void OnCarInfo(MsgCarInfo msg)
         {
-            PluginManager.Log("CarInfo: " + msg.CarId + ", " + msg.DriverName + "@" + msg.CarModel);
+            PluginManager.Log(DateTime.Now.TimeOfDay.ToString() + "- CarInfo: " + msg.CarId + ", " + msg.DriverName + "@" + msg.CarModel + ", Connected=" + msg.IsConnected);
 
-            string driverName = msg.DriverName;
-            string driverGuid = msg.DriverGuid;
-
-            if (!msg.IsConnected)
+            // To prevent a bug in communication we will only send when the Car IsConnected - discos only via the corresponding event please.
+            if (msg.IsConnected)
             {
-                driverName = "";
-                driverGuid = "";
+                HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, msg.IsConnected));
             }
 
-            HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, driverName, driverGuid));
         }
 
         protected override void OnChatMessage(MsgChat msg)
@@ -165,11 +213,16 @@ namespace MinoRatingPlugin
             var split = msg.Message.Split(' ');
             if (split.Length > 0)
             {
-                switch (split[0])
+                switch (split[0].ToLower())
                 {
                     case "/mr":
                     case "/minorating":
-                        HandleClientActions(LiveDataServer.RequestDriverRating(CurrentSessionGuid, msg.CarId));
+                        {
+                            if(split.Length == 1) // only /mr 
+                                HandleClientActions(LiveDataServer.RequestDriverRating(CurrentSessionGuid, msg.CarId));
+                            else
+                                HandleClientActions(LiveDataServer.RequestMRCommand(CurrentSessionGuid, msg.CarId, split));
+                        }
                         break;
                     default:
                         break;
@@ -179,6 +232,7 @@ namespace MinoRatingPlugin
 
         protected override void OnClientLoaded(MsgClientLoaded msg)
         {
+            //LiveDataServer.RandomCarInfo(CurrentSessionGuid, car.CarId, car.CarModel, car.DriverName, car.DriverGuid, true);
             HandleClientActions(LiveDataServer.RequestDriverRating(CurrentSessionGuid, msg.CarId));
             HandleClientActions(LiveDataServer.RequestDriverLoaded(CurrentSessionGuid, msg.CarId));
         }
@@ -215,12 +269,12 @@ namespace MinoRatingPlugin
                     }
                 }
 
-                HandleClientActions(LiveDataServer.Collision(CurrentSessionGuid, msg.CarId, msg.OtherCarId, msg.RelativeVelocity, 0.667234f, msg.RelativePosition.X, msg.RelativePosition.Z, msg.WorldPosition.X, msg.WorldPosition.Z));
+                //HandleClientActions(LiveDataServer.Collision(CurrentSessionGuid, msg.CarId, msg.OtherCarId, msg.RelativeVelocity, 0.667234f, msg.RelativePosition.X, msg.RelativePosition.Z, msg.WorldPosition.X, msg.WorldPosition.Z));
             }
             else
             {
                 PluginManager.Log("Collision occured!!! " + msg.CarId + " vs. wall");
-                HandleClientActions(LiveDataServer.Collision(CurrentSessionGuid, msg.CarId, -1, msg.RelativeVelocity, 0.667234f, msg.RelativePosition.X, msg.RelativePosition.Z, msg.WorldPosition.X, msg.WorldPosition.Z));
+                //HandleClientActions(LiveDataServer.Collision(CurrentSessionGuid, msg.CarId, -1, msg.RelativeVelocity, 0.667234f, msg.RelativePosition.X, msg.RelativePosition.Z, msg.WorldPosition.X, msg.WorldPosition.Z));
             }
         }
 
@@ -228,46 +282,42 @@ namespace MinoRatingPlugin
         {
             lock (contactTrees)
                 contactTrees.Remove(bag);
-            HandleClientActions(LiveDataServer.CollisionTreeEnded(CurrentSessionGuid, bag.First, bag.Second, bag.Count, bag.Started, bag.LastCollision));
+
+            var driverInfo = PluginManager.GetDriver(bag.First);
+            if (driverInfo != null)
+            {
+                if (!_distancesToReport.ContainsKey(driverInfo))
+                    _distancesToReport.Add(driverInfo, new MRDistanceHelper());
+                HandleClientActions(LiveDataServer.CollisionTreeEnded(CurrentSessionGuid, bag.First, bag.Second, bag.Count, bag.Started, bag.LastCollision, _distancesToReport[driverInfo]));
+            }
+
         }
         #endregion
 
         #region Distance driven & behaviour analysis
 
         private float TrackLength = 0.0f;
-        private Dictionary<DriverInfo, DistanceHelper> _distancesToReport = new Dictionary<DriverInfo, DistanceHelper>();
+        private Dictionary<DriverInfo, MRDistanceHelper> _distancesToReport = new Dictionary<DriverInfo, MRDistanceHelper>();
 
         protected override void OnCarUpdate(DriverInfo di)
         {
             if (!_distancesToReport.ContainsKey(di))
-                _distancesToReport.Add(di, new DistanceHelper());
+                _distancesToReport.Add(di, new MRDistanceHelper());
 
             var dh = _distancesToReport[di];
             // Generally, the meters driven are stored
-            dh.metersDriven += di.LastDistanceTraveled;
+            dh.MetersDriven += di.LastDistanceTraveled;
 
-            // Then we'll check this interval (we're talking about a second or similar)
-            // for driving in attack range (let's say.. inside 20m) or even combating (maybe 8m)
-            if (di.CurrentDistanceToClosestCar < 8 && di.CurrentDistanceToClosestCar != 0)
-                dh.metersCombatRange += di.LastDistanceTraveled;
-            else if (di.CurrentDistanceToClosestCar < 20 && di.CurrentDistanceToClosestCar != 0)
-                dh.metersAttackRange += di.LastDistanceTraveled;
-
-        }
-
-        class DistanceHelper
-        {
-            public float metersDriven;
-            public float metersAttackRange;
-            public float metersCombatRange;
-            public int overtakes;
-
-            internal void Clear()
+            // To protect this from some simple 1st gear driving together in combat range to grind stuff, we'll only allow Attack & Combat range 
+            // recording if there is acceleration. 3 or 5 are quite little values, even for slow cars like the GT86
+            if (Math.Abs(di.CurrentAcceleration) > 2.0f && di.CurrentDistanceToClosestCar != 0)
             {
-                metersDriven = 0;
-                metersAttackRange = 0;
-                metersCombatRange = 0;
-                overtakes = 0;
+                // Then we'll check this interval (we're talking about a second or similar)
+                // for driving in attack range (let's say.. inside 20m) or even combating (maybe 8m)
+                if (di.CurrentDistanceToClosestCar < 8)
+                    dh.MetersCombatRange += di.LastDistanceTraveled;
+                else if (di.CurrentDistanceToClosestCar < 20)
+                    dh.MetersAttackRange += di.LastDistanceTraveled;
             }
         }
 
@@ -304,22 +354,26 @@ namespace MinoRatingPlugin
                 // We won't report it per-secod or whatever interval is set, so we need to group by
                 // sensible stuff - this needs to be tracked in the _reportedDistance
                 if (!_distancesToReport.ContainsKey(di))
-                    _distancesToReport.Add(di, new DistanceHelper());
+                    _distancesToReport.Add(di, new MRDistanceHelper());
 
                 var distanceCached = _distancesToReport[di];
                 // Then we'll do it in different resolutions; the first meters are more important than the later ones
-                if (di.Distance > 2000 && distanceCached.metersDriven > 2000) // After 2km, we'll just report in big chunks
+                if (di.Distance > REGULAR_DISTANCE && distanceCached.MetersDriven > 2000) // After 2km, we'll just report in big chunks
                 {
-                    HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached.metersDriven, distanceCached.metersAttackRange, distanceCached.metersCombatRange, distanceCached.overtakes));
-                    _distancesToReport[di].Clear();
+                    PluginManager.Log(DateTime.Now.TimeOfDay.ToString() + "- Send DistanceDriven: " + di.CarId + ": " + distanceCached.MetersDriven);
+                    HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached));
+                    _distancesToReport[di] = new MRDistanceHelper();
                 }
-                else if (di.Distance < 2000 && distanceCached.metersDriven > 100) // 100m is about "left pits", so we'll report this until 
+                else if (di.Distance < REGULAR_DISTANCE && distanceCached.MetersDriven > 100) // 100m is about "left pits", so we'll report this until 
                 {
-                    HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached.metersDriven, distanceCached.metersAttackRange, distanceCached.metersCombatRange, distanceCached.overtakes));
-                    _distancesToReport[di].Clear();
+                    PluginManager.Log(DateTime.Now.TimeOfDay.ToString() + "- Send DistanceDriven: " + di.CarId + ": " + distanceCached.MetersDriven);
+                    HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached));
+                    _distancesToReport[di] = new MRDistanceHelper();
                 }
             }
         }
+
+        const int REGULAR_DISTANCE = 2000;
 
         private void TryCalcSplinePos(List<SplinePosCalculationHelper> list)
         {
@@ -406,6 +460,17 @@ namespace MinoRatingPlugin
         {
             try
             {
+                // DEBUG TIME
+                /*
+                if(a.SteamId != "76561198021090310")
+                {
+                    if (string.IsNullOrEmpty(a.SteamId))
+                        Console.WriteLine("No steam Id for action with text: " + a.Text);
+
+                    return;
+                }*/
+
+
                 PluginManager.Log("Action for car " + a.CarId + ": " + a.Reaction + " " + a.Text);
                 if (a.Reaction == PluginReaction.ReactionType.Whisper)
                     PluginManager.SendChatMessage(a.CarId, a.Text);
@@ -423,7 +488,10 @@ namespace MinoRatingPlugin
                         }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Execute action: Error for car " + a.CarId + "/" + a.Text + ": " + ex.Message);
+            }
         }
 
         // We have to convert the acPlugins4net-Leaderboard to a minoRating one. This is pretty stupid mapping

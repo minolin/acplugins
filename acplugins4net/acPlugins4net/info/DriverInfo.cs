@@ -62,6 +62,8 @@ namespace acPlugins4net.info
         public float Distance { get; set; }
         [IgnoreDataMember]
         public float CurrentSpeed { get; set; } // km/h
+        [IgnoreDataMember]
+        public float CurrentAcceleration { get; set; } // km/h
         [DataMember]
         public float TopSpeed { get; set; } // km/h
         [DataMember]
@@ -188,11 +190,16 @@ namespace acPlugins4net.info
                 this.lapStartSplinePos = s > 0.5f ? s - 1.0f : s;
             }
 
+            // Determine the current speed in KpH (only valid if the update interval is 1s)
             CurrentSpeed = vel.Length() * 3.6f;
             if (CurrentSpeed < MaxSpeed && CurrentSpeed > TopSpeed)
             {
                 this.TopSpeed = CurrentSpeed;
             }
+
+            // Determine the current acceleration in Kph/s (only valid if the update interval is 1s)
+            var lastSpeed = lastVel.Length() * 3.6f;
+            CurrentAcceleration = CurrentSpeed - lastSpeed;
 
             int currTime = Environment.TickCount;
             int elapsedSinceLastUpdate = currTime - this.lastTime;
@@ -216,6 +223,7 @@ namespace acPlugins4net.info
                 }
                 else
                 {
+                    Console.WriteLine("Car " + CarId + " warped with speed " + speed);
                     // probably warped to box
                     this.lapDistance = 0;
                     this.lapStartSplinePos = s > 0.5f ? s - 1.0f : s;
