@@ -201,7 +201,7 @@ namespace acPlugins4net.info
             var lastSpeed = lastVel.Length() * 3.6f;
             CurrentAcceleration = CurrentSpeed - lastSpeed;
 
-            int currTime = Environment.TickCount;
+            int currTime = Environment.TickCount & Int32.MaxValue; // see https://msdn.microsoft.com/de-de/library/system.environment.tickcount%28v=vs.110%29.aspx
             int elapsedSinceLastUpdate = currTime - this.lastTime;
             if (this.lastTime > 0 && elapsedSinceLastUpdate < 3 * realtimeUpdateInterval)
             {
