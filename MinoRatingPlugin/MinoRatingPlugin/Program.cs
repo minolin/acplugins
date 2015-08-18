@@ -157,6 +157,8 @@ namespace MinoRatingPlugin
                 , TrustToken, _fingerprint, PluginVersion, sessionContactsToKick, sessionMassAccidentsToKick, sessionKickMode);
             for (byte i = 0; i < 36; i++)
                 PluginManager.RequestCarInfo(i);
+
+            _distancesToReport.Clear();
         }
 
         protected override void OnNewConnection(MsgNewConnection msg)
@@ -364,7 +366,7 @@ namespace MinoRatingPlugin
                     HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached));
                     _distancesToReport[di] = new MRDistanceHelper();
                 }
-                else if (di.Distance < REGULAR_DISTANCE && distanceCached.MetersDriven > 100) // 100m is about "left pits", so we'll report this until 
+                else if (di.Distance < REGULAR_DISTANCE && distanceCached.MetersDriven > 200) // 200m is about "left pits", so we'll report this until 
                 {
                     PluginManager.Log(DateTime.Now.TimeOfDay.ToString() + "- Send DistanceDriven: " + di.CarId + ": " + distanceCached.MetersDriven);
                     HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached));
@@ -373,7 +375,7 @@ namespace MinoRatingPlugin
             }
         }
 
-        const int REGULAR_DISTANCE = 2000;
+        const int REGULAR_DISTANCE = 1000;
 
         private void TryCalcSplinePos(List<SplinePosCalculationHelper> list)
         {
