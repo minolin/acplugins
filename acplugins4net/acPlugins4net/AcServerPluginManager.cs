@@ -1120,7 +1120,13 @@ namespace acPlugins4net
                 {
                     var driver = sortedDrivers[i - 1];
                     var next = sortedDrivers[i];
-                    driver.CurrentDistanceToClosestCar = (driver.LastPosition - next.LastPosition).Length();
+
+                    var distance = (driver.LastPosition - next.LastPosition).Length();
+
+                    if (driver.CurrentDistanceToClosestCar > distance || driver.CurrentDistanceToClosestCar == 0)
+                        driver.CurrentDistanceToClosestCar = distance;
+
+                    next.CurrentDistanceToClosestCar = driver.CurrentDistanceToClosestCar;
                 }
         }
 
