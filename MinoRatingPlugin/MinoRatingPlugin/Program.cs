@@ -34,7 +34,7 @@ namespace MinoRatingPlugin
                 pluginManager.AddPlugin(new MinoratingPlugin());
                 pluginManager.LoadPluginsFromAppConfig();
                 DriverInfo.MsgCarUpdateCacheSize = 10;
-                RunPluginInConsole.RunUntilAborted(pluginManager);
+                pluginManager.RunUntilAborted();
             }
             catch (Exception ex)
             {
