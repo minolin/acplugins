@@ -203,12 +203,16 @@ namespace acPlugins4net.info
 
             int currTime = Environment.TickCount & Int32.MaxValue; // see https://msdn.microsoft.com/de-de/library/system.environment.tickcount%28v=vs.110%29.aspx
             int elapsedSinceLastUpdate = currTime - this.lastTime;
-            if (this.lastTime > 0 && elapsedSinceLastUpdate < 3 * realtimeUpdateInterval)
+            if (this.lastTime > 0 && elapsedSinceLastUpdate > 0 && elapsedSinceLastUpdate < 3 * realtimeUpdateInterval)
             {
                 float d = (pos - lastPos).Length();
                 float speed = d / elapsedSinceLastUpdate / 1000 * 3.6f;
 
-                if (! (speed > 30 && vel.X == 0 && vel.Z == 0)) // If the car was moving according (speed), but the vel is 2d-zero now, the car has either good brakes or is warped
+                //if (! (speed > 30 && vel.X == 0 && vel.Z == 0)) // If the car was moving according (speed), but the vel is 2d-zero now, the car has either good brakes or is warped
+
+                // If the computed average speed since last update is not much bigger than the maximum of last vel and the current vel then no warp detected.
+                // in worst case warps that occur from near the pits (~50m) are not detected.
+                if (speed - Math.Max(CurrentSpeed, lastSpeed) < 180 * elapsedSinceLastUpdate / 1000)
                 {
                     // no warp detected
                     this.lapDistance += d;
@@ -223,7 +227,7 @@ namespace acPlugins4net.info
                 }
                 else
                 {
-                    Console.WriteLine("Car " + CarId + " warped with speed " + speed);
+                    //Console.WriteLine("Car " + CarId + " warped with speed " + speed);
                     // probably warped to box
                     this.lapDistance = 0;
                     this.lapStartSplinePos = s > 0.5f ? s - 1.0f : s;
