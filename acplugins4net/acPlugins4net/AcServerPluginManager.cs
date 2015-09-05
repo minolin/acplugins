@@ -1094,7 +1094,7 @@ namespace acPlugins4net
             {
                 try
                 {
-                    if(driver != null)
+                    if (driver != null)
                         plugin.OnCarUpdate(driver);
                     plugin.OnCarUpdate(msg);
                 }
@@ -1116,18 +1116,23 @@ namespace acPlugins4net
             CurrentSession.Drivers.ForEach(x => x.CurrentDistanceToClosestCar = 0);
             var sortedDrivers = CurrentSession.Drivers.Where(x => x.CurrentSpeed > 30).OrderBy(x => x.LastSplinePos).ToArray();
             if (sortedDrivers.Length > 1)
-                for (int i = 1; i < sortedDrivers.Length; i++)
+            {
+                var prev = sortedDrivers[sortedDrivers.Length - 1];
+                for (int i = 0; i < sortedDrivers.Length; i++)
                 {
-                    var driver = sortedDrivers[i - 1];
                     var next = sortedDrivers[i];
 
-                    var distance = (driver.LastPosition - next.LastPosition).Length();
+                    var distance = (prev.LastPosition - next.LastPosition).Length();
 
-                    if (driver.CurrentDistanceToClosestCar > distance || driver.CurrentDistanceToClosestCar == 0)
-                        driver.CurrentDistanceToClosestCar = distance;
+                    if (prev.CurrentDistanceToClosestCar > distance || prev.CurrentDistanceToClosestCar == 0)
+                        prev.CurrentDistanceToClosestCar = distance;
 
-                    next.CurrentDistanceToClosestCar = driver.CurrentDistanceToClosestCar;
+                    if (next.CurrentDistanceToClosestCar > distance || next.CurrentDistanceToClosestCar == 0)
+                        next.CurrentDistanceToClosestCar = distance;
+
+                    prev = next;
                 }
+            }
         }
 
         private void OnCollision(MsgClientEvent msg)
