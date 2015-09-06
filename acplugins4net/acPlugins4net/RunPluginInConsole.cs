@@ -16,34 +16,23 @@ namespace acPlugins4net
 
             try
             {
-                // If we're in some interactive console, we'll use Console.ReadLine() as usual
-                // Just the start sequence has moved to the OnStart() function of the RunPluginInConsoleServiceHelper-Wrapper
-                // This helps when the Plugin is started as Service or background task (especially linux)
-                if (Environment.UserInteractive)
+                pluginManagerService.InteractiveStart();
+                // Important note: Everything until pluginManagerService.InteractiveStop() won't happen for the services,
+                // so please do only place console-related stuff here
+                var input = GetBlockingInput();
+                while (input != "x" && input != "exit" && pluginManager.IsConnected)
                 {
-                    pluginManagerService.InteractiveStart();
-                    // Important note: Everything until pluginManagerService.InteractiveStop() won't happen for the services,
-                    // so please do only place console-related stuff here
-                    var input = Console.ReadLine();
-                    while (input != "x" && input != "exit" && pluginManager.IsConnected)
-                    {
-                        // Basically we're blocking the Main Thread until exit.
-                        // Ugly, but pretty easy to use by the deriving Plugin
+                    // Basically we're blocking the Main Thread until exit.
+                    // Ugly, but pretty easy to use by the deriving Plugin
 
-                        // To have a bit of functionality we'll let the server admin 
-                        // type in commands that can be understood by the deriving plugin
-                        if (!string.IsNullOrEmpty(input))
-                            pluginManager.ProcessEnteredCommand(input);
+                    // To have a bit of functionality we'll let the server admin 
+                    // type in commands that can be understood by the deriving plugin
+                    if (!string.IsNullOrEmpty(input))
+                        pluginManager.ProcessEnteredCommand(input);
 
-                        input = Console.ReadLine();
-                    }
-                    pluginManagerService.InteractiveStop();
+                    input = GetBlockingInput();
                 }
-                // If not, we'll use it as a service and let the OS decide what to do when
-                else
-                {
-                    ServiceBase.Run(pluginManagerService);
-                }
+                pluginManagerService.InteractiveStop();
             }
             catch (Exception ex)
             {
@@ -58,6 +47,18 @@ namespace acPlugins4net
                 }
                 pluginManager.Log("Disconnected...");
             }
+        }
+
+        private static string GetBlockingInput()
+        {
+            // On a usual, interactive Console we'll just ask the user for input
+            if(Environment.UserInteractive)
+                return Console.ReadLine();
+
+            // If not (and this is unfortunately always the case on linux, so we might consider a config option here)
+            // we'll just pause for a while in order to get an artificial main loop
+            System.Threading.Thread.Sleep(1000);
+            return string.Empty;
         }
     }
 }
