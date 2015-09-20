@@ -205,7 +205,7 @@ class LeaderboardEntry(GenericPacket):
 
 Leaderboard = GenericArrayParser('B', 6,
     lambda x: tuple(LeaderboardEntry().from_buffer(x[(i*6):((i+1)*6)], 0)[1] for i in range(len(x)//6)),
-    None,
+    lambda x: b"".join([lbe.to_buffer() for lbe in x]),
 )
 class LapCompleted(GenericPacket):
     packetId = ACSP_LAP_COMPLETED
@@ -317,5 +317,7 @@ def parse(buffer):
         if type(r) in (ProtocolVersion,SessionInfo,NewSession):
             if r.version != PROTOCOL_VERSION:
                 raise ProtocolVersionMismatch("Expected version %d, got version %d" % (PROTOCOL_VERSION,r.version))
+        if idx != len(buffer):
+            print("Warning: PacketId=%d: bytes left after parsing. Parsed %d bytes, got %d bytes. Packet: %s" % (eID, idx, len(buffer), str(r)))
         return r
     return None

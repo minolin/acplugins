@@ -35,39 +35,39 @@ class GenericStructParser:
     def __init__(self, fmt, converter = lambda x: x):
         self.fmt = fmt
         self.converter = converter
-        
+
     def get(self,b,k):
         r=struct.unpack_from(self.fmt,b,k)
         if len(r) == 1:
             r = r[0]
         return self.converter(r),k+struct.calcsize(self.fmt)
-    
+
     def put(self,v):
         try:
             v[0]
         except:
             v = [v]
         return struct.pack(self.fmt,*v)
-    
+
 class GenericArrayParser:
     def __init__(self, lFmt, eSize, decode, encode):
         self.lFmt = lFmt
         self.eSize = eSize
         self.decode = decode
         self.encode = encode
-        
+
     def get(self,b,k):
         l,=struct.unpack_from(self.lFmt,b,k)
         k += struct.calcsize(self.lFmt)
         nk = k+self.eSize*l
         raw = b[k:nk]
         return self.decode(raw),nk
-        
+
     def put(self,v):
         raw = self.encode(v)
         l = len(raw)//self.eSize
         return struct.pack(self.lFmt,l) + raw
-    
+
 Uint8 = GenericStructParser('B')
 Bool = GenericStructParser('B', lambda x: x != 0)
 Uint16 = GenericStructParser('H')
@@ -77,7 +77,7 @@ Int32 = GenericStructParser('i')
 Float = GenericStructParser('f')
 Vector3f = GenericStructParser('fff')
 Ascii = GenericArrayParser(
-    'B', 1, 
+    'B', 1,
     lambda x: codecs.decode(x, 'ascii', 'replace'),
     lambda x: codecs.encode(x, 'ascii', 'strict'),
 )
@@ -98,7 +98,7 @@ class GenericPacket:
             r,idx = p.get(buffer,idx)
             setattr(self,f,r)
         return idx,self
-        
+
     def to_buffer(self):
         res = struct.pack('B', self.packetId)
         for f,p in self._content:
@@ -109,7 +109,7 @@ class GenericPacket:
         res = str(type(self)) + "("
         for f,_ in self._content:
             v = getattr(self, f, None)
-            if type(v) == tuple:
+            if type(v) in (tuple, list):
                 v = tuple(str(x) for x in v)
             res += f + "=" + str(v) + ", "
         res += ")"
