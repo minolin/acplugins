@@ -133,7 +133,7 @@ namespace MinoRatingPlugin
                 sessionKickMode = PluginManager.ServerBlacklistMode;
 
                 sessionContactsToKick = PluginManager.Config.GetSettingAsInt("autokick_after_contacts", "No config setting for 'autokick_after_contacts' found");
-                if(sessionContactsToKick <= 0)
+                if (sessionContactsToKick <= 0)
                     PluginManager.Log("Autokick after x contacts: disabled");
                 else
                     PluginManager.Log("Autokick after " + sessionContactsToKick + " contacts: enabled");
@@ -220,7 +220,7 @@ namespace MinoRatingPlugin
                     case "/mr":
                     case "/minorating":
                         {
-                            if(split.Length == 1) // only /mr 
+                            if (split.Length == 1) // only /mr 
                                 HandleClientActions(LiveDataServer.RequestDriverRating(CurrentSessionGuid, msg.CarId));
                             else
                                 HandleClientActions(LiveDataServer.RequestMRCommand(CurrentSessionGuid, msg.CarId, split));
@@ -325,31 +325,6 @@ namespace MinoRatingPlugin
 
         protected override void OnBulkCarUpdateFinished()
         {
-            if (TrackLength == 0f && false) // A fucking mess this is. Tried cool and then simpler things; I won't get it working right :( See https://github.com/minolin/acplugins/issues/24
-            {
-                // As long as we have no SplinePos->Meters factor, well just put every single (world-position/splinepos) pair we
-                // can get into a big list and try to calc it. This will happen once per server start (= possible track change) only
-                var list = new List<SplinePosCalculationHelper>();
-                PluginManager.CurrentSession.Drivers.ForEach((driverInfo) =>
-                {
-                    var node = driverInfo.LastCarUpdate;
-                    while (node != null)
-                    {
-                        list.Add(new SplinePosCalculationHelper(node.Value));
-                        node = node.Previous;
-                    }
-                });
-
-                TryCalcSplinePos(list);
-            }
-
-            if (TrackLength > 0)
-            {
-                // as soon as there is a TrackLength we can easily estimate the gap between cars by multiplying the spline pos 
-                // with the track length. Tomorrow.
-
-            }
-
             // Now we can report the distances driven to the minorating backend.
             foreach (var di in PluginManager.CurrentSession.Drivers)
             {
@@ -363,98 +338,52 @@ namespace MinoRatingPlugin
                 if (di.Distance > REGULAR_DISTANCE && distanceCached.MetersDriven > 2000) // After 2km, we'll just report in big chunks
                 {
                     PluginManager.Log(DateTime.Now.TimeOfDay.ToString() + "- Send DistanceDriven: " + di.CarId + ": " + distanceCached.MetersDriven);
-                    HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached));
                     _distancesToReport[di] = new MRDistanceHelper();
+                    HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached));
                 }
                 else if (di.Distance < REGULAR_DISTANCE && distanceCached.MetersDriven > 200) // 200m is about "left pits", so we'll report this until 
                 {
                     PluginManager.Log(DateTime.Now.TimeOfDay.ToString() + "- Send DistanceDriven: " + di.CarId + ": " + distanceCached.MetersDriven);
-                    HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached));
                     _distancesToReport[di] = new MRDistanceHelper();
+                    HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached));
                 }
             }
         }
 
         const int REGULAR_DISTANCE = 1000;
 
-        private void TryCalcSplinePos(List<SplinePosCalculationHelper> list)
-        {
-            // We try to shape the SplinePos-factor by calculating all the world positions
-            // until we have a very marginally error left
-            // Edit: No, we won't. Wth the math fucked me today (although I'm not sure if math or double precision with huge numbers)
-            double totalTrackLengths = 0;
-            int totalCount = 0;
-
-            for (int i = 0; i < list.Count && list.Count > 1; i++)
-                for (int j = i + 1; j < list.Count; j++)
-                    if (list[i].CalcDifference(list[j], ref totalTrackLengths))
-                        totalCount++;
-
-            // we will ignore this, if not enough points have been regarded. Let's say a single car should do the calculations
-            // if on the track, then the calculation should kick with the cache size. Tricky stuff, if the Cache is too small we should wait for 1 or 2 other cars.
-            // 5 points on the track would at give 15 results
-            if (totalCount > 15)
-            {
-                TrackLength = (float)(totalTrackLengths / totalCount);
-                PluginManager.BroadcastChatMessage(string.Format("The track is {0:N0}m / {1:F1} = {2:N0} long", totalTrackLengths, totalCount, TrackLength));
-            }
-        }
-
-        internal class SplinePosCalculationHelper
-        {
-            Vector3f WorldPos;
-            float SplinePos;
-
-            internal SplinePosCalculationHelper(MsgCarUpdate msg)
-            {
-                WorldPos = msg.WorldPosition;
-                SplinePos = msg.NormalizedSplinePosition;
-            }
-
-            internal bool CalcDifference(SplinePosCalculationHelper other, ref double resultSum)
-            {
-                var m = Math.Abs((other.WorldPos - this.WorldPos).Length());
-                var s = Math.Abs(other.SplinePos - this.SplinePos);
-                while (s < 0)
-                    s++;
-                while (s > 1)
-                    s--;
-
-                if (m < 22.2f // We will be much better with higher values. The pit limit is 22.2 m/s, after that we will have a pretty good estimate 
-                    || s > 0.5) // The finish line is nasty and could lead to 0.99 difference - ignore that 
-                    return false;
-
-                // I tried to sum both meters and spline-diff for a more precise result - didn't happen. No idea why.
-                resultSum += (m / s);
-                return true;
-            }
-        }
-
         #endregion
 
         #region Helpers & stuff
         private void HandleClientActions(PluginReaction[] actions)
         {
-            if (actions == null)
-                throw new ArgumentNullException("PluginReaction[] actions", "Looks like the server didn't create an empty PluginReaction array");
-
-            foreach (var a in actions)
+            try
             {
-                if (string.IsNullOrEmpty(a.Text))
-                    a.Text = "";
+                if (actions == null)
+                    throw new ArgumentNullException("PluginReaction[] actions", "Looks like the server didn't create an empty PluginReaction array");
 
-                if (a.Delay == 0)
+                foreach (var a in actions)
                 {
-                    ExecuteAction(a);
-                }
-                else
-                {
-                    ThreadPool.QueueUserWorkItem(o =>
+                    if (string.IsNullOrEmpty(a.Text))
+                        a.Text = "";
+
+                    if (a.Delay == 0)
                     {
-                        Thread.Sleep(a.Delay);
                         ExecuteAction(a);
-                    });
+                    }
+                    else
+                    {
+                        ThreadPool.QueueUserWorkItem(o =>
+                        {
+                            Thread.Sleep(a.Delay);
+                            ExecuteAction(a);
+                        });
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error in HandleClientActions: " + ex.Message);
             }
         }
 
