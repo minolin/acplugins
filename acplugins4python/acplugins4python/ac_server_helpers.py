@@ -49,6 +49,9 @@ class GenericStructParser:
             v = [v]
         return struct.pack(self.fmt,*v)
     
+    def size(self):
+        return struct.calcsize(self.fmt)
+
 class GenericArrayParser:
     def __init__(self, lFmt, eSize, decode, encode):
         self.lFmt = lFmt
@@ -68,6 +71,9 @@ class GenericArrayParser:
         l = len(raw)//self.eSize
         return struct.pack(self.lFmt,l) + raw
     
+    def size(self):
+        raise NotImplementedError
+
 Uint8 = GenericStructParser('B')
 Bool = GenericStructParser('B', lambda x: x != 0)
 Uint16 = GenericStructParser('H')
@@ -95,8 +101,11 @@ class GenericPacket:
 
     def from_buffer(self, buffer, idx):
         for f,p in self._content:
-            r,idx = p.get(buffer,idx)
-            setattr(self,f,r)
+            try:
+                r,idx = p.get(buffer,idx)
+                setattr(self,f,r)
+            except Exception as exc:
+                raise RuntimeError("Error while processing attribute %s: %s" % (f, str(exc)))
         return idx,self
         
     def to_buffer(self):
@@ -114,3 +123,9 @@ class GenericPacket:
             res += f + "=" + str(v) + ", "
         res += ")"
         return res
+
+    def size(self):
+        s = 0
+        for f,p in self._content:
+            s += p.size()
+        return s

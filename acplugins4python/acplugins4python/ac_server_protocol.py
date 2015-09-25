@@ -56,7 +56,7 @@ __all__ = [
     "SESST_DRIFT",
     ]
 
-PROTOCOL_VERSION = 2
+PROTOCOL_VERSION = 3
 
 ACSP_NEW_SESSION = 50
 ACSP_NEW_CONNECTION = 51
@@ -200,11 +200,12 @@ class LeaderboardEntry(GenericPacket):
     _content = (
         ('carId', Uint8),
         ('lapTime', Uint32),
-        ('laps', Uint8),
+        ('laps', Uint16),
     )
 
-Leaderboard = GenericArrayParser('B', 6,
-    lambda x: tuple(LeaderboardEntry().from_buffer(x[(i*6):((i+1)*6)], 0)[1] for i in range(len(x)//6)),
+leSize = LeaderboardEntry().size()
+Leaderboard = GenericArrayParser('B', leSize,
+    lambda x: tuple(LeaderboardEntry().from_buffer(x[(i*leSize):((i+1)*leSize)], 0)[1] for i in range(len(x)//leSize)),
     None,
 )
 class LapCompleted(GenericPacket):
@@ -313,7 +314,10 @@ def parse(buffer):
     eID,idx = Uint8.get(buffer,0)
     if eID in eventMap:
         r = eventMap[eID]()
-        idx,r = r.from_buffer(buffer, idx)
+        try:
+            idx,r = r.from_buffer(buffer, idx)
+        except Exception as exc:
+            raise RuntimeError("Error while processing eID=%d : %s" % (eID, str(exc)))
         if type(r) in (ProtocolVersion,SessionInfo,NewSession):
             if r.version != PROTOCOL_VERSION:
                 raise ProtocolVersionMismatch("Expected version %d, got version %d" % (PROTOCOL_VERSION,r.version))
