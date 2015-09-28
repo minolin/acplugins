@@ -36,33 +36,33 @@ class ACServerPlugin:
 
     def __init__(self, rcvPort, sendPort, callbacks, proxyRcvPort=None, proxySendPort=None, serverIP="127.0.0.1"):
         """
-        create a new server plugin instance, given 
+        create a new server plugin instance, given
             - rcvPort      : used to receive the messages from the AC server
             - sendPort     : used to send requests to the AC server
-            - callbacks    : a list of callables (or a single callable) called 
+            - callbacks    : a list of callables (or a single callable) called
                              whenever a new message is received from the server
                              the function receives one argument with an instance
-                             of the data sent by the server. 
+                             of the data sent by the server.
                              (see ac_server_protocol for details)
-            - proxyRcvPort : (optional) a port where the received messages are 
-                             forwarded to. With this, a simple chaining of 
+            - proxyRcvPort : (optional) a port where the received messages are
+                             forwarded to. With this, a simple chaining of
                              plugins is possible.
-            - proxySendPort: (optional) messages sent to this port will be 
-                             forwarded to the AC server. With this, a simple 
+            - proxySendPort: (optional) messages sent to this port will be
+                             forwarded to the AC server. With this, a simple
                              chaining of plugins is possible.
         """
         try:
             _ = iter(callbacks)
         except TypeError:
             callbacks = [callbacks]
-        self.callbacks = callbacks 
-        
+        self.callbacks = callbacks
+
         self.host = serverIP
         self.sendPort = sendPort
         self.rcvPort = rcvPort
         self.acSocket = self.openSocket(self.host, self.rcvPort, self.sendPort, None)
-        
-        
+        self.rtManager = RealtimeManager()
+
         if not proxyRcvPort is None and not proxySendPort is None:
             self.proxyRcvPort = proxyRcvPort
             self.proxySendPort = proxySendPort
@@ -72,11 +72,9 @@ class ACServerPlugin:
             self.proxySocketThread.start()
         else:
             self.proxySocket = None
-            
-        self.realtimeReport = None
-                    
+
     def openSocket(self, host, rcvp, sendp, s):
-        if not s is None: s.close()        
+        if not s is None: s.close()
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.bind( (host, rcvp) )
         # set up a 0.5s pulse, need this to be able to Ctrl-C the python apps
@@ -91,16 +89,16 @@ class ACServerPlugin:
         t = time.time()
         while 1:
             try:
-                data, addr = self.acSocket.recvfrom(2048)
-                #data = self.acSocket.recv(2048)
-                if not self.proxySocket is None:
+                data, addr = self.acSocket.recvfrom(4096)
+                r = ac_server_protocol.parse(data)
+                if not self.proxySocket is None and self.rtManager.okToSend(1, r):
                     try:
                         self.proxySocket.sendto(data, ("127.0.0.1", self.proxyRcvPort))
                     except:
                         pass
-                r = ac_server_protocol.parse(data)
-                for c in self.callbacks:
-                    c(r)
+                if self.rtManager.okToSend(0, r):
+                    for c in self.callbacks:
+                        c(r)
             except socket.timeout:
                 pass
             except ConnectionResetError:
@@ -112,36 +110,38 @@ class ACServerPlugin:
             if not timeout is None:
                 if time.time()-t > timeout:
                     break
-                    
+
     def getSessionInfo(self, sessionIndex = -1):
         """
         request the session info of the specified session (-1 for current session)
         """
         p = ac_server_protocol.GetSessionInfo(sessionIndex=sessionIndex)
-        self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))        
-   
+        self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
+
     def getCarInfo(self, carId):
         """
         request the car info packet from the server
         """
         p = ac_server_protocol.GetCarInfo(carId=carId)
         self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
-    
+
     def enableRealtimeReport(self, intervalMS):
         """
         enable the realtime report with a given interval
         """
-        if self.realtimeReport is None or intervalMS < self.realtimeReport:
+        rtInterval = self.rtManager.getInterval()
+        if rtInterval is None or intervalMS < rtInterval:
             p = ac_server_protocol.EnableRealtimeReport(intervalMS=intervalMS)
             self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
-        
+            self.rtManager.setIntervals(0, intervalMS)
+
     def sendChat(self, carId, message):
         """
         send chat message to a specific car
         """
         p = ac_server_protocol.SendChat(carId=carId, message=message)
         self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
-        
+
     def broadcastChat(self, message):
         """
         broadcast chat message to all cars
@@ -149,7 +149,7 @@ class ACServerPlugin:
         p = ac_server_protocol.BroadcastChat(message=message)
         d = p.to_buffer()
         self.acSocket.sendto(d, (self.host,self.sendPort))
-        
+
     def setSessionInfo(self, sessionIndex, sessionName, sessionType, laps, timeSeconds, waitTimeSeconds):
         p = ac_server_protocol.SetSessionInfo(sessionIndex=sessionIndex,
                                               sessionName=sessionName,
@@ -158,19 +158,21 @@ class ACServerPlugin:
                                               timeSeconds=timeSeconds,
                                               waitTimeSeconds=waitTimeSeconds)
         self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
-        
+
     def kickUser(self, carId):
         p = ac_server_protocol.KickUser(carId=carId)
         self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
-        
+
     def _performProxy(self):
         while 1:
             try:
                 data, addr = self.proxySocket.recvfrom(2048)
-                if addr == "127.0.0.1":
+                if addr[0] == "127.0.0.1":
                     r = ac_server_protocol.parse(data)
                     if type(r) == ac_server_protocol.EnableRealtimeReport:
-                        if not (self.realtimeReport is None or r.intervalMS < self.realtimeReport):
+                        rtInterval = self.rtManager.getInterval()
+                        self.rtManager.setIntervals(1, r.intervalMS)
+                        if not (rtInterval is None or r.intervalMS < rtInterval):
                             # do not pass the request, stay at higher frequency
                             continue
                     self.acSocket.sendto(data, (self.host, self.sendPort))
@@ -180,8 +182,8 @@ class ACServerPlugin:
                 # I hate windows :( who would ever get the idea to set WSAECONNRESET on a connectionless protocol ?!?
                 self.proxySocket = self.openSocket(self.host, self.proxySendPort, self.proxyRcvPort, self.proxySocket)
                 time.sleep(1.0)
-                
-            
+
+
 # just print all attributes of the event
 def print_event(x, v = None, indent = "  "):
     if hasattr(x, "__dict__"):
@@ -198,4 +200,39 @@ def print_event(x, v = None, indent = "  "):
         else:
             if not v is None: s += str(v)
             print(s)
-                
+
+class RealtimeManager:
+    def __init__(self):
+        # pluginId = 0 -> this plugin
+        # pluginId = 1 -> proxied plugin
+        self.intervals = [-1,-1]
+        self.lastSendTimes = [{},{}]
+
+    def setIntervals(self, pluginId, interval):
+         # convert to seconds and apply a rounding offset (if 1000 is configured, 950 is considered ok)
+        self.intervals[pluginId] = max(1, interval-50)*0.001
+
+    def getInterval(self):
+        if self.intervals[0] < 0 and self.intervals[1] < 0:
+            return None
+        if self.intervals[0] < 0:
+            return self.intervals[1]
+        if self.intervals[1] < 0:
+            return self.intervals[0]
+        return min(self.intervals)
+
+    def okToSend(self, pluginId, packet):
+        if type(packet) != ac_server_protocol.CarUpdate:
+            return True
+        if self.intervals[pluginId] < 0:
+            return False
+        t = time.time()
+        if self.intervals[pluginId] <= self.intervals[1-pluginId] or self.intervals[1-pluginId] < 0:
+            self.lastSendTimes[pluginId][packet.carId] = t
+            return True
+        threshold = t - self.intervals[pluginId]
+        lastT = self.lastSendTimes[pluginId].get(packet.carId, threshold)
+        if lastT <= threshold:
+            self.lastSendTimes[pluginId][packet.carId] = t
+            return True
+        return False
