@@ -129,11 +129,12 @@ class ACServerPlugin:
         """
         enable the realtime report with a given interval
         """
-        rtInterval = self.rtManager.getInterval()
-        if rtInterval is None or intervalMS < rtInterval:
-            p = ac_server_protocol.EnableRealtimeReport(intervalMS=intervalMS)
+        newInterval = self.rtManager.setIntervals(0, intervalMS)
+        if not newInterval is None:
+            p = ac_server_protocol.EnableRealtimeReport(intervalMS=newInterval)
             self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
-            self.rtManager.setIntervals(0, intervalMS)
+        else:
+            pass
 
     def sendChat(self, carId, message):
         """
@@ -166,13 +167,16 @@ class ACServerPlugin:
     def _performProxy(self):
         while 1:
             try:
-                data, addr = self.proxySocket.recvfrom(2048)
+                data, addr = self.proxySocket.recvfrom(4096)
                 if addr[0] == "127.0.0.1":
                     r = ac_server_protocol.parse(data)
                     if type(r) == ac_server_protocol.EnableRealtimeReport:
-                        rtInterval = self.rtManager.getInterval()
-                        self.rtManager.setIntervals(1, r.intervalMS)
-                        if not (rtInterval is None or r.intervalMS < rtInterval):
+                        rtInterval = self.rtManager.getInterval(0)
+                        newInterval = self.rtManager.setIntervals(1, r.intervalMS)
+                        if not newInterval is None:
+                            r.intervalMS = newInterval
+                            data = r.to_buffer()
+                        else:
                             # do not pass the request, stay at higher frequency
                             continue
                     self.acSocket.sendto(data, (self.host, self.sendPort))
@@ -205,32 +209,39 @@ class RealtimeManager:
     def __init__(self):
         # pluginId = 0 -> this plugin
         # pluginId = 1 -> proxied plugin
-        self.intervals = [-1,-1]
+        self.intervals = [0,0]
         self.lastSendTimes = [{},{}]
 
-    def setIntervals(self, pluginId, interval):
-         # convert to seconds and apply a rounding offset (if 1000 is configured, 950 is considered ok)
-        self.intervals[pluginId] = max(1, interval-50)*0.001
+    def calcRTInterval(self):
+        res = self.intervals[0]
+        if 0 < self.intervals[1] < res or res == 0:
+            res = self.intervals[1]
+        return res
 
-    def getInterval(self):
-        if self.intervals[0] < 0 and self.intervals[1] < 0:
+    def setIntervals(self, pluginId, interval):
+        # convert to seconds and apply a rounding offset (if 1000 is configured, 950 is considered ok)
+        oldInterval = self.calcRTInterval()
+        self.intervals[pluginId] = interval
+        newInterval = self.calcRTInterval()
+        if newInterval != oldInterval:
+            return newInterval
+        return None
+
+    def getInterval(self, pluginId):
+        if self.intervals[pluginId] < 0:
             return None
-        if self.intervals[0] < 0:
-            return self.intervals[1]
-        if self.intervals[1] < 0:
-            return self.intervals[0]
-        return min(self.intervals)
+        return self.intervals[pluginId]
 
     def okToSend(self, pluginId, packet):
         if type(packet) != ac_server_protocol.CarUpdate:
             return True
-        if self.intervals[pluginId] < 0:
+        if self.intervals[pluginId] == 0:
             return False
         t = time.time()
         if self.intervals[pluginId] <= self.intervals[1-pluginId] or self.intervals[1-pluginId] < 0:
             self.lastSendTimes[pluginId][packet.carId] = t
             return True
-        threshold = t - self.intervals[pluginId]
+        threshold = t - max(0, (self.intervals[pluginId]-50)*0.001)
         lastT = self.lastSendTimes[pluginId].get(packet.carId, threshold)
         if lastT <= threshold:
             self.lastSendTimes[pluginId][packet.carId] = t
