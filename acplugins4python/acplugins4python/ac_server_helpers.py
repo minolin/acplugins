@@ -114,3 +114,8 @@ class GenericPacket:
             res += f + "=" + str(v) + ", "
         res += ")"
         return res
+
+class DictToClass:
+    def __init__(self, **kw):
+        for k in kw:
+            setattr(self, k, kw[k])

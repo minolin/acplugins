@@ -306,6 +306,8 @@ for e in [NewSession,
           ClientLoaded,
           ProtocolError,
           EnableRealtimeReport, # we need to parse this requests due to proxy
+          GetCarInfo,           # we need to parse this requests due to proxy
+          GetSessionInfo,       # we need to parse this requests due to proxy
           ]:
     eventMap[e.packetId] = e
 
@@ -318,6 +320,6 @@ def parse(buffer):
             if r.version != PROTOCOL_VERSION:
                 raise ProtocolVersionMismatch("Expected version %d, got version %d" % (PROTOCOL_VERSION,r.version))
         if idx != len(buffer):
-            print("Warning: PacketId=%d: bytes left after parsing. Parsed %d bytes, got %d bytes. Packet: %s" % (eID, idx, len(buffer), str(r)))
+            log_err("PacketId=%d: bytes left after parsing. Parsed %d bytes, got %d bytes. Packet: %s" % (eID, idx, len(buffer), str(r)))
         return r
     return None

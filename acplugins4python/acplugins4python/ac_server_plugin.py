@@ -31,10 +31,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from threading import Thread
 import socket, time, select
 from . import ac_server_protocol
+from . import ac_server_udp_monitor
 
 class ACServerPlugin:
 
-    def __init__(self, rcvPort, sendPort, callbacks, proxyRcvPort=None, proxySendPort=None, serverIP="127.0.0.1"):
+    def __init__(self,
+                 rcvPort,
+                 sendPort,
+                 callbacks,
+                 proxyRcvPort=None,
+                 proxySendPort=None,
+                 proxyDebugFile=None,
+                 serverIP="127.0.0.1",
+                 log_err_  = lambda *x:print('ERROR:',*x),
+                 log_info_ = lambda *x:print('INFO:',*x),
+                 log_dbg_  = lambda *x:print('DEBUG:',*x)):
         """
         create a new server plugin instance, given
             - rcvPort      : used to receive the messages from the AC server
@@ -50,20 +61,36 @@ class ACServerPlugin:
             - proxySendPort: (optional) messages sent to this port will be
                              forwarded to the AC server. With this, a simple
                              chaining of plugins is possible.
+            - log_err/log_info/log_dbg: (optional) functions to provide user messages
         """
         try:
             _ = iter(callbacks)
         except TypeError:
             callbacks = [callbacks]
         self.callbacks = callbacks
+        global log_err, log_info, log_dbg
+        log_err = log_err_
+        log_info = log_info_
+        log_dbg = log_dbg_
+        ac_server_protocol.log_err = log_err
+        ac_server_protocol.log_info = log_info
+        ac_server_protocol.log_dbg = log_dbg
+        ac_server_udp_monitor.log_err = log_err
+        ac_server_udp_monitor.log_info = log_info
+        ac_server_udp_monitor.log_dbg = log_dbg
 
         self.host = serverIP
         self.sendPort = sendPort
         self.rcvPort = rcvPort
         self.acSocket = self.openSocket(self.host, self.rcvPort, self.sendPort, None)
-        self.rtManager = RealtimeManager()
+        log_info("Plugin listens to port %d and sends to port %d." % (self.rcvPort, self.sendPort))
+        self.udpMonitor = ac_server_udp_monitor.ACUdpMonitor()
 
         if not proxyRcvPort is None and not proxySendPort is None:
+            log_info("Plugin proxy enabled. The proxied plugin shall be configured as if the following lines were in server_cfg.ini:")
+            log_info("UDP_PLUGIN_ADDRESS=127.0.0.1:%d"%proxyRcvPort)
+            log_info("UDP_PLUGIN_LOCAL_PORT=%d"%proxySendPort)
+            self.proxyDebugFile = proxyDebugFile
             self.proxyRcvPort = proxyRcvPort
             self.proxySendPort = proxySendPort
             self.proxySocket = self.openSocket(self.host, self.proxySendPort, self.proxyRcvPort, None)
@@ -91,14 +118,16 @@ class ACServerPlugin:
             try:
                 data, addr = self.acSocket.recvfrom(4096)
                 r = ac_server_protocol.parse(data)
-                if not self.proxySocket is None and self.rtManager.okToSend(1, r):
+                if not self.proxySocket is None and self.udpMonitor.okToSend(1, r):
                     try:
+                        if not self.proxyDebugFile is None: self.proxyDebugFile.write("%6.3f: -> %s\n" %(time.time()%10, str(r)))
                         self.proxySocket.sendto(data, ("127.0.0.1", self.proxyRcvPort))
                     except:
                         pass
-                if self.rtManager.okToSend(0, r):
+                if self.udpMonitor.okToSend(0, r):
                     for c in self.callbacks:
                         c(r)
+                self.udpMonitor.plausibilityCheck()
             except socket.timeout:
                 pass
             except ConnectionResetError:
@@ -115,6 +144,8 @@ class ACServerPlugin:
         """
         request the session info of the specified session (-1 for current session)
         """
+        self.udpMonitor.infoRequest(0, ac_server_protocol.SessionInfo,
+            lambda si, sessionIndex=sessionIndex: si.sessionIndex == sessionIndex if sessionIndex >= 0 else lambda si: si.sessionIndex == si.currSessionIndex)
         p = ac_server_protocol.GetSessionInfo(sessionIndex=sessionIndex)
         self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
 
@@ -122,6 +153,7 @@ class ACServerPlugin:
         """
         request the car info packet from the server
         """
+        self.udpMonitor.infoRequest(0, ac_server_protocol.CarInfo, lambda ci, carId=carId: ci.carId == carId)
         p = ac_server_protocol.GetCarInfo(carId=carId)
         self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
 
@@ -129,12 +161,13 @@ class ACServerPlugin:
         """
         enable the realtime report with a given interval
         """
-        newInterval = self.rtManager.setIntervals(0, intervalMS)
+        newInterval = self.udpMonitor.setIntervals(0, intervalMS)
         if not newInterval is None:
             p = ac_server_protocol.EnableRealtimeReport(intervalMS=newInterval)
             self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
+            log_dbg("enableRealtimeReport: using new interval %d"%newInterval)
         else:
-            pass
+            log_dbg("enableRealtimeReport: using higher frequency from the proxy plugin")
 
     def sendChat(self, carId, message):
         """
@@ -170,16 +203,26 @@ class ACServerPlugin:
                 data, addr = self.proxySocket.recvfrom(4096)
                 if addr[0] == "127.0.0.1":
                     r = ac_server_protocol.parse(data)
+                    if not self.proxyDebugFile is None: self.proxyDebugFile.write("%6.3f: <- %s\n" %(time.time()%10, str(r)))
                     if type(r) == ac_server_protocol.EnableRealtimeReport:
-                        rtInterval = self.rtManager.getInterval(0)
-                        newInterval = self.rtManager.setIntervals(1, r.intervalMS)
+                        newInterval = self.udpMonitor.setIntervals(1, r.intervalMS)
                         if not newInterval is None:
                             r.intervalMS = newInterval
                             data = r.to_buffer()
+                            log_dbg("proxyRealtimeReport: using new interval %d"%newInterval)
                         else:
+                            log_dbg("proxyRealtimeReport: using higher frequency from the plugin")
                             # do not pass the request, stay at higher frequency
                             continue
+                    elif type(r) == ac_server_protocol.GetCarInfo:
+                        self.udpMonitor.infoRequest(1,
+                            ac_server_protocol.CarInfo, lambda ci, cid=r.carId: ci.carId == cid)
+                    elif type(r) == ac_server_protocol.GetSessionInfo:
+                        self.udpMonitor.infoRequest(1,
+                            ac_server_protocol.SessionInfo,
+                            lambda si, sessionIndex=r.sessionIndex: si.sessionIndex == sessionIndex if sessionIndex >= 0 else lambda si: si.sessionIndex == si.currSessionIndex)
                     self.acSocket.sendto(data, (self.host, self.sendPort))
+                    time.sleep(0.2)
             except socket.timeout:
                 pass
             except ConnectionResetError:
@@ -205,45 +248,3 @@ def print_event(x, v = None, indent = "  "):
             if not v is None: s += str(v)
             print(s)
 
-class RealtimeManager:
-    def __init__(self):
-        # pluginId = 0 -> this plugin
-        # pluginId = 1 -> proxied plugin
-        self.intervals = [0,0]
-        self.lastSendTimes = [{},{}]
-
-    def calcRTInterval(self):
-        res = self.intervals[0]
-        if 0 < self.intervals[1] < res or res == 0:
-            res = self.intervals[1]
-        return res
-
-    def setIntervals(self, pluginId, interval):
-        # convert to seconds and apply a rounding offset (if 1000 is configured, 950 is considered ok)
-        oldInterval = self.calcRTInterval()
-        self.intervals[pluginId] = interval
-        newInterval = self.calcRTInterval()
-        if newInterval != oldInterval:
-            return newInterval
-        return None
-
-    def getInterval(self, pluginId):
-        if self.intervals[pluginId] < 0:
-            return None
-        return self.intervals[pluginId]
-
-    def okToSend(self, pluginId, packet):
-        if type(packet) != ac_server_protocol.CarUpdate:
-            return True
-        if self.intervals[pluginId] == 0:
-            return False
-        t = time.time()
-        if self.intervals[pluginId] <= self.intervals[1-pluginId] or self.intervals[1-pluginId] < 0:
-            self.lastSendTimes[pluginId][packet.carId] = t
-            return True
-        threshold = t - max(0, (self.intervals[pluginId]-50)*0.001)
-        lastT = self.lastSendTimes[pluginId].get(packet.carId, threshold)
-        if lastT <= threshold:
-            self.lastSendTimes[pluginId][packet.carId] = t
-            return True
-        return False
