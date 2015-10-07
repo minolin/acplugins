@@ -118,6 +118,8 @@ class ACServerPlugin:
             try:
                 data, addr = self.acSocket.recvfrom(4096)
                 r = ac_server_protocol.parse(data)
+                if type(r) == ac_server_protocol.ProtocolVersion:
+                    self.udpMonitor.reset()
                 if not self.proxySocket is None and self.udpMonitor.okToSend(1, r):
                     try:
                         if not self.proxyDebugFile is None: self.proxyDebugFile.write("%6.3f: -> %s\n" %(time.time()%10, str(r)))

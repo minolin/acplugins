@@ -7,12 +7,16 @@ class ACUdpMonitor:
     def __init__(self):
         # pluginId = 0 -> this plugin
         # pluginId = 1 -> proxied plugin
-        self.intervals = [0,0]
-        self.HistoryInfo = DictToClass #namedtuple('HistoryInfo', ['lastSendTime', 'firstSendTime', 'count'])
-        self.cu_history = [{},{}] # [pluginId][carId]
-        self.InfoRequest = DictToClass #namedtuple('InfoRequest', ['timestamp', 'pluginId', 'cls', 'fields'])
-        self.info_requests = []
+        self.HistoryInfo = DictToClass
+        self.InfoRequest = DictToClass
         self.lock = RLock()
+        self.reset()
+
+    def reset(self):
+        with self.lock:
+            self.intervals = [0,0]
+            self.cu_history = [{},{}] # [pluginId][carId]
+            self.info_requests = []
 
     def calcRTInterval(self):
         with self.lock:
@@ -36,7 +40,8 @@ class ACUdpMonitor:
 
     def infoRequest(self, pluginId, cls, f_filter):
         with self.lock:
-            self.info_requests.append(self.InfoRequest(timestamp=time.time(), pluginId=pluginId, cls=cls, f_filter=f_filter))
+            if len(self.info_requests) < 64:
+                self.info_requests.append(self.InfoRequest(timestamp=time.time(), pluginId=pluginId, cls=cls, f_filter=f_filter))
 
     def okToSend(self, pluginId, packet):
         with self.lock:
