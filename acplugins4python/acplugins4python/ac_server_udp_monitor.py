@@ -12,11 +12,15 @@ class ACUdpMonitor:
         self.lock = RLock()
         self.reset()
 
-    def reset(self):
+    def reset(self, carId = None):
         with self.lock:
-            self.intervals = [0,0]
-            self.cu_history = [{},{}] # [pluginId][carId]
-            self.info_requests = []
+            if carId is None:
+                self.intervals = [0,0]
+                self.cu_history = [{},{}] # [pluginId][carId]
+                self.info_requests = []
+            else:
+                if carId in self.cu_history[0]: del self.cu_history[0][carId]
+                if carId in self.cu_history[1]: del self.cu_history[1][carId]
 
     def calcRTInterval(self):
         with self.lock:
