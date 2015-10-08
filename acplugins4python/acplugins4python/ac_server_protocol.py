@@ -83,6 +83,9 @@ ACSP_BROADCAST_CHAT = 203 # Sends chat to everybody
 ACSP_GET_SESSION_INFO = 204
 ACSP_SET_SESSION_INFO = 205
 ACSP_KICK_USER = 206
+ACSP_NEXT_SESSION = 207
+ACSP_RESTART_SESSION = 208
+ACSP_ADMIN_COMMAND = 209
 
 # enum for session type
 SESST_PRACTICE = 1
@@ -289,6 +292,20 @@ class KickUser(GenericPacket):
     packetId = ACSP_KICK_USER
     _content = (
         ('carId', Uint8),
+    )
+
+class NextSession(GenericPacket):
+    packetId = ACSP_NEXT_SESSION
+    _content = ()
+    
+class RestartSession(GenericPacket):
+    packetId = ACSP_RESTART_SESSION
+    _content = ()
+    
+class AdminCommand(GenericPacket):
+    packetId = ACSP_ADMIN_COMMAND
+    _content = (
+        ('command', UTF32),
     )
 
 eventMap = {
