@@ -209,7 +209,7 @@ class LeaderboardEntry(GenericPacket):
 leSize = LeaderboardEntry().size()
 Leaderboard = GenericArrayParser('B', leSize,
     lambda x: tuple(LeaderboardEntry().from_buffer(x[(i*leSize):((i+1)*leSize)], 0)[1] for i in range(len(x)//leSize)),
-    None,
+    lambda x: b"".join([lbe.to_buffer() for lbe in x]),
 )
 class LapCompleted(GenericPacket):
     packetId = ACSP_LAP_COMPLETED
@@ -324,6 +324,8 @@ for e in [NewSession,
           ClientLoaded,
           ProtocolError,
           EnableRealtimeReport, # we need to parse this requests due to proxy
+          GetCarInfo,           # we need to parse this requests due to proxy
+          GetSessionInfo,       # we need to parse this requests due to proxy
           ]:
     eventMap[e.packetId] = e
 
@@ -338,5 +340,7 @@ def parse(buffer):
         if type(r) in (ProtocolVersion,SessionInfo,NewSession):
             if r.version != PROTOCOL_VERSION:
                 raise ProtocolVersionMismatch("Expected version %d, got version %d" % (PROTOCOL_VERSION,r.version))
+        if idx != len(buffer):
+            log_err("PacketId=%d: bytes left after parsing. Parsed %d bytes, got %d bytes. Packet: %s" % (eID, idx, len(buffer), str(r)))
         return r
     return None
