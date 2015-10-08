@@ -86,6 +86,12 @@ if __name__ == "__main__":
                      waitTimeSeconds=20)
     s.processServerPackets(1)
     print("move on to next session")
-    s.broadcastChat("/next_session")
+    s.nextSession()
+    s.processServerPackets(5)
+    print("restart this session")
+    s.restartSession()
+    s.processServerPackets(5)
+    print("restart this session (using admin command)")
+    s.adminCommand("/restart_session")
     s.processServerPackets()
     

@@ -163,6 +163,18 @@ class ACServerPlugin:
         p = ac_server_protocol.KickUser(carId=carId)
         self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
         
+    def nextSession(self):
+        p = ac_server_protocol.NextSession()
+        self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
+        
+    def restartSession(self):
+        p = ac_server_protocol.RestartSession()
+        self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
+
+    def adminCommand(self, command):
+        p = ac_server_protocol.AdminCommand(command=command)
+        self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
+        
     def _performProxy(self):
         while 1:
             try:
