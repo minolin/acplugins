@@ -176,6 +176,15 @@ namespace acPlugins4net
                 AdminPassword = _Workarounds.FindServerConfigEntry("ADMIN_PASSWORD=");
                 ServerBlacklistMode = Convert.ToInt32(_Workarounds.FindServerConfigEntry("BLACKLIST_MODE="));
 
+                // We will parse the server's plugin config only if the stuff isn't already defined by the overriden ac_server_port / plugin_port
+                // This is important to run the behind a proxy or redirector (that is directly attached to the acServer then)
+                if (ListeningPort > 0 && RemotePort > 0)
+                {
+                    if (RemostHostname != "127.0.0.1")
+                        RemostHostname = "127.0.0.1";
+                    return;
+                }
+
                 // First we're getting the configured ports (read directly from the server_config.ini)
                 string acServerPortString = _Workarounds.FindServerConfigEntry("UDP_PLUGIN_LOCAL_PORT=");
                 string pluginPortString = _Workarounds.FindServerConfigEntry("UDP_PLUGIN_ADDRESS=");

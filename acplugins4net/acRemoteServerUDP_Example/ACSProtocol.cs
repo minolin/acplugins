@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace acRemoteServerUDP_Example {
-    static class ACSProtocol {
+namespace acRemoteServerUDP_Example
+{
+    static class ACSProtocol
+    {
         public const byte ACSP_NEW_SESSION = 50;
         public const byte ACSP_NEW_CONNECTION = 51;
         public const byte ACSP_CONNECTION_CLOSED = 52;
@@ -34,6 +36,9 @@ namespace acRemoteServerUDP_Example {
         public const byte ACSP_GET_SESSION_INFO = 204;
         public const byte ACSP_SET_SESSION_INFO = 205;
         public const byte ACSP_KICK_USER = 206;
-        
+        public const byte ACSP_NEXT_SESSION = 207;
+        public const byte ACSP_RESTART_SESSION = 208;
+        public const byte ACSP_ADMIN_COMMAND = 209; // Send message plus a stringW with the command
+
     }
 }
