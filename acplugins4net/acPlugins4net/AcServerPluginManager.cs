@@ -636,13 +636,13 @@ namespace acPlugins4net
             }
         }
 
-        private void MessageReceivedFromExternalPlugin(byte[] data)
+        private void MessageReceivedFromExternalPlugin(TimestampedBytes tsb)
         {
-            _UDP.Send(data);
+            _UDP.Send(tsb);
 
             if (LogServerRequests > 0)
             {
-                LogRequestToServer(AcMessageParser.Parse(data));
+                LogRequestToServer(AcMessageParser.Parse(tsb));
             }
         }
 
@@ -688,7 +688,7 @@ namespace acPlugins4net
             }
         }
 
-        private void MessageReceived(byte[] data)
+        private void MessageReceived(TimestampedBytes data)
         {
             lock (lockObject)
             {

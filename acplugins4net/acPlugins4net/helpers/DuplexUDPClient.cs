@@ -12,9 +12,9 @@ namespace acPlugins4net.helpers
     public class DuplexUDPClient
     {
         private UdpClient _plugin = null;
-        private readonly Queue<byte[]> _messageQueue = new Queue<byte[]>();
-        private readonly Queue<byte[]> _sendMessageQueue = new Queue<byte[]>();
-        public delegate void MessageReceivedDelegate(byte[] data);
+        private readonly Queue<TimestampedBytes> _messageQueue = new Queue<TimestampedBytes>();
+        private readonly Queue<TimestampedBytes> _sendMessageQueue = new Queue<TimestampedBytes>();
+        public delegate void MessageReceivedDelegate(TimestampedBytes data);
         private MessageReceivedDelegate MessageReceived;
         public delegate void ErrorHandlerDelegate(Exception ex);
         private ErrorHandlerDelegate ErrorHandler;
@@ -84,7 +84,7 @@ namespace acPlugins4net.helpers
         {
             while (Opened)
             {
-                byte[] msgData;
+                TimestampedBytes msgData;
                 lock (_messageQueue)
                 {
                     if (_messageQueue.Count == 0)
@@ -115,9 +115,10 @@ namespace acPlugins4net.helpers
                 try
                 {
                     var bytesReceived = _plugin.Receive(ref RemoteIpEndPoint);
+                    var tsb = new TimestampedBytes(bytesReceived);
                     lock (_messageQueue)
                     {
-                        _messageQueue.Enqueue(bytesReceived);
+                        _messageQueue.Enqueue(tsb);
                         Monitor.Pulse(_messageQueue);
                     }
                 }
@@ -146,7 +147,7 @@ namespace acPlugins4net.helpers
                         if (!Opened) break; // exit loop if closed
                     }
 
-                    msgData = _sendMessageQueue.Dequeue();
+                    msgData = _sendMessageQueue.Dequeue().RawData;
                 }
 
                 try
@@ -164,7 +165,7 @@ namespace acPlugins4net.helpers
             }
         }
 
-        public void Send(byte[] dgram)
+        public void Send(TimestampedBytes dgram)
         {
             if (_plugin == null)
                 throw new Exception("TrySend: UdpClient missing, please open first");
@@ -176,7 +177,7 @@ namespace acPlugins4net.helpers
             }
         }
 
-        public bool TrySend(byte[] dgram)
+        public bool TrySend(TimestampedBytes dgram)
         {
             try
             {

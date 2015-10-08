@@ -49,7 +49,7 @@ namespace acServerFake.view.logviewer
         public string MsgType { get { return _message.Type.ToString(); } }
         public string DisplayShort { get { return _message.ToString().Replace(Environment.NewLine, "|"); } }
         public string DisplayMultiline { get { return _message.ToString(); } }
-        public string Binary { get { return BitConverter.ToString(_message.ToBinary()); } }
+        public string Binary { get { return BitConverter.ToString(_message.ToBinary().RawData); } }
 
         public PluginMessageEntry(PluginMessage msg)
         {

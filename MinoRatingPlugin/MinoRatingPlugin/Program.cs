@@ -19,7 +19,7 @@ namespace MinoRatingPlugin
         public LiveDataDumpClient LiveDataServer { get; set; }
         public string TrustToken { get; set; }
         public Guid CurrentSessionGuid { get; set; }
-        public static Version PluginVersion = new Version(1, 1, 0);
+        public static Version PluginVersion = new Version(1, 2, 0);
 
         protected internal byte[] _fingerprint;
 
@@ -52,9 +52,9 @@ namespace MinoRatingPlugin
             _fingerprint = Hash(PluginManager.Config.GetSetting("ac_server_directory") + PluginManager.RemotePort);
 
 #if DEBUG
-            LiveDataServer = new LiveDataDumpClient(new BasicHttpBinding(), new EndpointAddress("http://localhost:806/minorating"));
+            LiveDataServer = new LiveDataDumpClient(new BasicHttpBinding(), new EndpointAddress("http://localhost:805/minorating"));
 #else
-            LiveDataServer = new LiveDataDumpClient(new BasicHttpBinding(), new EndpointAddress("http://plugin.minorating.com:806/minorating"));
+            LiveDataServer = new LiveDataDumpClient(new BasicHttpBinding(), new EndpointAddress("http://plugin.minorating.com:805/minorating"));
 #endif
 
             TrustToken = PluginManager.Config.GetSetting("server_trust_token");
@@ -234,8 +234,6 @@ namespace MinoRatingPlugin
 
         protected override void OnClientLoaded(MsgClientLoaded msg)
         {
-            //LiveDataServer.RandomCarInfo(CurrentSessionGuid, car.CarId, car.CarModel, car.DriverName, car.DriverGuid, true);
-            HandleClientActions(LiveDataServer.RequestDriverRating(CurrentSessionGuid, msg.CarId));
             HandleClientActions(LiveDataServer.RequestDriverLoaded(CurrentSessionGuid, msg.CarId));
         }
 
