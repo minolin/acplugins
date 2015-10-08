@@ -36,6 +36,9 @@ namespace acRemoteServerUDP_Example
         public const byte ACSP_GET_SESSION_INFO = 204;
         public const byte ACSP_SET_SESSION_INFO = 205;
         public const byte ACSP_KICK_USER = 206;
+        public const byte ACSP_NEXT_SESSION = 207;
+        public const byte ACSP_RESTART_SESSION = 208;
+        public const byte ACSP_ADMIN_COMMAND = 209; // Send message plus a stringW with the command
 
     }
 }

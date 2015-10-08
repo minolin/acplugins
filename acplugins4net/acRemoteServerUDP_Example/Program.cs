@@ -428,7 +428,7 @@ namespace acRemoteServerUDP_Example
                             {
                                 var rcar_id = br.ReadByte();
                                 var rtime = br.ReadUInt32();
-                                var rlaps = br.ReadByte();
+                                var rlaps = br.ReadUInt16();
 
                                 Console.WriteLine((i + 1).ToString() + ": CAR_ID:" + rcar_id + " TIME:" + rtime + " LAPS:" + rlaps);
                             }
