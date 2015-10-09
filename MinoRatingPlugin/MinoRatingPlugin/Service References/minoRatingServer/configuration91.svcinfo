@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<SavedWcfConfigurationInformation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="9.1" CheckSum="xVJ30gxrMaQ10huJyCIpHwMrVtw=">
+<SavedWcfConfigurationInformation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="9.1" CheckSum="b9Hk6PDvwM6vj4GqcJ+B74h5t4I=">
   <bindingConfigurations>
     <bindingConfiguration bindingType="basicHttpBinding" name="BasicHttpBinding_ILiveDataDump">
       <properties>
@@ -112,10 +112,10 @@
     </bindingConfiguration>
   </bindingConfigurations>
   <endpoints>
-    <endpoint name="BasicHttpBinding_ILiveDataDump" contract="minoRatingServer.ILiveDataDump" bindingType="basicHttpBinding" address="http://localhost:805/minorating" bindingConfiguration="BasicHttpBinding_ILiveDataDump">
+    <endpoint name="BasicHttpBinding_ILiveDataDump" contract="minoRatingServer.ILiveDataDump" bindingType="basicHttpBinding" address="http://localhost:805/minorating/12" bindingConfiguration="BasicHttpBinding_ILiveDataDump">
       <properties>
         <property path="/address" isComplexType="false" isExplicitlyDefined="true" clrType="System.Uri, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-          <serializedValue>http://localhost:805/minorating</serializedValue>
+          <serializedValue>http://localhost:805/minorating/12</serializedValue>
         </property>
         <property path="/behaviorConfiguration" isComplexType="false" isExplicitlyDefined="false" clrType="System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
           <serializedValue />

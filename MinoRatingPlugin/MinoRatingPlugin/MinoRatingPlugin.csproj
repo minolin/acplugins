@@ -74,6 +74,21 @@
     <WCFMetadataStorage Include="Service References\minoRatingServer\" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Service References\minoRatingServer\12.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\minoRatingServer\121.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\minoRatingServer\122.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\minoRatingServer\123.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\minoRatingServer\124.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Service References\minoRatingServer\configuration91.svcinfo" />
   </ItemGroup>
   <ItemGroup>
@@ -81,21 +96,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Service References\minoRatingServer\LiveDataDump.wsdl" />
-    <None Include="Service References\minoRatingServer\minorating.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\minoRatingServer\minorating1.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\minoRatingServer\minorating2.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\minoRatingServer\minorating3.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\minoRatingServer\minorating4.xsd">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="Service References\minoRatingServer\MinoRatingPlugin.minoRatingServer.PluginReaction.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
@@ -112,7 +112,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
-    <None Include="Service References\minoRatingServer\minorating.disco" />
+    <None Include="Service References\minoRatingServer\12.disco" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

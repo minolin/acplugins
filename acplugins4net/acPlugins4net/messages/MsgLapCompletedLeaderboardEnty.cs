@@ -11,7 +11,7 @@ namespace acPlugins4net.messages
     {
         public byte CarId { get; set; }
         public uint Laptime { get; set; }
-        public byte Laps { get; set; }
+        public ushort Laps { get; set; }
 
         public static MsgLapCompletedLeaderboardEnty FromBinaryReader(BinaryReader br)
         {
@@ -19,7 +19,7 @@ namespace acPlugins4net.messages
             {
                 CarId = br.ReadByte(),
                 Laptime = br.ReadUInt32(),
-                Laps = br.ReadByte()
+                Laps = br.ReadUInt16()
             };
         }
 
