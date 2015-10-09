@@ -1,9 +1,10 @@
-# a test
+# for uploading a new version to pypi, use this command:
+# python setup.py sdist bdist_wininst upload
 
 from setuptools import setup
 
-plugin_version = "0.3"
-ac_version = "1.2.3"
+plugin_version = "0.4"
+ac_version = "1.3.0"
 python_version = "3.3.x"
 
 setup(name='acplugins4python',
