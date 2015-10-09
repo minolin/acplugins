@@ -108,7 +108,10 @@ namespace acPlugins4net
 
         public DriverInfo GetDriver(int connectionId)
         {
-            return this.currentSession.Drivers[connectionId];
+            var lastDrivers = currentSession.Drivers.Where(x => x.CarId == connectionId).OrderByDescending(x => x.ConnectedTimestamp);
+            if (lastDrivers.Any())
+                return lastDrivers.First();
+            return null;
         }
         #endregion
 

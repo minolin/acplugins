@@ -168,7 +168,7 @@ namespace acPlugins4net.info
             {
                 // We have to protect this cache from higher realtimeUpdateIntervals as requested
                 if (_carUpdateCache.Count == 0 
-                    || (_carUpdateCache.Last.Value.CreationDate - msg.CreationDate).TotalMilliseconds >= realtimeUpdateInterval * 0.9991)
+                    || (msg.CreationDate - _carUpdateCache.Last.Value.CreationDate).TotalMilliseconds >= realtimeUpdateInterval * 0.9991)
                 {
                     var node = _carUpdateCache.AddLast(msg);
                     if (_carUpdateCache.Count > MsgCarUpdateCacheSize)

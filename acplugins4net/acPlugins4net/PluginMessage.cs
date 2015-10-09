@@ -9,7 +9,7 @@ namespace acPlugins4net
     public abstract class PluginMessage
     {
         public ACSProtocol.MessageType Type { get; protected internal set; }
-        public DateTime CreationDate { get; private set; }
+        public DateTime CreationDate { get; protected internal set; }
 
         public PluginMessage(ACSProtocol.MessageType type)
         {
@@ -41,6 +41,7 @@ namespace acPlugins4net
             }
         }
 
+        [Obsolete("Used nowhere?")]
         public void FromBinary(TimestampedBytes data)
         {
             using (var m = new MemoryStream(data.RawData))

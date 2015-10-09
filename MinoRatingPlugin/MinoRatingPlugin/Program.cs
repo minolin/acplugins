@@ -19,10 +19,8 @@ namespace MinoRatingPlugin
         public LiveDataDumpClient LiveDataServer { get; set; }
         public string TrustToken { get; set; }
         public Guid CurrentSessionGuid { get; set; }
+        public DateTime CurrentSessionStartTime { get; set; }
         public static Version PluginVersion = new Version(1, 2, 0);
-
-        [Obsolete("This one is wrong, we'll have to figure this out later")]
-        public int CurrentRaceTime { get; set; } = 12;
 
         protected internal byte[] _fingerprint;
 
@@ -128,13 +126,22 @@ namespace MinoRatingPlugin
             for (byte i = 0; i < 36; i++)
                 PluginManager.RequestCarInfo(i);
 
+            CurrentSessionStartTime = msg.CreationDate.AddMilliseconds(msg.ElapsedMS*-1);
+
             _distancesToReport.Clear();
         }
 
         protected override void OnNewConnection(MsgNewConnection msg)
         {
             PluginManager.Log("OnNewConnection: " + msg.DriverName + "@" + msg.CarModel);
-            HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, true, CurrentRaceTime));
+            HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, true, GetCurrentRaceTimeMS(msg)));
+        }
+
+        private int GetCurrentRaceTimeMS(PluginMessage msg)
+        {
+            if (CurrentSessionStartTime == DateTime.MinValue)
+                return 0;
+            return (int)Math.Round((msg.CreationDate - CurrentSessionStartTime).TotalMilliseconds);
         }
 
         protected override void OnSessionEnded(MsgSessionEnded msg)
@@ -146,7 +153,7 @@ namespace MinoRatingPlugin
         protected override void OnConnectionClosed(MsgConnectionClosed msg)
         {
             PluginManager.Log("OnConnectionClosed: " + msg.DriverName + "@" + msg.CarModel);
-            HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, "", "", "", false, CurrentRaceTime));
+            HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, "", "", "", false, GetCurrentRaceTimeMS(msg)));
         }
 
         protected override void OnLapCompleted(MsgLapCompleted msg)
@@ -171,7 +178,7 @@ namespace MinoRatingPlugin
             // To prevent a bug in communication we will only send when the Car IsConnected - discos only via the corresponding event please.
             if (msg.IsConnected)
             {
-                HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, msg.IsConnected, CurrentRaceTime));
+                HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, msg.IsConnected, GetCurrentRaceTimeMS(msg)));
             }
 
         }
@@ -254,9 +261,10 @@ namespace MinoRatingPlugin
             {
                 var driver = PluginManager.GetDriver(carId);
                 List<CarUpdateHistory> driversCache = new List<CarUpdateHistory>();
-                var carUpdate = driver.LastCarUpdate.Value;
-                while (carUpdate != null && driversCache.Count < 6)
+                var node = driver.LastCarUpdate;
+                while (node != null && node.Value != null && driversCache.Count < 6)
                 {
+                    var carUpdate = node.Value;
                     driversCache.Add(new CarUpdateHistory()
                     {
                         Created = carUpdate.CreationDate,
@@ -266,6 +274,8 @@ namespace MinoRatingPlugin
                         Velocity = new float[] { carUpdate.Velocity.X, carUpdate.Velocity.Z },
                         WorldPosition = new float[] { carUpdate.WorldPosition.X, carUpdate.WorldPosition.Z }
                     });
+
+                    node = node.Previous;
                 }
 
                 SendDistance(driver, true);
@@ -294,7 +304,6 @@ namespace MinoRatingPlugin
 
         #region Distance driven & behaviour analysis
 
-        private float TrackLength = 0.0f;
         private Dictionary<DriverInfo, MRDistanceHelper> _distancesToReport = new Dictionary<DriverInfo, MRDistanceHelper>();
 
         protected override void OnCarUpdate(DriverInfo di)

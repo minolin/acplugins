@@ -31,6 +31,7 @@ namespace acPlugins4net.helpers
             }
 
             PluginMessage newMsg = CreateInstance(msgType);
+            newMsg.CreationDate = rawMessage.IncomingDate;
             using (var m = new MemoryStream(rawData))
             using (var br = new BinaryReader(m))
             {
