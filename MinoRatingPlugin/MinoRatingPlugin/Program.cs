@@ -21,6 +21,9 @@ namespace MinoRatingPlugin
         public Guid CurrentSessionGuid { get; set; }
         public static Version PluginVersion = new Version(1, 2, 0);
 
+        [Obsolete("This one is wrong, we'll have to figure this out later")]
+        public int CurrentRaceTime { get; set; } = 12;
+
         protected internal byte[] _fingerprint;
 
 
@@ -131,7 +134,7 @@ namespace MinoRatingPlugin
         protected override void OnNewConnection(MsgNewConnection msg)
         {
             PluginManager.Log("OnNewConnection: " + msg.DriverName + "@" + msg.CarModel);
-            HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, true));
+            HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, true, CurrentRaceTime));
         }
 
         protected override void OnSessionEnded(MsgSessionEnded msg)
@@ -143,7 +146,7 @@ namespace MinoRatingPlugin
         protected override void OnConnectionClosed(MsgConnectionClosed msg)
         {
             PluginManager.Log("OnConnectionClosed: " + msg.DriverName + "@" + msg.CarModel);
-            HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, "", "", "", false));
+            HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, "", "", "", false, CurrentRaceTime));
         }
 
         protected override void OnLapCompleted(MsgLapCompleted msg)
@@ -168,7 +171,7 @@ namespace MinoRatingPlugin
             // To prevent a bug in communication we will only send when the Car IsConnected - discos only via the corresponding event please.
             if (msg.IsConnected)
             {
-                HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, msg.IsConnected));
+                HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, msg.IsConnected, CurrentRaceTime));
             }
 
         }

@@ -138,6 +138,7 @@
         <xs:element minOccurs="0" name="name" nillable="true" type="xs:string" />
         <xs:element minOccurs="0" name="driverId" nillable="true" type="xs:string" />
         <xs:element minOccurs="0" name="isConnected" type="xs:boolean" />
+        <xs:element minOccurs="0" name="sessionTime" type="xs:int" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
