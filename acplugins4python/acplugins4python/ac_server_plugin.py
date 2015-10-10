@@ -33,6 +33,9 @@ import socket, time, select
 from . import ac_server_protocol
 from . import ac_server_udp_monitor
 
+class PlausibilityCheckFailed(RuntimeError):
+    pass
+
 class ACServerPlugin:
 
     def __init__(self,
@@ -82,11 +85,31 @@ class ACServerPlugin:
         self.host = serverIP
         self.sendPort = sendPort
         self.rcvPort = rcvPort
+
+        if not 1024 <= rcvPort <= 65535 or not 1024 <= sendPort <= 65535:
+            log_err("Fatal error: Unplausible UDP_PLUGIN_ settings in server_cfg.ini. Specify port numbers between 1024 and 65535.")
+            log_err("Configured ports: UDP_PLUGIN_ADDRESS=%d, UDP_PLUGIN_LOCAL_PORT=%d", rcvPort, sendPort)
+            raise PlausibilityCheckFailed()
+
+        if rcvPort == sendPort:
+            log_err("Fatal error: Unplausible UDP_PLUGIN_ settings in server_cfg.ini. Port numbers must not be equal.")
+            log_err("Configured ports: UDP_PLUGIN_ADDRESS=%d, UDP_PLUGIN_LOCAL_PORT=%d", rcvPort, sendPort)
+            raise PlausibilityCheckFailed()
+
         self.acSocket = self.openSocket(self.host, self.rcvPort, self.sendPort, None)
         log_info("Plugin listens to port %d and sends to port %d." % (self.rcvPort, self.sendPort))
         self.udpMonitor = ac_server_udp_monitor.ACUdpMonitor()
 
         if not proxyRcvPort is None and not proxySendPort is None:
+            if not 1024 <= proxyRcvPort <= 65535 or not 1024 <= proxySendPort <= 65535:
+                log_err("Fatal error: Unplausible proxy configuration. Specify ports between 1024 and 65535.")
+                log_err("Configured ports: proxyRcvPort=%d proxySendPort=%d", proxyRcvPort, proxySendPort)
+                raise PlausibilityCheckFailed()
+            if proxyRcvPort in [rcvPort, sendPort, proxySendPort] or proxySendPort in [rcvPort, sendPort, proxyRcvPort]:
+                log_err("Fatal error: Unplausible proxy configuration. Specify unique ports for the proxy.")
+                log_err("Configured ports: proxyRcvPort=%d proxySendPort=%d UDP_PLUGIN_ADDRESS=%d UDP_PLUGIN_LOCAL_PORT=%d",
+                        proxyRcvPort, proxySendPort, rcvPort, sendPort)
+                raise PlausibilityCheckFailed()
             log_info("Plugin proxy enabled. The proxied plugin shall be configured as if the following lines were in server_cfg.ini:")
             log_info("UDP_PLUGIN_ADDRESS=127.0.0.1:%d"%proxyRcvPort)
             log_info("UDP_PLUGIN_LOCAL_PORT=%d"%proxySendPort)
@@ -204,7 +227,7 @@ class ACServerPlugin:
     def nextSession(self):
         p = ac_server_protocol.NextSession()
         self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
-        
+
     def restartSession(self):
         p = ac_server_protocol.RestartSession()
         self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
@@ -212,7 +235,7 @@ class ACServerPlugin:
     def adminCommand(self, command):
         p = ac_server_protocol.AdminCommand(command=command)
         self.acSocket.sendto(p.to_buffer(), (self.host, self.sendPort))
-        
+
     def _performProxy(self):
         while 1:
             try:
