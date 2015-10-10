@@ -107,7 +107,20 @@ namespace acPlugins4net
             }
         }
 
-        public DriverInfo GetDriver(int connectionId)
+        public DriverInfo GetDriverInfo(byte carId)
+        {
+            DriverInfo driver;
+            if (this.TryGetDriverInfo(carId, out driver))
+            {
+                return driver;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public DriverInfo GetDriverByConnectionId(int connectionId)
         {
             return this.currentSession.Drivers[connectionId];
         }
