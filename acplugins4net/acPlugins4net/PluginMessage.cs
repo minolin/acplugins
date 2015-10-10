@@ -37,7 +37,7 @@ namespace acPlugins4net
             {
                 bw.Write((byte)Type);
                 Serialize(bw);
-                return new TimestampedBytes(m.ToArray());
+                return new TimestampedBytes(m.ToArray(), this.CreationDate);
             }
         }
 

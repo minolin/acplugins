@@ -30,6 +30,7 @@ namespace acPlugins4net
         private readonly List<ExternalPluginInfo> _externalPlugins;
         private readonly Dictionary<ExternalPluginInfo, DuplexUDPClient> _openExternalPlugins;
         private readonly object lockObject = new object();
+        private readonly bool PortsFromAppConfig;
         #endregion
 
         #region public fields/properties
@@ -69,7 +70,7 @@ namespace acPlugins4net
         /// Gets or sets the hostname of the AC server.
         /// Can be set via app.config setting "ac_server_host". Default is "127.0.0.1".
         /// </summary>
-        public string RemostHostname { get; set; }
+        public string RemoteHostname { get; set; }
 
         /// <summary>
         /// Gets or sets the port of the AC server where requests should be send to.
@@ -108,10 +109,7 @@ namespace acPlugins4net
 
         public DriverInfo GetDriver(int connectionId)
         {
-            var lastDrivers = currentSession.Drivers.Where(x => x.CarId == connectionId).OrderByDescending(x => x.ConnectedTimestamp);
-            if (lastDrivers.Any())
-                return lastDrivers.First();
-            return null;
+            return this.currentSession.Drivers[connectionId];
         }
         #endregion
 
@@ -135,11 +133,23 @@ namespace acPlugins4net
             ProtocolVersion = -1;
 
             // get the configured ports (app.config)
-            ListeningPort = Config.GetSettingAsInt("plugin_port", 12000);
-            RemostHostname = Config.GetSetting("ac_server_host");
-            if (string.IsNullOrWhiteSpace(RemostHostname))
-                RemostHostname = "127.0.0.1";
-            RemotePort = Config.GetSettingAsInt("ac_server_port", 11000);
+            ListeningPort = Config.GetSettingAsInt("plugin_port", 0);
+            RemotePort = Config.GetSettingAsInt("ac_server_port", 0);
+            if (ListeningPort != 0 && RemotePort != 0)
+            {
+                PortsFromAppConfig = true;
+            }
+            else
+            {
+                ListeningPort = 12000;
+                RemotePort = 11000;
+            }
+
+            // get the remote hostname
+            RemoteHostname = Config.GetSetting("ac_server_host");
+            if (string.IsNullOrWhiteSpace(RemoteHostname))
+                RemoteHostname = "127.0.0.1";
+
             this.currentSession.MaxClients = Config.GetSettingAsInt("max_clients", 32); // TODO can be removed when MaxClients added to MsgSessionInfo
             AdminPassword = Config.GetSetting("admin_password");
 
@@ -164,7 +174,7 @@ namespace acPlugins4net
 
         /// <summary>
         /// Loads the information from server configuration.
-        /// The following Properties are set: <see cref="MaxClients"/>, <see cref="ListeningPort"/>,  <see cref="RemostHostname"/>, <see cref="RemotePort"/>
+        /// The following Properties are set: <see cref="MaxClients"/>, <see cref="ListeningPort"/>,  <see cref="RemoteHostname"/>, <see cref="RemotePort"/>
         /// </summary>
         public void LoadInfoFromServerConfig()
         {
@@ -181,10 +191,8 @@ namespace acPlugins4net
 
                 // We will parse the server's plugin config only if the stuff isn't already defined by the overriden ac_server_port / plugin_port
                 // This is important to run the behind a proxy or redirector (that is directly attached to the acServer then)
-                if (ListeningPort > 0 && RemotePort > 0)
+                if (this.PortsFromAppConfig)
                 {
-                    if (RemostHostname != "127.0.0.1")
-                        RemostHostname = "127.0.0.1";
                     return;
                 }
 
@@ -214,7 +222,6 @@ namespace acPlugins4net
                 #endregion
 
                 ListeningPort = pluginPort;
-                RemostHostname = "127.0.0.1";
                 RemotePort = acServerPort;
             }
         }
@@ -612,7 +619,7 @@ namespace acPlugins4net
                 }
 
                 ProtocolVersion = -1;
-                _UDP.Open(ListeningPort, RemostHostname, RemotePort, MessageReceived, Log);
+                _UDP.Open(ListeningPort, RemoteHostname, RemotePort, MessageReceived, Log);
 
                 try
                 {
@@ -628,7 +635,7 @@ namespace acPlugins4net
                     try
                     {
                         DuplexUDPClient externalPluginUdp = new DuplexUDPClient();
-                        externalPluginUdp.Open(externalPlugin.ListeningPort, externalPlugin.RemostHostname, externalPlugin.RemotePort, MessageReceivedFromExternalPlugin, Log);
+                        externalPluginUdp.Open(externalPlugin.ListeningPort, externalPlugin.RemoteHostname, externalPlugin.RemotePort, MessageReceivedFromExternalPlugin, Log);
                         _openExternalPlugins.Add(externalPlugin, externalPluginUdp);
                     }
                     catch (Exception ex)
