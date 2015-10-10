@@ -108,7 +108,10 @@ namespace acPlugins4net
 
         public DriverInfo GetDriver(int connectionId)
         {
-            return this.currentSession.Drivers[connectionId];
+            var lastDrivers = currentSession.Drivers.Where(x => x.CarId == connectionId).OrderByDescending(x => x.ConnectedTimestamp);
+            if (lastDrivers.Any())
+                return lastDrivers.First();
+            return null;
         }
         #endregion
 
@@ -636,13 +639,13 @@ namespace acPlugins4net
             }
         }
 
-        private void MessageReceivedFromExternalPlugin(byte[] data)
+        private void MessageReceivedFromExternalPlugin(TimestampedBytes tsb)
         {
-            _UDP.Send(data);
+            _UDP.Send(tsb);
 
             if (LogServerRequests > 0)
             {
-                LogRequestToServer(AcMessageParser.Parse(data));
+                LogRequestToServer(AcMessageParser.Parse(tsb));
             }
         }
 
@@ -688,7 +691,7 @@ namespace acPlugins4net
             }
         }
 
-        private void MessageReceived(byte[] data)
+        private void MessageReceived(TimestampedBytes data)
         {
             lock (lockObject)
             {

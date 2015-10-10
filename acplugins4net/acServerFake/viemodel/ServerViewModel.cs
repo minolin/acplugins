@@ -51,7 +51,7 @@ namespace acServerFake.viemodel
             AwesomeViewerStolenFromTheInternet.Log(msg);
         }
 
-        private void MessageReceived(byte[] data)
+        private void MessageReceived(TimestampedBytes data)
         {
             // The plugin did send us a Message, how nice :)
             // It will be raw data and needs to be decoded by the type (first byte)

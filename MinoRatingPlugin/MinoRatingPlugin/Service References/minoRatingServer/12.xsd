@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import schemaLocation="http://localhost:805/minorating/12?xsd=xsd4" namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
   <xs:complexType name="ArrayOfPluginReaction">
     <xs:sequence>
       <xs:element minOccurs="0" maxOccurs="unbounded" name="PluginReaction" nillable="true" type="tns:PluginReaction" />
@@ -48,10 +49,28 @@
   <xs:complexType name="MRDistanceHelper">
     <xs:sequence>
       <xs:element minOccurs="0" name="MetersAttackRange" type="xs:float" />
+      <xs:element minOccurs="0" name="MetersBlueflagging" type="xs:float" />
       <xs:element minOccurs="0" name="MetersCombatRange" type="xs:float" />
       <xs:element minOccurs="0" name="MetersDriven" type="xs:float" />
       <xs:element minOccurs="0" name="Overtakes" type="xs:int" />
     </xs:sequence>
   </xs:complexType>
   <xs:element name="MRDistanceHelper" nillable="true" type="tns:MRDistanceHelper" />
+  <xs:complexType name="ArrayOfCarUpdateHistory">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="CarUpdateHistory" nillable="true" type="tns:CarUpdateHistory" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfCarUpdateHistory" nillable="true" type="tns:ArrayOfCarUpdateHistory" />
+  <xs:complexType name="CarUpdateHistory">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Created" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="EngineRPM" type="xs:unsignedShort" />
+      <xs:element minOccurs="0" name="Gear" type="xs:unsignedByte" />
+      <xs:element minOccurs="0" name="NormalizedSplinePosition" type="xs:float" />
+      <xs:element xmlns:q1="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="Velocity" nillable="true" type="q1:ArrayOffloat" />
+      <xs:element xmlns:q2="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="WorldPosition" nillable="true" type="q2:ArrayOffloat" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="CarUpdateHistory" nillable="true" type="tns:CarUpdateHistory" />
 </xs:schema>

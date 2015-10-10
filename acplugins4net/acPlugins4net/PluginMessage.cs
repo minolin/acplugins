@@ -9,6 +9,7 @@ namespace acPlugins4net
     public abstract class PluginMessage
     {
         public ACSProtocol.MessageType Type { get; protected internal set; }
+        public DateTime CreationDate { get; protected internal set; }
 
         public PluginMessage(ACSProtocol.MessageType type)
         {
@@ -29,20 +30,21 @@ namespace acPlugins4net
         protected internal abstract void Serialize(BinaryWriter bw);
         protected internal abstract void Deserialize(BinaryReader br);
 
-        public byte[] ToBinary()
+        public TimestampedBytes ToBinary()
         {
             using (var m = new MemoryStream())
             using (var bw = new BinaryWriter(m))
             {
                 bw.Write((byte)Type);
                 Serialize(bw);
-                return m.ToArray();
+                return new TimestampedBytes(m.ToArray());
             }
         }
 
-        public void FromBinary(byte[] data)
+        [Obsolete("Used nowhere?")]
+        public void FromBinary(TimestampedBytes data)
         {
-            using (var m = new MemoryStream(data))
+            using (var m = new MemoryStream(data.RawData))
             using (var br = new BinaryReader(m))
             {
                 var type = br.Read();
@@ -50,6 +52,7 @@ namespace acPlugins4net
                     throw new Exception("FromBinary() Type != type");
 
                 Deserialize(br);
+                CreationDate = data.IncomingDate;
             }
         }
 

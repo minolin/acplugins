@@ -166,14 +166,19 @@ namespace acPlugins4net.info
             UpdatePosition(msg.WorldPosition, msg.Velocity, msg.NormalizedSplinePosition, realtimeUpdateInterval);
             if (MsgCarUpdateCacheSize > 0)
             {
-                var node = _carUpdateCache.AddLast(msg);
-                if (_carUpdateCache.Count > MsgCarUpdateCacheSize)
-                    _carUpdateCache.RemoveFirst();
-
-                if (_carUpdateCache.Count > 1)
+                // We have to protect this cache from higher realtimeUpdateIntervals as requested
+                if (_carUpdateCache.Count == 0 
+                    || (msg.CreationDate - _carUpdateCache.Last.Value.CreationDate).TotalMilliseconds >= realtimeUpdateInterval * 0.9991)
                 {
-                    // We could easily do car-specifc stuff here, e.g. calculate the distance driven between the intervals,
-                    // or a python-app like delta - maybe even a loss of control
+                    var node = _carUpdateCache.AddLast(msg);
+                    if (_carUpdateCache.Count > MsgCarUpdateCacheSize)
+                        _carUpdateCache.RemoveFirst();
+
+                    if (_carUpdateCache.Count > 1)
+                    {
+                        // We could easily do car-specifc stuff here, e.g. calculate the distance driven between the intervals,
+                        // or a python-app like delta - maybe even a loss of control
+                    }
                 }
             }
         }

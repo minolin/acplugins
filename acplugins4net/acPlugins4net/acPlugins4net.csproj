@@ -61,6 +61,7 @@
     <Compile Include="helpers\IFileLog.cs" />
     <Compile Include="helpers\ILog.cs" />
     <Compile Include="helpers\FileLogWriter.cs" />
+    <Compile Include="helpers\TimestampedBytes.cs" />
     <Compile Include="helpers\Vector3f.cs" />
     <Compile Include="helpers\WorkaroundHelper.cs" />
     <Compile Include="AcServerPlugin.cs" />

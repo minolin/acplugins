@@ -11,8 +11,10 @@ namespace acPlugins4net.helpers
 {
     public class AcMessageParser
     {
-        public static PluginMessage Parse(byte[] rawData)
+        public static PluginMessage Parse(TimestampedBytes rawMessage)
         {
+            var rawData = rawMessage.RawData;
+
             if (rawData == null)
                 throw new ArgumentNullException("rawData");
             if (rawData.Length == 0)
@@ -29,6 +31,7 @@ namespace acPlugins4net.helpers
             }
 
             PluginMessage newMsg = CreateInstance(msgType);
+            newMsg.CreationDate = rawMessage.IncomingDate;
             using (var m = new MemoryStream(rawData))
             using (var br = new BinaryReader(m))
             {
