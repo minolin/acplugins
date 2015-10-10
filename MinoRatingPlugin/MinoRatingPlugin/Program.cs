@@ -259,7 +259,10 @@ namespace MinoRatingPlugin
         {
             try
             {
-                var driver = PluginManager.GetDriver(carId);
+                DriverInfo driver = null;
+                if(!PluginManager.TryGetDriverInfo(Convert.ToByte(carId), out driver))
+                    return;
+
                 List<CarUpdateHistory> driversCache = new List<CarUpdateHistory>();
                 var node = driver.LastCarUpdate;
                 while (node != null && node.Value != null && driversCache.Count < 6)
@@ -292,7 +295,10 @@ namespace MinoRatingPlugin
             lock (contactTrees)
                 contactTrees.Remove(bag);
 
-            var driverInfo = PluginManager.GetDriver(bag.First);
+            DriverInfo driverInfo = null;
+            if (!PluginManager.TryGetDriverInfo(Convert.ToByte(bag.First), out driverInfo))
+                return;
+
             if (driverInfo != null)
             {
                 SendDistance(driverInfo, true);
