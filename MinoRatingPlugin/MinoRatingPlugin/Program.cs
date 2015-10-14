@@ -234,6 +234,7 @@ namespace MinoRatingPlugin
                         if (ct.TryAdd(msg.CarId, msg.OtherCarId))
                         {
                             partOfATree = true;
+                            bagId = ct.BagId;
                             break;
                         }
                     }
@@ -242,7 +243,9 @@ namespace MinoRatingPlugin
                     if (!partOfATree)
                     {
                         // Then we'll start a new one
-                        contactTrees.Add(CollisionBag.StartNew(msg.CarId, msg.OtherCarId, EvaluateContactTree, PluginManager));
+                        var newBag = CollisionBag.StartNew(msg.CarId, msg.OtherCarId, EvaluateContactTree, PluginManager);
+                        contactTrees.Add(newBag);
+                        bagId = newBag.BagId;
                     }
                 }
 
