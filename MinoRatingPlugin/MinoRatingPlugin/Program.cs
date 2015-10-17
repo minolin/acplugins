@@ -205,7 +205,7 @@ namespace MinoRatingPlugin
                             if (split.Length == 1) // only /mr 
                                 HandleClientActions(LiveDataServer.RequestDriverRating(CurrentSessionGuid, msg.CarId));
                             else
-                                HandleClientActions(LiveDataServer.RequestMRCommand(CurrentSessionGuid, msg.CarId, split));
+                                HandleClientActions(LiveDataServer.RequestMRCommandAdminInfo(CurrentSessionGuid, msg.CarId, PluginManager.GetDriverInfo(msg.CarId).IsAdmin, split));
                         }
                         break;
                     default:

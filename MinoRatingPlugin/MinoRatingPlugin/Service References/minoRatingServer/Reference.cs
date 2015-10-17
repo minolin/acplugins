@@ -603,6 +603,12 @@ namespace MinoRatingPlugin.minoRatingServer {
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/RequestMRCommand", ReplyAction="http://tempuri.org/ILiveDataDump/RequestMRCommandResponse")]
         System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> RequestMRCommandAsync(System.Guid sessionId, int car, string[] parameters);
         
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/RequestMRCommandAdminInfo", ReplyAction="http://tempuri.org/ILiveDataDump/RequestMRCommandAdminInfoResponse")]
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] RequestMRCommandAdminInfo(System.Guid sessionId, int car, bool isAdmin, string[] parameters);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/RequestMRCommandAdminInfo", ReplyAction="http://tempuri.org/ILiveDataDump/RequestMRCommandAdminInfoResponse")]
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> RequestMRCommandAdminInfoAsync(System.Guid sessionId, int car, bool isAdmin, string[] parameters);
+        
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/RequestDriverLoaded", ReplyAction="http://tempuri.org/ILiveDataDump/RequestDriverLoadedResponse")]
         MinoRatingPlugin.minoRatingServer.PluginReaction[] RequestDriverLoaded(System.Guid sessionId, int car);
         
@@ -753,6 +759,14 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> RequestMRCommandAsync(System.Guid sessionId, int car, string[] parameters) {
             return base.Channel.RequestMRCommandAsync(sessionId, car, parameters);
+        }
+        
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] RequestMRCommandAdminInfo(System.Guid sessionId, int car, bool isAdmin, string[] parameters) {
+            return base.Channel.RequestMRCommandAdminInfo(sessionId, car, isAdmin, parameters);
+        }
+        
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> RequestMRCommandAdminInfoAsync(System.Guid sessionId, int car, bool isAdmin, string[] parameters) {
+            return base.Channel.RequestMRCommandAdminInfoAsync(sessionId, car, isAdmin, parameters);
         }
         
         public MinoRatingPlugin.minoRatingServer.PluginReaction[] RequestDriverLoaded(System.Guid sessionId, int car) {

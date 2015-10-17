@@ -192,10 +192,27 @@
       </xs:sequence>
     </xs:complexType>
   </xs:element>
-  <xs:element name="RequestDriverLoaded">
+  <xs:element name="RequestMRCommandAdminInfo">
     <xs:complexType>
       <xs:sequence>
         <xs:element xmlns:q26="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q26:guid" />
+        <xs:element minOccurs="0" name="car" type="xs:int" />
+        <xs:element minOccurs="0" name="isAdmin" type="xs:boolean" />
+        <xs:element xmlns:q27="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="parameters" nillable="true" type="q27:ArrayOfstring" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="RequestMRCommandAdminInfoResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q28="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="RequestMRCommandAdminInfoResult" nillable="true" type="q28:ArrayOfPluginReaction" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="RequestDriverLoaded">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q29="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q29:guid" />
         <xs:element minOccurs="0" name="car" type="xs:int" />
       </xs:sequence>
     </xs:complexType>
@@ -203,21 +220,21 @@
   <xs:element name="RequestDriverLoadedResponse">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q27="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="RequestDriverLoadedResult" nillable="true" type="q27:ArrayOfPluginReaction" />
+        <xs:element xmlns:q30="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="RequestDriverLoadedResult" nillable="true" type="q30:ArrayOfPluginReaction" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="GetPendingActions">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q28="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q28:guid" />
+        <xs:element xmlns:q31="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q31:guid" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="GetPendingActionsResponse">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q29="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="GetPendingActionsResult" nillable="true" type="q29:ArrayOfPluginReaction" />
+        <xs:element xmlns:q32="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="GetPendingActionsResult" nillable="true" type="q32:ArrayOfPluginReaction" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
