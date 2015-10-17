@@ -28,9 +28,10 @@ namespace MinoRatingPlugin
         #region Init code
         static void Main(string[] args)
         {
+            AcServerPluginManager pluginManager = null;
             try
             {
-                AcServerPluginManager pluginManager = new AcServerPluginManager(new FileLogWriter("log", "minoplugin.txt") { CopyToConsole = true, LogWithTimestamp = true });
+                pluginManager = new AcServerPluginManager(new FileLogWriter("log", "minoplugin.txt") { CopyToConsole = true, LogWithTimestamp = true });
                 pluginManager.LoadInfoFromServerConfig();
                 pluginManager.AddPlugin(new MinoratingPlugin());
                 pluginManager.LoadPluginsFromAppConfig();
@@ -40,6 +41,11 @@ namespace MinoRatingPlugin
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+                try
+                {
+                    pluginManager.Log(ex);
+                }
+                catch (Exception){}
             }
         }
 

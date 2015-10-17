@@ -143,7 +143,7 @@ namespace acPlugins4net.helpers
                 if (this.log != null)
                 {
                     if(LogWithTimestamp)
-                        this.log.WriteLine(string.Format("{0} {1}", DateTime.Now.ToString("hh.mm.ss.ffffff"), message));
+                        this.log.WriteLine(string.Format("{0} {1}", DateTime.Now.ToString("HH:mm:ss.ffffff"), message));
                     else
                         this.log.WriteLine(message);
                 }

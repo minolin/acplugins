@@ -22,6 +22,7 @@ namespace acPlugins4net
         }
 
         public static readonly int RequiredProtocolVersion;
+        public bool IgnoreRequiredProtocolVersion { get; set; }
 
         #region private fields
         private readonly DuplexUDPClient _UDP;
@@ -183,6 +184,11 @@ namespace acPlugins4net
                     this.SessionReportHandlers.Add(reportHandler);
                 }
             }
+
+            // Let the admin override the protocol version - 1.3 has issues with the linux server
+            IgnoreRequiredProtocolVersion = Config.GetSetting("ignore_UPD_protocol_version") == "true";
+            if (IgnoreRequiredProtocolVersion)
+                Log("IgnoreRequiredProtocolVersion set to 'true', will ignore the message protocol version. Please disable this in case of trouble");
         }
 
         /// <summary>
@@ -728,7 +734,7 @@ namespace acPlugins4net
                         this.ProtocolVersion = ((MsgSessionInfo)msg).Version;
                     }
 
-                    if (this.ProtocolVersion != RequiredProtocolVersion)
+                    if (this.ProtocolVersion != RequiredProtocolVersion && !IgnoreRequiredProtocolVersion)
                     {
                         this.Disconnect();
                         throw new Exception(string.Format("AcServer protocol version '{0}' is different from the required protocol version '{1}'. Disconnecting...",
