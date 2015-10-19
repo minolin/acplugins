@@ -73,4 +73,10 @@
     </xs:sequence>
   </xs:complexType>
   <xs:element name="CarUpdateHistory" nillable="true" type="tns:CarUpdateHistory" />
+  <xs:complexType name="PluginReactionCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Reactions" nillable="true" type="tns:ArrayOfPluginReaction" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="PluginReactionCollection" nillable="true" type="tns:PluginReactionCollection" />
 </xs:schema>

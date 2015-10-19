@@ -20,7 +20,7 @@ namespace MinoRatingPlugin
         public string TrustToken { get; set; }
         public Guid CurrentSessionGuid { get; set; }
         public DateTime CurrentSessionStartTime { get; set; }
-        public static Version PluginVersion = new Version(1, 2, 0);
+        public static Version PluginVersion = new Version(1, 2, 3, 1);
 
         protected internal byte[] _fingerprint;
 
@@ -291,7 +291,7 @@ namespace MinoRatingPlugin
                 }
 
                 SendDistance(driver, true);
-                HandleClientActions(LiveDataServer.Collision(CurrentSessionGuid, creationDate, carId, otherCarId, relativeVelocity, driver.LastSplinePosition, x1, z1, worldX, worldZ, driversCache.ToArray(), null, bagId));
+                HandleClientActions(LiveDataServer.CollisionV2(CurrentSessionGuid, creationDate, carId, otherCarId, relativeVelocity, driver.LastSplinePosition, x1, z1, worldX, worldZ, driversCache.ToArray(), null, bagId));
             }
             catch (Exception ex)
             {
@@ -311,7 +311,7 @@ namespace MinoRatingPlugin
             if (driverInfo != null)
             {
                 SendDistance(driverInfo, true);
-                HandleClientActions(LiveDataServer.CollisionTreeEnded(CurrentSessionGuid, bag.First, bag.Second, bag.Count, bag.Started, bag.LastCollision));
+                HandleClientActions(LiveDataServer.CollisionTreeEndedV2(CurrentSessionGuid, bag.First, bag.Second, bag.Count, bag.Started, bag.LastCollision));
             }
 
         }
@@ -380,6 +380,13 @@ namespace MinoRatingPlugin
         #endregion
 
         #region Helpers & stuff
+        private void HandleClientActions(PluginReactionCollection actions)
+        {
+            if (actions == null)
+                throw new ArgumentNullException("PluginReactionCollection actions", "Looks like the server didn't create an empty PluginReaction array");
+
+            HandleClientActions(actions.Reactions);
+        }
         private void HandleClientActions(PluginReaction[] actions)
         {
             if (actions == null)
