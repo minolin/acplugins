@@ -69,7 +69,7 @@ namespace acPlugins4net.info
         [DataMember]
         public float StartSplinePos { get; set; } = -1f;
         [DataMember]
-        public float LastSplinePos { get; set; } = -1f;
+        public float EndSplinePos { get; set; } = -1f;
         [DataMember]
         public bool IsAdmin { get; set; }
 
@@ -227,7 +227,7 @@ namespace acPlugins4net.info
                     if (CurrentSpeed > MinSpeed)
                     {
                         // don't update LastSplinePos if car is moving very slowly (was send to box?)
-                        this.LastSplinePos = s;
+                        this.EndSplinePos = s;
                     }
                 }
                 else
@@ -246,7 +246,7 @@ namespace acPlugins4net.info
 
         public float OnLapCompleted()
         {
-            float lastSplinePos = this.LastSplinePos;
+            float lastSplinePos = this.EndSplinePos;
             if (lastSplinePos < 0.5)
             {
                 lastSplinePos += 1f;

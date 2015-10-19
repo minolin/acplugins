@@ -505,7 +505,7 @@ namespace acPlugins4net
                     List<DriverInfo> sortedDrivers = new List<DriverInfo>(this.currentSession.Drivers.Count);
 
                     sortedDrivers.AddRange(this.currentSession.Drivers.Where(d => d.LapCount == currentSession.LapCount).OrderBy(GetLastLapTimestamp));
-                    sortedDrivers.AddRange(this.currentSession.Drivers.Where(d => d.LapCount != currentSession.LapCount).OrderByDescending(d => d.LapCount).ThenByDescending(d => d.LastSplinePos));
+                    sortedDrivers.AddRange(this.currentSession.Drivers.Where(d => d.LapCount != currentSession.LapCount).OrderByDescending(d => d.LapCount).ThenByDescending(d => d.EndSplinePos));
 
                     foreach (DriverInfo connection in sortedDrivers)
                     {
@@ -1146,7 +1146,7 @@ namespace acPlugins4net
             // We'll just do a simple list of the moving cars that is ordered by the SplinePos. This doesn't respect
             // finding the position across the finish line, but this is a minor thing for now
             CurrentSession.Drivers.ForEach(x => x.CurrentDistanceToClosestCar = 0);
-            var sortedDrivers = CurrentSession.Drivers.Where(x => x.CurrentSpeed > 30).OrderBy(x => x.LastSplinePos).ToArray();
+            var sortedDrivers = CurrentSession.Drivers.Where(x => x.CurrentSpeed > 30).OrderBy(x => x.EndSplinePos).ToArray();
             if (sortedDrivers.Length > 1)
             {
                 var prev = sortedDrivers[sortedDrivers.Length - 1];
