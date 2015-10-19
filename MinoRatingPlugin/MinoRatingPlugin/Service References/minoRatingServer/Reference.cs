@@ -507,6 +507,51 @@ namespace MinoRatingPlugin.minoRatingServer {
         }
     }
     
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+    [System.Runtime.Serialization.DataContractAttribute(Name="PluginReactionCollection", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy")]
+    [System.SerializableAttribute()]
+    public partial class PluginReactionCollection : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
+        
+        [System.NonSerializedAttribute()]
+        private System.Runtime.Serialization.ExtensionDataObject extensionDataField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private MinoRatingPlugin.minoRatingServer.PluginReaction[] ReactionsField;
+        
+        [global::System.ComponentModel.BrowsableAttribute(false)]
+        public System.Runtime.Serialization.ExtensionDataObject ExtensionData {
+            get {
+                return this.extensionDataField;
+            }
+            set {
+                this.extensionDataField = value;
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] Reactions {
+            get {
+                return this.ReactionsField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.ReactionsField, value) != true)) {
+                    this.ReactionsField = value;
+                    this.RaisePropertyChanged("Reactions");
+                }
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
     [System.ServiceModel.ServiceContractAttribute(ConfigurationName="minoRatingServer.ILiveDataDump")]
     public interface ILiveDataDump {
@@ -573,11 +618,23 @@ namespace MinoRatingPlugin.minoRatingServer {
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/Collision", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionResponse")]
         System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> CollisionAsync(System.Guid sessionId, System.DateTime created, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z, MinoRatingPlugin.minoRatingServer.CarUpdateHistory[] historyCar, MinoRatingPlugin.minoRatingServer.CarUpdateHistory[] historyOtherCar, int bagId);
         
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/CollisionV2", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionV2Response")]
+        MinoRatingPlugin.minoRatingServer.PluginReactionCollection CollisionV2(System.Guid sessionId, System.DateTime created, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z, MinoRatingPlugin.minoRatingServer.CarUpdateHistory[] historyCar, MinoRatingPlugin.minoRatingServer.CarUpdateHistory[] historyOtherCar, int bagId);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/CollisionV2", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionV2Response")]
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReactionCollection> CollisionV2Async(System.Guid sessionId, System.DateTime created, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z, MinoRatingPlugin.minoRatingServer.CarUpdateHistory[] historyCar, MinoRatingPlugin.minoRatingServer.CarUpdateHistory[] historyOtherCar, int bagId);
+        
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/CollisionTreeEnded", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionTreeEndedResponse")]
         MinoRatingPlugin.minoRatingServer.PluginReaction[] CollisionTreeEnded(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/CollisionTreeEnded", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionTreeEndedResponse")]
         System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> CollisionTreeEndedAsync(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/CollisionTreeEndedV2", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionTreeEndedV2Response")]
+        MinoRatingPlugin.minoRatingServer.PluginReactionCollection CollisionTreeEndedV2(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/CollisionTreeEndedV2", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionTreeEndedV2Response")]
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReactionCollection> CollisionTreeEndedV2Async(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/RandomCarInfo", ReplyAction="http://tempuri.org/ILiveDataDump/RandomCarInfoResponse")]
         MinoRatingPlugin.minoRatingServer.PluginReaction[] RandomCarInfo(System.Guid sessionId, int carId, string car, string name, string driverId, bool isConnected, int sessionTime);
@@ -721,12 +778,28 @@ namespace MinoRatingPlugin.minoRatingServer {
             return base.Channel.CollisionAsync(sessionId, created, car, otherCar, speed, splinepos, relativeX, relativeZ, x, z, historyCar, historyOtherCar, bagId);
         }
         
+        public MinoRatingPlugin.minoRatingServer.PluginReactionCollection CollisionV2(System.Guid sessionId, System.DateTime created, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z, MinoRatingPlugin.minoRatingServer.CarUpdateHistory[] historyCar, MinoRatingPlugin.minoRatingServer.CarUpdateHistory[] historyOtherCar, int bagId) {
+            return base.Channel.CollisionV2(sessionId, created, car, otherCar, speed, splinepos, relativeX, relativeZ, x, z, historyCar, historyOtherCar, bagId);
+        }
+        
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReactionCollection> CollisionV2Async(System.Guid sessionId, System.DateTime created, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float x, float z, MinoRatingPlugin.minoRatingServer.CarUpdateHistory[] historyCar, MinoRatingPlugin.minoRatingServer.CarUpdateHistory[] historyOtherCar, int bagId) {
+            return base.Channel.CollisionV2Async(sessionId, created, car, otherCar, speed, splinepos, relativeX, relativeZ, x, z, historyCar, historyOtherCar, bagId);
+        }
+        
         public MinoRatingPlugin.minoRatingServer.PluginReaction[] CollisionTreeEnded(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended) {
             return base.Channel.CollisionTreeEnded(sessionId, car, otherCar, count, started, ended);
         }
         
         public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> CollisionTreeEndedAsync(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended) {
             return base.Channel.CollisionTreeEndedAsync(sessionId, car, otherCar, count, started, ended);
+        }
+        
+        public MinoRatingPlugin.minoRatingServer.PluginReactionCollection CollisionTreeEndedV2(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended) {
+            return base.Channel.CollisionTreeEndedV2(sessionId, car, otherCar, count, started, ended);
+        }
+        
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReactionCollection> CollisionTreeEndedV2Async(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended) {
+            return base.Channel.CollisionTreeEndedV2Async(sessionId, car, otherCar, count, started, ended);
         }
         
         public MinoRatingPlugin.minoRatingServer.PluginReaction[] RandomCarInfo(System.Guid sessionId, int carId, string car, string name, string driverId, bool isConnected, int sessionTime) {
