@@ -50,6 +50,8 @@ namespace acPlugins4net
 
         public ushort RealtimeUpdateInterval { get; private set; }
 
+        public int NewSessionStartDelay { get; private set; }
+
         public int StartNewLogOnNewSession { get; set; }
 
         /// <summary>
@@ -90,6 +92,8 @@ namespace acPlugins4net
         private SessionInfo currentSession = new SessionInfo();
         private SessionInfo previousSession = new SessionInfo();
 
+        private MsgSessionInfo nextSessionStarting;
+
         public SessionInfo CurrentSession
         {
             get { return currentSession; }
@@ -98,6 +102,14 @@ namespace acPlugins4net
         public SessionInfo PreviousSession
         {
             get { return previousSession; }
+        }
+
+        public DriverInfo[] GetDriverInfos()
+        {
+            lock (lockObject)
+            {
+                return this.currentSession.Drivers.ToArray();
+            }
         }
 
         public bool TryGetDriverInfo(byte carId, out DriverInfo driver)
@@ -172,6 +184,7 @@ namespace acPlugins4net
             LogServerErrors = Config.GetSettingAsInt("log_server_errors", 1);
 
             this.RealtimeUpdateInterval = (ushort)this.Config.GetSettingAsInt("realtime_update_interval", 1000);
+            this.NewSessionStartDelay = this.Config.GetSettingAsInt("new_session_start_delay", 3000);
             string sessionReportHandlerType = this.Config.GetSetting("session_report_handlers");
             if (!string.IsNullOrWhiteSpace(sessionReportHandlerType))
             {
@@ -310,7 +323,6 @@ namespace acPlugins4net
             }
         }
 
-
         public void AddPlugin(AcServerPlugin plugin)
         {
             lock (lockObject)
@@ -431,7 +443,7 @@ namespace acPlugins4net
             return driverReport;
         }
 
-        private void SetSessionInfo(MsgSessionInfo msg, bool startNewLog)
+        private void SetSessionInfo(MsgSessionInfo msg, bool isNewSession)
         {
             this.currentSession.ServerName = msg.ServerName;
             this.currentSession.TrackName = msg.Track;
@@ -441,14 +453,17 @@ namespace acPlugins4net
             this.currentSession.SessionDuration = msg.SessionDuration;
             this.currentSession.LapCount = msg.Laps;
             this.currentSession.WaitTime = msg.WaitTime;
-            this.currentSession.Timestamp = DateTime.UtcNow.Ticks;
+            if (isNewSession)
+            {
+                this.currentSession.Timestamp = msg.CreationDate.ToUniversalTime().Ticks;
+            }
             this.currentSession.AmbientTemp = msg.AmbientTemp;
             this.currentSession.RoadTemp = msg.RoadTemp;
             this.currentSession.Weather = msg.Weather;
             this.currentSession.RealtimeUpdateInterval = this.RealtimeUpdateInterval;
             // TODO set MaxClients when added to msg
 
-            if (startNewLog && this.StartNewLogOnNewSession > 0 && this.Logger is IFileLog)
+            if (isNewSession && this.StartNewLogOnNewSession > 0 && this.Logger is IFileLog)
             {
                 ((IFileLog)this.Logger).StartLoggingToFile(
                     new DateTime(this.currentSession.Timestamp, DateTimeKind.Utc).ToString("yyyyMMdd_HHmmss") + "_"
@@ -910,29 +925,64 @@ namespace acPlugins4net
         {
             try
             {
-                this.FinalizeAndStartNewReport();
-                this.currentSession.MissedSessionStart = false;
-                this.SetSessionInfo(msg, true);
+                this.nextSessionStarting = msg;
 
-                if (RealtimeUpdateInterval > 0)
+                if (NewSessionStartDelay > 0)
                 {
-                    this.EnableRealtimeReport(RealtimeUpdateInterval);
+                    ThreadPool.QueueUserWorkItem(o =>
+                    {
+                        Thread.Sleep(NewSessionStartDelay);
+                        StartNewSession(msg);
+                    });
+                }
+                else
+                {
+                    StartNewSession(msg);
                 }
             }
             catch (Exception ex)
             {
                 Log(ex);
             }
+        }
 
-            foreach (AcServerPlugin plugin in _plugins)
+        private void StartNewSession(MsgSessionInfo msg)
+        {
+            lock (this.lockObject)
             {
+                if (msg != this.nextSessionStarting)
+                {
+                    return;
+                }
+
+                this.nextSessionStarting = null;
+
                 try
                 {
-                    plugin.OnNewSession(msg);
+                    this.FinalizeAndStartNewReport();
+                    this.currentSession.MissedSessionStart = false;
+                    this.SetSessionInfo(msg, true);
+
+                    if (RealtimeUpdateInterval > 0)
+                    {
+                        this.EnableRealtimeReport(RealtimeUpdateInterval);
+                    }
                 }
                 catch (Exception ex)
                 {
                     Log(ex);
+                }
+
+                foreach (AcServerPlugin plugin in _plugins)
+                {
+                    try
+                    {
+                        plugin.OnNewSession(msg);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log(ex);
+                    }
                 }
             }
         }
@@ -1083,35 +1133,36 @@ namespace acPlugins4net
             {
                 // We check if this is the first CarUpdate message for this round (they seem to be sent in a bulk and ordered by carId)
                 // If that's the case we trigger OnBulkCarUpdateFinished
-
                 // the trick with the connectedDriversCount is used as a failsafe when single messages are received out of order
                 int connectedDriversCount = this.CurrentSession.Drivers.Count(d => d.IsConnected);
-                if (this.lastCarUpdateCarId - msg.CarId >= connectedDriversCount / 2)
-                {
-                    // Ok, this was the last one, so the last updates are like a snapshot within a milisecond or less.
-                    // Great spot to examine positions, overtakes and stuff where multiple cars are compared to each other
-
-                    this.OnBulkCarUpdateFinished();
-
-                    // In every case we let the plugins do their calculations - before even raising the OnCarUpdate(msg). This function could
-                    // take advantage of updated DriverInfos
-                    foreach (AcServerPlugin plugin in _plugins)
-                    {
-                        try
-                        {
-                            plugin.OnBulkCarUpdateFinished();
-                        }
-                        catch (Exception ex)
-                        {
-                            Log(ex);
-                        }
-                    }
-                }
+                bool isBulkUpdate = this.lastCarUpdateCarId - msg.CarId >= connectedDriversCount / 2;
                 this.lastCarUpdateCarId = msg.CarId;
 
                 // ignore updates in the first 10 seconds of the session
-                if (DateTime.UtcNow.Ticks - currentSession.Timestamp > 10 * 10000000)
+                if (this.nextSessionStarting == null && DateTime.UtcNow.Ticks - currentSession.Timestamp > 10 * 10000000)
                 {
+                    if (isBulkUpdate)
+                    {
+                        // Ok, this was the last one, so the last updates are like a snapshot within a milisecond or less.
+                        // Great spot to examine positions, overtakes and stuff where multiple cars are compared to each other
+
+                        this.OnBulkCarUpdateFinished();
+
+                        // In every case we let the plugins do their calculations - before even raising the OnCarUpdate(msg). This function could
+                        // take advantage of updated DriverInfos
+                        foreach (AcServerPlugin plugin in _plugins)
+                        {
+                            try
+                            {
+                                plugin.OnBulkCarUpdateFinished();
+                            }
+                            catch (Exception ex)
+                            {
+                                Log(ex);
+                            }
+                        }
+                    }
+
                     driver = this.getDriverReportForCarId(msg.CarId);
                     driver.UpdatePosition(msg, this.RealtimeUpdateInterval);
 
@@ -1121,25 +1172,25 @@ namespace acPlugins4net
                     //    sw.AutoFlush = true;
                     //}
                     //sw.WriteLine(ToSingle3(msg.WorldPosition).ToString() + ", " + ToSingle3(msg.Velocity).Length());
+
+                    foreach (AcServerPlugin plugin in _plugins)
+                    {
+                        try
+                        {
+                            if (driver != null)
+                                plugin.OnCarUpdate(driver);
+                            plugin.OnCarUpdate(msg);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log(ex);
+                        }
+                    }
                 }
             }
             catch (Exception ex)
             {
                 Log(ex);
-            }
-
-            foreach (AcServerPlugin plugin in _plugins)
-            {
-                try
-                {
-                    if (driver != null)
-                        plugin.OnCarUpdate(driver);
-                    plugin.OnCarUpdate(msg);
-                }
-                catch (Exception ex)
-                {
-                    Log(ex);
-                }
             }
         }
 
@@ -1177,8 +1228,8 @@ namespace acPlugins4net
         {
             try
             {
-                // ignore collisions in the first 5 seconds of the session
-                if (DateTime.UtcNow.Ticks - currentSession.Timestamp > 5 * 10000000)
+                // ignore collisions in the first 10 seconds of the session
+                if (this.nextSessionStarting == null && DateTime.UtcNow.Ticks - currentSession.Timestamp > 10 * 10000000)
                 {
                     DriverInfo driver = this.getDriverReportForCarId(msg.CarId);
                     bool withOtherCar = msg.Subtype == (byte)ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_CAR;
@@ -1222,18 +1273,6 @@ namespace acPlugins4net
             {
                 Log(ex);
             }
-
-            foreach (AcServerPlugin plugin in _plugins)
-            {
-                try
-                {
-                    plugin.OnCollision(msg);
-                }
-                catch (Exception ex)
-                {
-                    Log(ex);
-                }
-            }
         }
 
         private void OnLapCompleted(MsgLapCompleted msg)
@@ -1275,18 +1314,6 @@ namespace acPlugins4net
                 };
 
                 this.currentSession.Laps.Add(lap);
-
-                foreach (AcServerPlugin plugin in _plugins)
-                {
-                    try
-                    {
-                        plugin.OnLapCompleted(lap);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log(ex);
-                    }
-                }
             }
             catch (Exception ex)
             {
@@ -1465,6 +1492,36 @@ namespace acPlugins4net
         public void SendChatMessage(byte car_id, string msg)
         {
             var chatRequest = new RequestSendChat() { CarId = car_id, ChatMessage = msg };
+            _UDP.Send(chatRequest.ToBinary());
+            if (LogServerRequests > 0)
+            {
+                LogRequestToServer(chatRequest);
+            }
+        }
+
+        public void AdminCommand(string command)
+        {
+            var chatRequest = new RequestAdminCommand() { Command = command };
+            _UDP.Send(chatRequest.ToBinary());
+            if (LogServerRequests > 0)
+            {
+                LogRequestToServer(chatRequest);
+            }
+        }
+
+        public void RestartSession()
+        {
+            var chatRequest = new RequestRestartSession();
+            _UDP.Send(chatRequest.ToBinary());
+            if (LogServerRequests > 0)
+            {
+                LogRequestToServer(chatRequest);
+            }
+        }
+
+        public void NextSession()
+        {
+            var chatRequest = new RequestNextSession();
             _UDP.Send(chatRequest.ToBinary());
             if (LogServerRequests > 0)
             {

@@ -123,7 +123,7 @@ namespace acPlugins4net.messages
             return new RequestSetSession()
             {
                 Laps = this.Laps,
-                ServerName = this.ServerName,
+                SessionName = this.Name,
                 SessionIndex = this.SessionIndex, 
                 SessionType = this.SessionType,
                 Time = this.SessionDuration,

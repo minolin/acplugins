@@ -69,6 +69,10 @@ namespace acPlugins4net.kunos
             /// Kicks this player
             /// </summary>
             ACSP_KICK_USER = 206,
+           
+            ACSP_NEXT_SESSION = 207,
+            ACSP_RESTART_SESSION = 208,
+            ACSP_ADMIN_COMMAND = 209, // Send message plus a stringW with the command
         }
     }
 }

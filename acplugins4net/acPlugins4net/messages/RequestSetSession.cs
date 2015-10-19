@@ -15,7 +15,7 @@ namespace acPlugins4net.messages
         }
 
         public byte SessionIndex { get; set; }
-        public string ServerName { get; set; }
+        public string SessionName { get; set; }
         public byte SessionType { get; set; }
         public UInt32 Laps { get; set; }
         /// <summary>
@@ -30,7 +30,7 @@ namespace acPlugins4net.messages
         protected internal override void Deserialize(BinaryReader br)
         {
             SessionIndex = br.ReadByte();
-            ServerName = readStringW(br);
+            SessionName = readStringW(br);
             SessionType = br.ReadByte();
             Laps = br.ReadUInt32();
             Time = br.ReadUInt32();
@@ -43,7 +43,7 @@ namespace acPlugins4net.messages
             bw.Write(SessionIndex);
 
             // Session name
-            writeStringW(bw, ServerName); // Careful here, the server is still broadcasting ASCII strings to the clients for this
+            writeStringW(bw, SessionName); // Careful here, the server is still broadcasting ASCII strings to the clients for this
 
             // Session type
             bw.Write(SessionType);

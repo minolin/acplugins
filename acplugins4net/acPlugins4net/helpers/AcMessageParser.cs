@@ -61,6 +61,9 @@ namespace acPlugins4net.helpers
                 case ACSProtocol.MessageType.ACSP_GET_CAR_INFO: return new RequestCarInfo();
                 case ACSProtocol.MessageType.ACSP_SEND_CHAT: return new RequestSendChat();
                 case ACSProtocol.MessageType.ACSP_BROADCAST_CHAT: return new RequestBroadcastChat();
+                case ACSProtocol.MessageType.ACSP_ADMIN_COMMAND: return new RequestAdminCommand();
+                case ACSProtocol.MessageType.ACSP_NEXT_SESSION: return new RequestNextSession();
+                case ACSProtocol.MessageType.ACSP_RESTART_SESSION: return new RequestRestartSession();
                 case ACSProtocol.MessageType.ACSP_CHAT: return new MsgChat();
                 case ACSProtocol.MessageType.ACSP_GET_SESSION_INFO: return new RequestSessionInfo();
                 case ACSProtocol.MessageType.ACSP_CLIENT_LOADED: return new MsgClientLoaded();

@@ -79,6 +79,9 @@
     <Compile Include="messages\MsgConnectionClosed.cs" />
     <Compile Include="messages\MsgError.cs" />
     <Compile Include="messages\MsgNewSession.cs" />
+    <Compile Include="messages\RequestAdminCommand.cs" />
+    <Compile Include="messages\RequestRestartSession.cs" />
+    <Compile Include="messages\RequestNextSession.cs" />
     <Compile Include="messages\RequestKickUser.cs" />
     <Compile Include="messages\MsgLapCompleted.cs" />
     <Compile Include="messages\MsgLapCompletedLeaderboardEnty.cs" />
