@@ -927,7 +927,8 @@ namespace acPlugins4net
             {
                 this.nextSessionStarting = msg;
 
-                if (NewSessionStartDelay > 0)
+                bool firstSessionInfo = this.currentSession.SessionType == 0;
+                if (!firstSessionInfo && NewSessionStartDelay > 0)
                 {
                     ThreadPool.QueueUserWorkItem(o =>
                     {
