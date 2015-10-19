@@ -10,8 +10,12 @@ namespace MinoRatingPlugin
 {
     public class CollisionBag
     {
+        public static int _sBagCounter = 0;
+
         const int MaximumTreeDurationSeconds = 20;
         const int TreeRefreshSeconds = 4;
+
+        public int BagId { get; private set; }
 
         public List<byte> CarsInCollisionTree { get; private set; }
         public DateTime Started { get; private set; }
@@ -68,6 +72,7 @@ namespace MinoRatingPlugin
             var now = DateTime.Now;
             var bag = new CollisionBag()
             {
+                BagId = ++_sBagCounter,
                 CarsInCollisionTree = new List<byte>(),
                 Started = now,
                 LastCollision = now,

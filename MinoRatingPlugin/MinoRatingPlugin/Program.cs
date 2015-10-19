@@ -28,9 +28,10 @@ namespace MinoRatingPlugin
         #region Init code
         static void Main(string[] args)
         {
+            AcServerPluginManager pluginManager = null;
             try
             {
-                AcServerPluginManager pluginManager = new AcServerPluginManager(new FileLogWriter("log", "minoplugin.txt") { CopyToConsole = true, LogWithTimestamp = true });
+                pluginManager = new AcServerPluginManager(new FileLogWriter("log", "minoplugin.txt") { CopyToConsole = true, LogWithTimestamp = true });
                 pluginManager.LoadInfoFromServerConfig();
                 pluginManager.AddPlugin(new MinoratingPlugin());
                 pluginManager.LoadPluginsFromAppConfig();
@@ -40,6 +41,11 @@ namespace MinoRatingPlugin
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+                try
+                {
+                    pluginManager.Log(ex);
+                }
+                catch (Exception){}
             }
         }
 
@@ -199,7 +205,7 @@ namespace MinoRatingPlugin
                             if (split.Length == 1) // only /mr 
                                 HandleClientActions(LiveDataServer.RequestDriverRating(CurrentSessionGuid, msg.CarId));
                             else
-                                HandleClientActions(LiveDataServer.RequestMRCommand(CurrentSessionGuid, msg.CarId, split));
+                                HandleClientActions(LiveDataServer.RequestMRCommandAdminInfo(CurrentSessionGuid, msg.CarId, PluginManager.GetDriverInfo(msg.CarId).IsAdmin, split));
                         }
                         break;
                     default:
@@ -234,6 +240,7 @@ namespace MinoRatingPlugin
                         if (ct.TryAdd(msg.CarId, msg.OtherCarId))
                         {
                             partOfATree = true;
+                            bagId = ct.BagId;
                             break;
                         }
                     }
@@ -242,7 +249,9 @@ namespace MinoRatingPlugin
                     if (!partOfATree)
                     {
                         // Then we'll start a new one
-                        contactTrees.Add(CollisionBag.StartNew(msg.CarId, msg.OtherCarId, EvaluateContactTree, PluginManager));
+                        var newBag = CollisionBag.StartNew(msg.CarId, msg.OtherCarId, EvaluateContactTree, PluginManager);
+                        contactTrees.Add(newBag);
+                        bagId = newBag.BagId;
                     }
                 }
 
