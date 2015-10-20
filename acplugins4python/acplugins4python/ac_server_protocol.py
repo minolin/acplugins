@@ -57,6 +57,10 @@ __all__ = [
     ]
 
 PROTOCOL_VERSION = 3
+# workaround for AC 1.3.0 - 1.3.3 linux bug
+import sys
+if sys.platform.lower() == 'linux':
+    PROTOCOL_VERSION = 4
 
 ACSP_NEW_SESSION = 50
 ACSP_NEW_CONNECTION = 51
@@ -297,11 +301,11 @@ class KickUser(GenericPacket):
 class NextSession(GenericPacket):
     packetId = ACSP_NEXT_SESSION
     _content = ()
-    
+
 class RestartSession(GenericPacket):
     packetId = ACSP_RESTART_SESSION
     _content = ()
-    
+
 class AdminCommand(GenericPacket):
     packetId = ACSP_ADMIN_COMMAND
     _content = (
