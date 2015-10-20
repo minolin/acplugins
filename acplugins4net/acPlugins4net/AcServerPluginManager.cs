@@ -838,22 +838,22 @@ namespace acPlugins4net
                         this.RequestSessionInfo(-1);
                     }
                 });
+
+                foreach (AcServerPlugin plugin in _plugins)
+                {
+                    try
+                    {
+                        plugin.OnConnected();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log(ex);
+                    }
+                }
             }
             catch (Exception ex)
             {
                 Log(ex);
-            }
-
-            foreach (AcServerPlugin plugin in _plugins)
-            {
-                try
-                {
-                    plugin.OnConnected();
-                }
-                catch (Exception ex)
-                {
-                    Log(ex);
-                }
             }
         }
 
@@ -864,22 +864,22 @@ namespace acPlugins4net
                 this.FinalizeAndStartNewReport();
                 this.currentSession.Drivers.Clear();
                 this.carUsedByDictionary.Clear();
+
+                foreach (AcServerPlugin plugin in _plugins)
+                {
+                    try
+                    {
+                        plugin.OnDisconnected();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log(ex);
+                    }
+                }
             }
             catch (Exception ex)
             {
                 Log(ex);
-            }
-
-            foreach (AcServerPlugin plugin in _plugins)
-            {
-                try
-                {
-                    plugin.OnDisconnected();
-                }
-                catch (Exception ex)
-                {
-                    Log(ex);
-                }
             }
         }
 
@@ -902,22 +902,22 @@ namespace acPlugins4net
                         this.RequestCarInfo((byte)i);
                     }
                 }
+
+                foreach (AcServerPlugin plugin in _plugins)
+                {
+                    try
+                    {
+                        plugin.OnSessionInfo(msg);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log(ex);
+                    }
+                }
             }
             catch (Exception ex)
             {
                 Log(ex);
-            }
-
-            foreach (AcServerPlugin plugin in _plugins)
-            {
-                try
-                {
-                    plugin.OnSessionInfo(msg);
-                }
-                catch (Exception ex)
-                {
-                    Log(ex);
-                }
             }
         }
 
@@ -968,17 +968,35 @@ namespace acPlugins4net
                     {
                         this.EnableRealtimeReport(RealtimeUpdateInterval);
                     }
+
+                    foreach (AcServerPlugin plugin in _plugins)
+                    {
+                        try
+                        {
+                            plugin.OnNewSession(msg);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log(ex);
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
                     Log(ex);
                 }
+            }
+        }
 
+        private void OnSessionEnded(MsgSessionEnded msg)
+        {
+            try
+            {
                 foreach (AcServerPlugin plugin in _plugins)
                 {
                     try
                     {
-                        plugin.OnNewSession(msg);
+                        plugin.OnSessionEnded(msg);
                     }
                     catch (Exception ex)
                     {
@@ -986,20 +1004,9 @@ namespace acPlugins4net
                     }
                 }
             }
-        }
-
-        private void OnSessionEnded(MsgSessionEnded msg)
-        {
-            foreach (AcServerPlugin plugin in _plugins)
+            catch (Exception ex)
             {
-                try
-                {
-                    plugin.OnSessionEnded(msg);
-                }
-                catch (Exception ex)
-                {
-                    Log(ex);
-                }
+                Log(ex);
             }
         }
 
@@ -1036,22 +1043,22 @@ namespace acPlugins4net
 
                 // request car info to get additional info and check when driver really is connected
                 this.RequestCarInfo(msg.CarId);
+
+                foreach (AcServerPlugin plugin in _plugins)
+                {
+                    try
+                    {
+                        plugin.OnNewConnection(msg);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log(ex);
+                    }
+                }
             }
             catch (Exception ex)
             {
                 Log(ex);
-            }
-
-            foreach (AcServerPlugin plugin in _plugins)
-            {
-                try
-                {
-                    plugin.OnNewConnection(msg);
-                }
-                catch (Exception ex)
-                {
-                    Log(ex);
-                }
             }
         }
 
@@ -1076,22 +1083,22 @@ namespace acPlugins4net
                 {
                     this.Log(new Exception("Car was not known to be in use"));
                 }
+
+                foreach (AcServerPlugin plugin in _plugins)
+                {
+                    try
+                    {
+                        plugin.OnConnectionClosed(msg);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log(ex);
+                    }
+                }
             }
             catch (Exception ex)
             {
                 Log(ex);
-            }
-
-            foreach (AcServerPlugin plugin in _plugins)
-            {
-                try
-                {
-                    plugin.OnConnectionClosed(msg);
-                }
-                catch (Exception ex)
-                {
-                    Log(ex);
-                }
             }
         }
 
@@ -1108,22 +1115,22 @@ namespace acPlugins4net
                     driverReport.DriverTeam = msg.DriverTeam;
                     driverReport.DriverGuid = msg.DriverGuid;
                 }
+
+                foreach (AcServerPlugin plugin in _plugins)
+                {
+                    try
+                    {
+                        plugin.OnCarInfo(msg);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log(ex);
+                    }
+                }
             }
             catch (Exception ex)
             {
                 Log(ex);
-            }
-
-            foreach (AcServerPlugin plugin in _plugins)
-            {
-                try
-                {
-                    plugin.OnCarInfo(msg);
-                }
-                catch (Exception ex)
-                {
-                    Log(ex);
-                }
             }
         }
 
@@ -1178,9 +1185,8 @@ namespace acPlugins4net
                     {
                         try
                         {
-                            if (driver != null)
-                                plugin.OnCarUpdate(driver);
                             plugin.OnCarUpdate(msg);
+                            plugin.OnCarUpdate(driver);
                         }
                         catch (Exception ex)
                         {
@@ -1261,6 +1267,7 @@ namespace acPlugins4net
                     {
                         try
                         {
+                            plugin.OnCollision(msg);
                             plugin.OnCollision(incident);
                         }
                         catch (Exception ex)
@@ -1315,37 +1322,45 @@ namespace acPlugins4net
                 };
 
                 this.currentSession.Laps.Add(lap);
+
+                foreach (AcServerPlugin plugin in _plugins)
+                {
+                    try
+                    {
+                        plugin.OnLapCompleted(msg);
+                        plugin.OnLapCompleted(lap);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log(ex);
+                    }
+                }
             }
             catch (Exception ex)
             {
                 Log(ex);
             }
-
-            foreach (AcServerPlugin plugin in _plugins)
-            {
-                try
-                {
-                    plugin.OnLapCompleted(msg);
-                }
-                catch (Exception ex)
-                {
-                    Log(ex);
-                }
-            }
         }
 
         private void OnClientLoaded(MsgClientLoaded msg)
         {
-            foreach (AcServerPlugin plugin in _plugins)
+            try
             {
-                try
+                foreach (AcServerPlugin plugin in _plugins)
                 {
-                    plugin.OnClientLoaded(msg);
+                    try
+                    {
+                        plugin.OnClientLoaded(msg);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log(ex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Log(ex);
-                }
+            }
+            catch (Exception ex)
+            {
+                Log(ex);
             }
         }
 
@@ -1386,37 +1401,44 @@ namespace acPlugins4net
                         }
                     }
                 }
+
+                foreach (AcServerPlugin plugin in _plugins)
+                {
+                    try
+                    {
+                        plugin.OnChatMessage(msg);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log(ex);
+                    }
+                }
             }
             catch (Exception ex)
             {
                 Log(ex);
             }
-
-            foreach (AcServerPlugin plugin in _plugins)
-            {
-                try
-                {
-                    plugin.OnChatMessage(msg);
-                }
-                catch (Exception ex)
-                {
-                    Log(ex);
-                }
-            }
         }
 
         private void OnProtocolVersion(MsgVersionInfo msg)
         {
-            foreach (AcServerPlugin plugin in _plugins)
+            try
             {
-                try
+                foreach (AcServerPlugin plugin in _plugins)
                 {
-                    plugin.OnProtocolVersion(msg);
+                    try
+                    {
+                        plugin.OnProtocolVersion(msg);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log(ex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Log(ex);
-                }
+            }
+            catch (Exception ex)
+            {
+                Log(ex);
             }
         }
 
@@ -1428,22 +1450,22 @@ namespace acPlugins4net
                 {
                     this.Log("ServerError: " + msg.ErrorMessage);
                 }
+
+                foreach (AcServerPlugin plugin in _plugins)
+                {
+                    try
+                    {
+                        plugin.OnServerError(msg);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log(ex);
+                    }
+                }
             }
             catch (Exception ex)
             {
                 Log(ex);
-            }
-
-            foreach (AcServerPlugin plugin in _plugins)
-            {
-                try
-                {
-                    plugin.OnServerError(msg);
-                }
-                catch (Exception ex)
-                {
-                    Log(ex);
-                }
             }
         }
 
@@ -1451,19 +1473,26 @@ namespace acPlugins4net
         {
             lock (lockObject)
             {
-                foreach (AcServerPlugin plugin in _plugins)
+                try
                 {
-                    try
+                    foreach (AcServerPlugin plugin in _plugins)
                     {
-                        if (!plugin.OnCommandEntered(cmd))
+                        try
                         {
-                            break;
+                            if (!plugin.OnCommandEntered(cmd))
+                            {
+                                break;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log(ex);
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        Log(ex);
-                    }
+                }
+                catch (Exception ex)
+                {
+                    Log(ex);
                 }
             }
         }
