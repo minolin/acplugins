@@ -56,7 +56,7 @@ __all__ = [
     "SESST_DRIFT",
     ]
 
-PROTOCOL_VERSION = 3
+PROTOCOL_VERSION = 4
 
 ACSP_NEW_SESSION = 50
 ACSP_NEW_CONNECTION = 51
@@ -297,11 +297,11 @@ class KickUser(GenericPacket):
 class NextSession(GenericPacket):
     packetId = ACSP_NEXT_SESSION
     _content = ()
-    
+
 class RestartSession(GenericPacket):
     packetId = ACSP_RESTART_SESSION
     _content = ()
-    
+
 class AdminCommand(GenericPacket):
     packetId = ACSP_ADMIN_COMMAND
     _content = (
