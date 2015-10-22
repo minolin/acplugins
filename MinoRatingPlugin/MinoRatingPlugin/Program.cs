@@ -20,7 +20,7 @@ namespace MinoRatingPlugin
         public string TrustToken { get; set; }
         public Guid CurrentSessionGuid { get; set; }
         public DateTime CurrentSessionStartTime { get; set; }
-        public static Version PluginVersion = new Version(1, 2, 3, 1);
+        public static Version PluginVersion = new Version(1, 3, 0, 0);
 
         protected internal byte[] _fingerprint;
 
