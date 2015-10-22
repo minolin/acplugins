@@ -56,11 +56,7 @@ __all__ = [
     "SESST_DRIFT",
     ]
 
-PROTOCOL_VERSION = 3
-# workaround for AC 1.3.0 - 1.3.3 linux bug
-import sys
-if sys.platform.lower() == 'linux':
-    PROTOCOL_VERSION = 4
+PROTOCOL_VERSION = 4
 
 ACSP_NEW_SESSION = 50
 ACSP_NEW_CONNECTION = 51
