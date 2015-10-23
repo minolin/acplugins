@@ -3,8 +3,8 @@
 
 from setuptools import setup
 
-plugin_version = "0.4"
-ac_version = "1.3.0"
+plugin_version = "0.5"
+ac_version = "1.3.4"
 python_version = "3.3.x"
 
 setup(name='acplugins4python',
