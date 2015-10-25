@@ -270,33 +270,45 @@ namespace MinoRatingPlugin
             {
                 DriverInfo driver = null;
                 if(!PluginManager.TryGetDriverInfo(Convert.ToByte(carId), out driver))
-                    return;
+                    throw new Exception("Driver not found: " + carId);
 
-                List<CarUpdateHistory> driversCache = new List<CarUpdateHistory>();
-                var node = driver.LastCarUpdate;
-                while (node != null && node.Value != null && driversCache.Count < 6)
-                {
-                    var carUpdate = node.Value;
-                    driversCache.Add(new CarUpdateHistory()
-                    {
-                        Created = carUpdate.CreationDate,
-                        NormalizedSplinePosition = carUpdate.NormalizedSplinePosition,
-                        EngineRPM = carUpdate.EngineRPM,
-                        Gear = carUpdate.Gear,
-                        Velocity = new float[] { carUpdate.Velocity.X, carUpdate.Velocity.Z },
-                        WorldPosition = new float[] { carUpdate.WorldPosition.X, carUpdate.WorldPosition.Z }
-                    });
+                DriverInfo otherDriver = null;
+                if (!PluginManager.TryGetDriverInfo(Convert.ToByte(otherCarId), out otherDriver))
+                    throw new Exception("(Other) Driver not found: " + otherCarId);
 
-                    node = node.Previous;
-                }
+                var driversCache = GetDriversCache(driver);
+                var otherDriversCache = GetDriversCache(otherDriver);
 
                 SendDistance(driver, true);
-                HandleClientActions(LiveDataServer.CollisionV2(CurrentSessionGuid, creationDate, carId, otherCarId, relativeVelocity, driver.LastSplinePosition, x1, z1, worldX, worldZ, driversCache.ToArray(), null, bagId));
+                HandleClientActions(LiveDataServer.CollisionV2(CurrentSessionGuid, creationDate, carId, otherCarId, relativeVelocity, driver.LastSplinePosition, x1, z1, worldX, worldZ, driversCache.ToArray(), otherDriversCache.ToArray(), bagId));
+                PluginManager.Log("Did send this");
             }
             catch (Exception ex)
             {
                 PluginManager.Log(ex);
             }
+        }
+
+        private List<CarUpdateHistory> GetDriversCache(DriverInfo driver)
+        {
+            List<CarUpdateHistory> driversCache = new List<CarUpdateHistory>();
+            var node = driver.LastCarUpdate;
+            while (node != null && node.Value != null && driversCache.Count < 6)
+            {
+                var carUpdate = node.Value;
+                driversCache.Add(new CarUpdateHistory()
+                {
+                    Created = carUpdate.CreationDate,
+                    NormalizedSplinePosition = carUpdate.NormalizedSplinePosition,
+                    EngineRPM = carUpdate.EngineRPM,
+                    Gear = carUpdate.Gear,
+                    Velocity = new float[] { carUpdate.Velocity.X, carUpdate.Velocity.Z },
+                    WorldPosition = new float[] { carUpdate.WorldPosition.X, carUpdate.WorldPosition.Z }
+                });
+
+                node = node.Previous;
+            }
+            return driversCache;
         }
 
         private void EvaluateContactTree(CollisionBag bag)
