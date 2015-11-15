@@ -89,6 +89,9 @@
     <None Include="Service References\minoRatingServer\124.xsd">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Service References\minoRatingServer\125.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Service References\minoRatingServer\configuration91.svcinfo" />
   </ItemGroup>
   <ItemGroup>
@@ -97,6 +100,12 @@
   <ItemGroup>
     <None Include="Service References\minoRatingServer\LiveDataDump.wsdl" />
     <None Include="Service References\minoRatingServer\MinoRatingPlugin.minoRatingServer.PluginReaction.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\minoRatingServer\MinoRatingPlugin.minoRatingServer.PluginReactionCollection.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\minoRatingServer\MinoRatingPlugin.minoRatingServer.Situation.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\minoRatingServer\Reference.svcmap">
