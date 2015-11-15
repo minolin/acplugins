@@ -62,11 +62,20 @@ class ACUdpMonitor:
                 lastT = self.cu_history[pluginId][packet.carId].lastSendTime
                 if t-lastT > self.intervals[pluginId]*10:
                     log_dbg("car %d has not been updated for a long time (the player probably left) - resetting statistics" % packet.carId)
+                    self.cu_history[pluginId][packet.carId] = self.HistoryInfo(lastSendTime = threshold, firstSendTime = t, count = 0)
+                    lastT = threshold
                 if ((self.intervals[pluginId] <= self.intervals[1-pluginId] or self.intervals[1-pluginId] <= 0) or
                     (lastT <= threshold)):
                     # this plugin has the quicker update rate
-                    self.cu_history[pluginId][packet.carId].lastSendTime = t
-                    self.cu_history[pluginId][packet.carId].count += 1
+                    h = self.cu_history[pluginId][packet.carId]
+                    h.lastSendTime = t
+                    h.count += 1
+                    # limit the history to 30s, intervals are in milliseconds
+                    maxcnt = 30000./max(10,self.intervals[pluginId])
+                    if h.count > maxcnt:
+                        avg = (h.lastSendTime - h.firstSendTime)/h.count
+                        h.count = maxcnt
+                        h.firstSendTime = h.lastSendTime - avg*h.count
                     return True
                 return False
             elif type(packet) in [ac_server_protocol.SessionInfo, ac_server_protocol.CarInfo]:
@@ -103,7 +112,8 @@ class ACUdpMonitor:
                 if self.intervals[pluginId] > 0:
                     for carId in self.cu_history[pluginId].keys():
                         h = self.cu_history[pluginId][carId]
-                        if h.count <= 5: continue
+                        if h.count <= 10: continue
                         avgInterval = (h.lastSendTime - h.firstSendTime)/h.count*1000
                         if avgInterval > self.intervals[pluginId]*1.5 or avgInterval < self.intervals[pluginId]*0.5:
-                            log("Realtime report interval mismatch [pluginId=%d, carId=%d]. Configured %d ms, measured %.1f ms." % (pluginId, carId, self.intervals[pluginId], avgInterval))
+                            log("Realtime report interval mismatch [pluginId=%d, carId=%d]. Configured %d ms, measured %.1f ms. Resetting stats." % (pluginId, carId, self.intervals[pluginId], avgInterval))
+                            del self.cu_history[pluginId][carId]
