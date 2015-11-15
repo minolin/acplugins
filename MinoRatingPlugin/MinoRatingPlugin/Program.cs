@@ -20,7 +20,7 @@ namespace MinoRatingPlugin
         public string TrustToken { get; set; }
         public Guid CurrentSessionGuid { get; set; }
         public DateTime CurrentSessionStartTime { get; set; }
-        public static Version PluginVersion = new Version(1, 3, 0, 0);
+        public static Version PluginVersion = new Version(1, 3, 1, 0);
 
         protected internal byte[] _fingerprint;
 
@@ -59,7 +59,7 @@ namespace MinoRatingPlugin
             _fingerprint = Hash(PluginManager.Config.GetSetting("ac_server_directory") + PluginManager.RemotePort);
 
 #if DEBUG
-            LiveDataServer = new LiveDataDumpClient(new BasicHttpBinding(), new EndpointAddress("http://localhost:805/minorating/12"));
+            LiveDataServer = new LiveDataDumpClient(new BasicHttpBinding(), new EndpointAddress("http://localhost:805/minorating"));
 #else
             LiveDataServer = new LiveDataDumpClient(new BasicHttpBinding(), new EndpointAddress("http://plugin.minorating.com:805/minorating/12"));
 #endif
@@ -174,6 +174,14 @@ namespace MinoRatingPlugin
                 PluginManager.Log("LapCompleted by " + driver.DriverName + ": " + TimeSpan.FromMilliseconds(msg.Laptime));
                 HandleClientActions(LiveDataServer.LapCompleted(CurrentSessionGuid, msg.CreationDate, msg.CarId, driver.DriverGuid, msg.Laptime, msg.Cuts, msg.GripLevel, ConvertLB(msg.Leaderboard)));
             }
+
+            if (_consistencyReports.ContainsKey(driver) && _consistencyReports[driver] != null)
+            {
+                PluginManager.Log("CR for driver available, will send");
+                HandleClientActions(LiveDataServer.LapCompletedConsistencySplits(CurrentSessionGuid, msg.CreationDate, msg.CarId, _consistencyReports[driver]));
+            }
+
+            _consistencyReports[driver] = new ConsistencyReport() { carId = msg.CarId, LapStart = msg.CreationDate, SplitResolution = 10, Splits = new uint[0] };
         }
 
 
@@ -332,11 +340,14 @@ namespace MinoRatingPlugin
         #region Distance driven & behaviour analysis
 
         private Dictionary<DriverInfo, MRDistanceHelper> _distancesToReport = new Dictionary<DriverInfo, MRDistanceHelper>();
+        private Dictionary<DriverInfo, ConsistencyReport> _consistencyReports = new Dictionary<DriverInfo, ConsistencyReport>();
 
         protected override void OnCarUpdate(DriverInfo di)
         {
+            #region Distance
             if (!_distancesToReport.ContainsKey(di))
                 _distancesToReport.Add(di, new MRDistanceHelper());
+
 
             var dh = _distancesToReport[di];
             // Generally, the meters driven are stored
@@ -353,6 +364,45 @@ namespace MinoRatingPlugin
                 else if (di.CurrentDistanceToClosestCar < 20)
                     dh.MetersAttackRange += di.LastDistanceTraveled;
             }
+            #endregion
+
+            #region Consistency
+
+            if (_consistencyReports.ContainsKey(di) && di.LastCarUpdate.List.Count > 1)
+            {
+                var cr = _consistencyReports[di];
+                var splits = cr.Splits.ToList();
+                var carUpdate = di.LastCarUpdate.Value;
+
+                var lastSplit = (int)(di.LastCarUpdate.Previous.Value.NormalizedSplinePosition * cr.SplitResolution);
+                var thisSplit = (int)(di.LastCarUpdate.Value.NormalizedSplinePosition * cr.SplitResolution);
+
+                if (lastSplit != thisSplit && lastSplit < 0.9)
+                {
+                    // The SplinePos Split has been changed, so now we want to log the time.
+                    // To be more precise we will try to recalculate the laptime in the exact transition
+                    splits.Add(AverageLaptimeBySplit(di.LastCarUpdate.Previous.Value, di.LastCarUpdate.Value));
+                }
+
+                cr.Splits = splits.ToArray();
+            }
+
+            #endregion
+        }
+
+        public uint AverageLaptimeBySplit(MsgCarUpdate tminus1, MsgCarUpdate t0)
+        {
+            // Difference of the Splines
+            var splineDiff = t0.NormalizedSplinePosition - tminus1.NormalizedSplinePosition;
+            // Split
+            float splineSplit = (int)(t0.NormalizedSplinePosition * 10);
+            splineSplit /= 10;
+            // Upper ratio: 
+            var ratio = (t0.NormalizedSplinePosition - splineSplit) / splineDiff;
+
+            // Timediff in MS
+            var timeDiff = t0.CreationDate.Subtract(tminus1.CreationDate).TotalMilliseconds;
+            return (uint)Math.Round(timeDiff * ratio, 0);
         }
 
         protected override void OnBulkCarUpdateFinished()

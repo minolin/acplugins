@@ -275,6 +275,115 @@ namespace MinoRatingPlugin.minoRatingServer {
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+    [System.Runtime.Serialization.DataContractAttribute(Name="ConsistencyReport", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy")]
+    [System.SerializableAttribute()]
+    public partial class ConsistencyReport : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
+        
+        [System.NonSerializedAttribute()]
+        private System.Runtime.Serialization.ExtensionDataObject extensionDataField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.DateTime LapStartField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private uint LaptimeField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private byte SplitResolutionField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private uint[] SplitsField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private byte carIdField;
+        
+        [global::System.ComponentModel.BrowsableAttribute(false)]
+        public System.Runtime.Serialization.ExtensionDataObject ExtensionData {
+            get {
+                return this.extensionDataField;
+            }
+            set {
+                this.extensionDataField = value;
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.DateTime LapStart {
+            get {
+                return this.LapStartField;
+            }
+            set {
+                if ((this.LapStartField.Equals(value) != true)) {
+                    this.LapStartField = value;
+                    this.RaisePropertyChanged("LapStart");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public uint Laptime {
+            get {
+                return this.LaptimeField;
+            }
+            set {
+                if ((this.LaptimeField.Equals(value) != true)) {
+                    this.LaptimeField = value;
+                    this.RaisePropertyChanged("Laptime");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public byte SplitResolution {
+            get {
+                return this.SplitResolutionField;
+            }
+            set {
+                if ((this.SplitResolutionField.Equals(value) != true)) {
+                    this.SplitResolutionField = value;
+                    this.RaisePropertyChanged("SplitResolution");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public uint[] Splits {
+            get {
+                return this.SplitsField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.SplitsField, value) != true)) {
+                    this.SplitsField = value;
+                    this.RaisePropertyChanged("Splits");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public byte carId {
+            get {
+                return this.carIdField;
+            }
+            set {
+                if ((this.carIdField.Equals(value) != true)) {
+                    this.carIdField = value;
+                    this.RaisePropertyChanged("carId");
+                }
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="MRDistanceHelper", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy")]
     [System.SerializableAttribute()]
     public partial class MRDistanceHelper : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
@@ -552,6 +661,709 @@ namespace MinoRatingPlugin.minoRatingServer {
         }
     }
     
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+    [System.Runtime.Serialization.DataContractAttribute(Name="Situation", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Entities.Domain")]
+    [System.SerializableAttribute()]
+    public partial class Situation : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
+        
+        [System.NonSerializedAttribute()]
+        private System.Runtime.Serialization.ExtensionDataObject extensionDataField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private MinoRatingPlugin.minoRatingServer.Situation.AnalysisEnum AnalysisField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string CommentField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private float DistributionField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private MinoRatingPlugin.minoRatingServer.Driver DriverField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string DriverNameField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.Nullable<System.DateTime> EndedOnField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private long IdField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private MinoRatingPlugin.minoRatingServer.Driver OtherDriverField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string OtherDriverNameField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private float ProbabilityField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private int RaceTypeField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.Guid SessionIdField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private byte[] SituationDataField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.DateTime StartedOnField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private MinoRatingPlugin.minoRatingServer.Situation.StatusEnum StatusField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string TrackField;
+        
+        [global::System.ComponentModel.BrowsableAttribute(false)]
+        public System.Runtime.Serialization.ExtensionDataObject ExtensionData {
+            get {
+                return this.extensionDataField;
+            }
+            set {
+                this.extensionDataField = value;
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public MinoRatingPlugin.minoRatingServer.Situation.AnalysisEnum Analysis {
+            get {
+                return this.AnalysisField;
+            }
+            set {
+                if ((this.AnalysisField.Equals(value) != true)) {
+                    this.AnalysisField = value;
+                    this.RaisePropertyChanged("Analysis");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string Comment {
+            get {
+                return this.CommentField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.CommentField, value) != true)) {
+                    this.CommentField = value;
+                    this.RaisePropertyChanged("Comment");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public float Distribution {
+            get {
+                return this.DistributionField;
+            }
+            set {
+                if ((this.DistributionField.Equals(value) != true)) {
+                    this.DistributionField = value;
+                    this.RaisePropertyChanged("Distribution");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public MinoRatingPlugin.minoRatingServer.Driver Driver {
+            get {
+                return this.DriverField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.DriverField, value) != true)) {
+                    this.DriverField = value;
+                    this.RaisePropertyChanged("Driver");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string DriverName {
+            get {
+                return this.DriverNameField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.DriverNameField, value) != true)) {
+                    this.DriverNameField = value;
+                    this.RaisePropertyChanged("DriverName");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.Nullable<System.DateTime> EndedOn {
+            get {
+                return this.EndedOnField;
+            }
+            set {
+                if ((this.EndedOnField.Equals(value) != true)) {
+                    this.EndedOnField = value;
+                    this.RaisePropertyChanged("EndedOn");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public long Id {
+            get {
+                return this.IdField;
+            }
+            set {
+                if ((this.IdField.Equals(value) != true)) {
+                    this.IdField = value;
+                    this.RaisePropertyChanged("Id");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public MinoRatingPlugin.minoRatingServer.Driver OtherDriver {
+            get {
+                return this.OtherDriverField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.OtherDriverField, value) != true)) {
+                    this.OtherDriverField = value;
+                    this.RaisePropertyChanged("OtherDriver");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string OtherDriverName {
+            get {
+                return this.OtherDriverNameField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.OtherDriverNameField, value) != true)) {
+                    this.OtherDriverNameField = value;
+                    this.RaisePropertyChanged("OtherDriverName");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public float Probability {
+            get {
+                return this.ProbabilityField;
+            }
+            set {
+                if ((this.ProbabilityField.Equals(value) != true)) {
+                    this.ProbabilityField = value;
+                    this.RaisePropertyChanged("Probability");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public int RaceType {
+            get {
+                return this.RaceTypeField;
+            }
+            set {
+                if ((this.RaceTypeField.Equals(value) != true)) {
+                    this.RaceTypeField = value;
+                    this.RaisePropertyChanged("RaceType");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.Guid SessionId {
+            get {
+                return this.SessionIdField;
+            }
+            set {
+                if ((this.SessionIdField.Equals(value) != true)) {
+                    this.SessionIdField = value;
+                    this.RaisePropertyChanged("SessionId");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public byte[] SituationData {
+            get {
+                return this.SituationDataField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.SituationDataField, value) != true)) {
+                    this.SituationDataField = value;
+                    this.RaisePropertyChanged("SituationData");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.DateTime StartedOn {
+            get {
+                return this.StartedOnField;
+            }
+            set {
+                if ((this.StartedOnField.Equals(value) != true)) {
+                    this.StartedOnField = value;
+                    this.RaisePropertyChanged("StartedOn");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public MinoRatingPlugin.minoRatingServer.Situation.StatusEnum Status {
+            get {
+                return this.StatusField;
+            }
+            set {
+                if ((this.StatusField.Equals(value) != true)) {
+                    this.StatusField = value;
+                    this.RaisePropertyChanged("Status");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string Track {
+            get {
+                return this.TrackField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.TrackField, value) != true)) {
+                    this.TrackField = value;
+                    this.RaisePropertyChanged("Track");
+                }
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+        
+        [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+        [System.Runtime.Serialization.DataContractAttribute(Name="Situation.AnalysisEnum", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Entities.Domain")]
+        public enum AnalysisEnum : int {
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            NotCalculated = 0,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            Ignored = 1,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            RearEnded = 2,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            UnsafeRecovery = 3,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            DiveBomb = 4,
+        }
+        
+        [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+        [System.Runtime.Serialization.DataContractAttribute(Name="Situation.StatusEnum", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Entities.Domain")]
+        public enum StatusEnum : int {
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            Initialized = 0,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            Unfinished = 1,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            Finished = 2,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            Calculated = 3,
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+    [System.Runtime.Serialization.DataContractAttribute(Name="Driver", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Entities.Domain")]
+    [System.SerializableAttribute()]
+    public partial class Driver : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
+        
+        [System.NonSerializedAttribute()]
+        private System.Runtime.Serialization.ExtensionDataObject extensionDataField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private decimal AsshatFactorField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private decimal ContactPointsField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.DateTime CreatedOnField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.Nullable<System.Guid> CurrentSessionField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private decimal DeletedContactPointsField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private decimal DeletedDistanceAttackKmField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private decimal DeletedDistanceCombatKmField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private decimal DeletedDistanceKmField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private int DeletedMassAccidentsField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private int DeletedSessionsDrivenField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private decimal DistanceAttackKmField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private decimal DistanceCombatKmField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private decimal DistanceKmField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private decimal ELOField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private decimal ELOBetaField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string GradeField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private decimal IncidentsPerKmField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string LastNameField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private int MassAccidentsField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string NameField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private int SessionsDrivenField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string SteamIdField;
+        
+        [global::System.ComponentModel.BrowsableAttribute(false)]
+        public System.Runtime.Serialization.ExtensionDataObject ExtensionData {
+            get {
+                return this.extensionDataField;
+            }
+            set {
+                this.extensionDataField = value;
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public decimal AsshatFactor {
+            get {
+                return this.AsshatFactorField;
+            }
+            set {
+                if ((this.AsshatFactorField.Equals(value) != true)) {
+                    this.AsshatFactorField = value;
+                    this.RaisePropertyChanged("AsshatFactor");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public decimal ContactPoints {
+            get {
+                return this.ContactPointsField;
+            }
+            set {
+                if ((this.ContactPointsField.Equals(value) != true)) {
+                    this.ContactPointsField = value;
+                    this.RaisePropertyChanged("ContactPoints");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.DateTime CreatedOn {
+            get {
+                return this.CreatedOnField;
+            }
+            set {
+                if ((this.CreatedOnField.Equals(value) != true)) {
+                    this.CreatedOnField = value;
+                    this.RaisePropertyChanged("CreatedOn");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.Nullable<System.Guid> CurrentSession {
+            get {
+                return this.CurrentSessionField;
+            }
+            set {
+                if ((this.CurrentSessionField.Equals(value) != true)) {
+                    this.CurrentSessionField = value;
+                    this.RaisePropertyChanged("CurrentSession");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public decimal DeletedContactPoints {
+            get {
+                return this.DeletedContactPointsField;
+            }
+            set {
+                if ((this.DeletedContactPointsField.Equals(value) != true)) {
+                    this.DeletedContactPointsField = value;
+                    this.RaisePropertyChanged("DeletedContactPoints");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public decimal DeletedDistanceAttackKm {
+            get {
+                return this.DeletedDistanceAttackKmField;
+            }
+            set {
+                if ((this.DeletedDistanceAttackKmField.Equals(value) != true)) {
+                    this.DeletedDistanceAttackKmField = value;
+                    this.RaisePropertyChanged("DeletedDistanceAttackKm");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public decimal DeletedDistanceCombatKm {
+            get {
+                return this.DeletedDistanceCombatKmField;
+            }
+            set {
+                if ((this.DeletedDistanceCombatKmField.Equals(value) != true)) {
+                    this.DeletedDistanceCombatKmField = value;
+                    this.RaisePropertyChanged("DeletedDistanceCombatKm");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public decimal DeletedDistanceKm {
+            get {
+                return this.DeletedDistanceKmField;
+            }
+            set {
+                if ((this.DeletedDistanceKmField.Equals(value) != true)) {
+                    this.DeletedDistanceKmField = value;
+                    this.RaisePropertyChanged("DeletedDistanceKm");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public int DeletedMassAccidents {
+            get {
+                return this.DeletedMassAccidentsField;
+            }
+            set {
+                if ((this.DeletedMassAccidentsField.Equals(value) != true)) {
+                    this.DeletedMassAccidentsField = value;
+                    this.RaisePropertyChanged("DeletedMassAccidents");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public int DeletedSessionsDriven {
+            get {
+                return this.DeletedSessionsDrivenField;
+            }
+            set {
+                if ((this.DeletedSessionsDrivenField.Equals(value) != true)) {
+                    this.DeletedSessionsDrivenField = value;
+                    this.RaisePropertyChanged("DeletedSessionsDriven");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public decimal DistanceAttackKm {
+            get {
+                return this.DistanceAttackKmField;
+            }
+            set {
+                if ((this.DistanceAttackKmField.Equals(value) != true)) {
+                    this.DistanceAttackKmField = value;
+                    this.RaisePropertyChanged("DistanceAttackKm");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public decimal DistanceCombatKm {
+            get {
+                return this.DistanceCombatKmField;
+            }
+            set {
+                if ((this.DistanceCombatKmField.Equals(value) != true)) {
+                    this.DistanceCombatKmField = value;
+                    this.RaisePropertyChanged("DistanceCombatKm");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public decimal DistanceKm {
+            get {
+                return this.DistanceKmField;
+            }
+            set {
+                if ((this.DistanceKmField.Equals(value) != true)) {
+                    this.DistanceKmField = value;
+                    this.RaisePropertyChanged("DistanceKm");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public decimal ELO {
+            get {
+                return this.ELOField;
+            }
+            set {
+                if ((this.ELOField.Equals(value) != true)) {
+                    this.ELOField = value;
+                    this.RaisePropertyChanged("ELO");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public decimal ELOBeta {
+            get {
+                return this.ELOBetaField;
+            }
+            set {
+                if ((this.ELOBetaField.Equals(value) != true)) {
+                    this.ELOBetaField = value;
+                    this.RaisePropertyChanged("ELOBeta");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string Grade {
+            get {
+                return this.GradeField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.GradeField, value) != true)) {
+                    this.GradeField = value;
+                    this.RaisePropertyChanged("Grade");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public decimal IncidentsPerKm {
+            get {
+                return this.IncidentsPerKmField;
+            }
+            set {
+                if ((this.IncidentsPerKmField.Equals(value) != true)) {
+                    this.IncidentsPerKmField = value;
+                    this.RaisePropertyChanged("IncidentsPerKm");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string LastName {
+            get {
+                return this.LastNameField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.LastNameField, value) != true)) {
+                    this.LastNameField = value;
+                    this.RaisePropertyChanged("LastName");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public int MassAccidents {
+            get {
+                return this.MassAccidentsField;
+            }
+            set {
+                if ((this.MassAccidentsField.Equals(value) != true)) {
+                    this.MassAccidentsField = value;
+                    this.RaisePropertyChanged("MassAccidents");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string Name {
+            get {
+                return this.NameField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.NameField, value) != true)) {
+                    this.NameField = value;
+                    this.RaisePropertyChanged("Name");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public int SessionsDriven {
+            get {
+                return this.SessionsDrivenField;
+            }
+            set {
+                if ((this.SessionsDrivenField.Equals(value) != true)) {
+                    this.SessionsDrivenField = value;
+                    this.RaisePropertyChanged("SessionsDriven");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string SteamId {
+            get {
+                return this.SteamIdField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.SteamIdField, value) != true)) {
+                    this.SteamIdField = value;
+                    this.RaisePropertyChanged("SteamId");
+                }
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
     [System.ServiceModel.ServiceContractAttribute(ConfigurationName="minoRatingServer.ILiveDataDump")]
     public interface ILiveDataDump {
@@ -605,6 +1417,12 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/LapCompleted", ReplyAction="http://tempuri.org/ILiveDataDump/LapCompletedResponse")]
         System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> LapCompletedAsync(System.Guid sessionId, System.DateTime created, int car, string driver, uint laptime, int cuts, float grip, MinoRatingPlugin.minoRatingServer.LeaderboardEntry[] leaderboard);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/LapCompletedConsistencySplits", ReplyAction="http://tempuri.org/ILiveDataDump/LapCompletedConsistencySplitsResponse")]
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] LapCompletedConsistencySplits(System.Guid sessionId, System.DateTime created, int car, MinoRatingPlugin.minoRatingServer.ConsistencyReport consistencyReport);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/LapCompletedConsistencySplits", ReplyAction="http://tempuri.org/ILiveDataDump/LapCompletedConsistencySplitsResponse")]
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> LapCompletedConsistencySplitsAsync(System.Guid sessionId, System.DateTime created, int car, MinoRatingPlugin.minoRatingServer.ConsistencyReport consistencyReport);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/DistanceDriven", ReplyAction="http://tempuri.org/ILiveDataDump/DistanceDrivenResponse")]
         MinoRatingPlugin.minoRatingServer.PluginReaction[] DistanceDriven(System.Guid sessionId, int car, [System.ServiceModel.MessageParameterAttribute(Name="distanceDriven")] MinoRatingPlugin.minoRatingServer.MRDistanceHelper distanceDriven1);
@@ -677,6 +1495,12 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/GetPendingActions", ReplyAction="http://tempuri.org/ILiveDataDump/GetPendingActionsResponse")]
         System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> GetPendingActionsAsync(System.Guid sessionId);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/GetSituation", ReplyAction="http://tempuri.org/ILiveDataDump/GetSituationResponse")]
+        MinoRatingPlugin.minoRatingServer.Situation GetSituation(string token, long id);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/GetSituation", ReplyAction="http://tempuri.org/ILiveDataDump/GetSituationResponse")]
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.Situation> GetSituationAsync(string token, long id);
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
@@ -760,6 +1584,14 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> LapCompletedAsync(System.Guid sessionId, System.DateTime created, int car, string driver, uint laptime, int cuts, float grip, MinoRatingPlugin.minoRatingServer.LeaderboardEntry[] leaderboard) {
             return base.Channel.LapCompletedAsync(sessionId, created, car, driver, laptime, cuts, grip, leaderboard);
+        }
+        
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] LapCompletedConsistencySplits(System.Guid sessionId, System.DateTime created, int car, MinoRatingPlugin.minoRatingServer.ConsistencyReport consistencyReport) {
+            return base.Channel.LapCompletedConsistencySplits(sessionId, created, car, consistencyReport);
+        }
+        
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> LapCompletedConsistencySplitsAsync(System.Guid sessionId, System.DateTime created, int car, MinoRatingPlugin.minoRatingServer.ConsistencyReport consistencyReport) {
+            return base.Channel.LapCompletedConsistencySplitsAsync(sessionId, created, car, consistencyReport);
         }
         
         public MinoRatingPlugin.minoRatingServer.PluginReaction[] DistanceDriven(System.Guid sessionId, int car, MinoRatingPlugin.minoRatingServer.MRDistanceHelper distanceDriven1) {
@@ -856,6 +1688,14 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> GetPendingActionsAsync(System.Guid sessionId) {
             return base.Channel.GetPendingActionsAsync(sessionId);
+        }
+        
+        public MinoRatingPlugin.minoRatingServer.Situation GetSituation(string token, long id) {
+            return base.Channel.GetSituation(token, id);
+        }
+        
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.Situation> GetSituationAsync(string token, long id) {
+            return base.Channel.GetSituationAsync(token, id);
         }
     }
 }

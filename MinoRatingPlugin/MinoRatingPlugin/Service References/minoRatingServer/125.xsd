@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:ser="http://schemas.microsoft.com/2003/10/Serialization/" xmlns:tns="http://schemas.datacontract.org/2004/07/MinoRating.Entities.Domain" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/MinoRating.Entities.Domain" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import schemaLocation="http://localhost:805/minorating/12?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+  <xs:complexType name="Situation">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Analysis" type="tns:Situation.AnalysisEnum" />
+      <xs:element minOccurs="0" name="Comment" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Distribution" type="xs:float" />
+      <xs:element minOccurs="0" name="Driver" nillable="true" type="tns:Driver" />
+      <xs:element minOccurs="0" name="DriverName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="EndedOn" nillable="true" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="Id" type="xs:long" />
+      <xs:element minOccurs="0" name="OtherDriver" nillable="true" type="tns:Driver" />
+      <xs:element minOccurs="0" name="OtherDriverName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Probability" type="xs:float" />
+      <xs:element minOccurs="0" name="RaceType" type="xs:int" />
+      <xs:element minOccurs="0" name="SessionId" type="ser:guid" />
+      <xs:element minOccurs="0" name="SituationData" nillable="true" type="xs:base64Binary" />
+      <xs:element minOccurs="0" name="StartedOn" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="Status" type="tns:Situation.StatusEnum" />
+      <xs:element minOccurs="0" name="Track" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Situation" nillable="true" type="tns:Situation" />
+  <xs:simpleType name="Situation.AnalysisEnum">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="NotCalculated" />
+      <xs:enumeration value="Ignored" />
+      <xs:enumeration value="RearEnded" />
+      <xs:enumeration value="UnsafeRecovery" />
+      <xs:enumeration value="DiveBomb" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="Situation.AnalysisEnum" nillable="true" type="tns:Situation.AnalysisEnum" />
+  <xs:complexType name="Driver">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AsshatFactor" type="xs:decimal" />
+      <xs:element minOccurs="0" name="ContactPoints" type="xs:decimal" />
+      <xs:element minOccurs="0" name="CreatedOn" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="CurrentSession" nillable="true" type="ser:guid" />
+      <xs:element minOccurs="0" name="DeletedContactPoints" type="xs:decimal" />
+      <xs:element minOccurs="0" name="DeletedDistanceAttackKm" type="xs:decimal" />
+      <xs:element minOccurs="0" name="DeletedDistanceCombatKm" type="xs:decimal" />
+      <xs:element minOccurs="0" name="DeletedDistanceKm" type="xs:decimal" />
+      <xs:element minOccurs="0" name="DeletedMassAccidents" type="xs:int" />
+      <xs:element minOccurs="0" name="DeletedSessionsDriven" type="xs:int" />
+      <xs:element minOccurs="0" name="DistanceAttackKm" type="xs:decimal" />
+      <xs:element minOccurs="0" name="DistanceCombatKm" type="xs:decimal" />
+      <xs:element minOccurs="0" name="DistanceKm" type="xs:decimal" />
+      <xs:element minOccurs="0" name="ELO" type="xs:decimal" />
+      <xs:element minOccurs="0" name="ELOBeta" type="xs:decimal" />
+      <xs:element minOccurs="0" name="Grade" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="IncidentsPerKm" type="xs:decimal" />
+      <xs:element minOccurs="0" name="LastName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="MassAccidents" type="xs:int" />
+      <xs:element minOccurs="0" name="Name" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SessionsDriven" type="xs:int" />
+      <xs:element minOccurs="0" name="SteamId" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Driver" nillable="true" type="tns:Driver" />
+  <xs:simpleType name="Situation.StatusEnum">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Initialized" />
+      <xs:enumeration value="Unfinished" />
+      <xs:enumeration value="Finished" />
+      <xs:enumeration value="Calculated" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="Situation.StatusEnum" nillable="true" type="tns:Situation.StatusEnum" />
+</xs:schema>

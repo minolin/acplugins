@@ -46,6 +46,16 @@
     </xs:sequence>
   </xs:complexType>
   <xs:element name="LeaderboardEntry" nillable="true" type="tns:LeaderboardEntry" />
+  <xs:complexType name="ConsistencyReport">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="LapStart" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="Laptime" type="xs:unsignedInt" />
+      <xs:element minOccurs="0" name="SplitResolution" type="xs:unsignedByte" />
+      <xs:element xmlns:q1="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="Splits" nillable="true" type="q1:ArrayOfunsignedInt" />
+      <xs:element minOccurs="0" name="carId" type="xs:unsignedByte" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ConsistencyReport" nillable="true" type="tns:ConsistencyReport" />
   <xs:complexType name="MRDistanceHelper">
     <xs:sequence>
       <xs:element minOccurs="0" name="MetersAttackRange" type="xs:float" />
@@ -68,8 +78,8 @@
       <xs:element minOccurs="0" name="EngineRPM" type="xs:unsignedShort" />
       <xs:element minOccurs="0" name="Gear" type="xs:unsignedByte" />
       <xs:element minOccurs="0" name="NormalizedSplinePosition" type="xs:float" />
-      <xs:element xmlns:q1="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="Velocity" nillable="true" type="q1:ArrayOffloat" />
-      <xs:element xmlns:q2="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="WorldPosition" nillable="true" type="q2:ArrayOffloat" />
+      <xs:element xmlns:q2="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="Velocity" nillable="true" type="q2:ArrayOffloat" />
+      <xs:element xmlns:q3="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="WorldPosition" nillable="true" type="q3:ArrayOffloat" />
     </xs:sequence>
   </xs:complexType>
   <xs:element name="CarUpdateHistory" nillable="true" type="tns:CarUpdateHistory" />

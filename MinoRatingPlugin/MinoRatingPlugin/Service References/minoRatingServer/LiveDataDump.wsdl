@@ -7,6 +7,7 @@
       <xsd:import schemaLocation="http://localhost:805/minorating/12?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/System" />
       <xsd:import schemaLocation="http://localhost:805/minorating/12?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" />
       <xsd:import schemaLocation="http://localhost:805/minorating/12?xsd=xsd4" namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+      <xsd:import schemaLocation="http://localhost:805/minorating/12?xsd=xsd5" namespace="http://schemas.datacontract.org/2004/07/MinoRating.Entities.Domain" />
     </xsd:schema>
   </wsdl:types>
   <wsdl:message name="ILiveDataDump_NewSession_InputMessage">
@@ -26,6 +27,12 @@
   </wsdl:message>
   <wsdl:message name="ILiveDataDump_LapCompleted_OutputMessage">
     <wsdl:part name="parameters" element="tns:LapCompletedResponse" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_LapCompletedConsistencySplits_InputMessage">
+    <wsdl:part name="parameters" element="tns:LapCompletedConsistencySplits" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_LapCompletedConsistencySplits_OutputMessage">
+    <wsdl:part name="parameters" element="tns:LapCompletedConsistencySplitsResponse" />
   </wsdl:message>
   <wsdl:message name="ILiveDataDump_DistanceDriven_InputMessage">
     <wsdl:part name="parameters" element="tns:DistanceDriven" />
@@ -99,6 +106,12 @@
   <wsdl:message name="ILiveDataDump_GetPendingActions_OutputMessage">
     <wsdl:part name="parameters" element="tns:GetPendingActionsResponse" />
   </wsdl:message>
+  <wsdl:message name="ILiveDataDump_GetSituation_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetSituation" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_GetSituation_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetSituationResponse" />
+  </wsdl:message>
   <wsdl:portType name="ILiveDataDump">
     <wsdl:operation name="NewSession">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/NewSession" message="tns:ILiveDataDump_NewSession_InputMessage" />
@@ -111,6 +124,10 @@
     <wsdl:operation name="LapCompleted">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/LapCompleted" message="tns:ILiveDataDump_LapCompleted_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/LapCompletedResponse" message="tns:ILiveDataDump_LapCompleted_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="LapCompletedConsistencySplits">
+      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/LapCompletedConsistencySplits" message="tns:ILiveDataDump_LapCompletedConsistencySplits_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/LapCompletedConsistencySplitsResponse" message="tns:ILiveDataDump_LapCompletedConsistencySplits_OutputMessage" />
     </wsdl:operation>
     <wsdl:operation name="DistanceDriven">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/DistanceDriven" message="tns:ILiveDataDump_DistanceDriven_InputMessage" />
@@ -160,6 +177,10 @@
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/GetPendingActions" message="tns:ILiveDataDump_GetPendingActions_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/GetPendingActionsResponse" message="tns:ILiveDataDump_GetPendingActions_OutputMessage" />
     </wsdl:operation>
+    <wsdl:operation name="GetSituation">
+      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/GetSituation" message="tns:ILiveDataDump_GetSituation_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/GetSituationResponse" message="tns:ILiveDataDump_GetSituation_OutputMessage" />
+    </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="BasicHttpBinding_ILiveDataDump" type="tns:ILiveDataDump">
     <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
@@ -183,6 +204,15 @@
     </wsdl:operation>
     <wsdl:operation name="LapCompleted">
       <soap:operation soapAction="http://tempuri.org/ILiveDataDump/LapCompleted" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="LapCompletedConsistencySplits">
+      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/LapCompletedConsistencySplits" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>
@@ -291,6 +321,15 @@
     </wsdl:operation>
     <wsdl:operation name="GetPendingActions">
       <soap:operation soapAction="http://tempuri.org/ILiveDataDump/GetPendingActions" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetSituation">
+      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/GetSituation" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>
