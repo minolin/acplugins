@@ -283,10 +283,25 @@ namespace MinoRatingPlugin.minoRatingServer {
         private System.Runtime.Serialization.ExtensionDataObject extensionDataField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private byte CutsField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
         private System.DateTime LapStartField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
         private uint LaptimeField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private byte MaxGearField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private float MaxVelocityField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private byte MinGearField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private float MinVelocityField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
         private byte SplitResolutionField;
@@ -304,6 +319,19 @@ namespace MinoRatingPlugin.minoRatingServer {
             }
             set {
                 this.extensionDataField = value;
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public byte Cuts {
+            get {
+                return this.CutsField;
+            }
+            set {
+                if ((this.CutsField.Equals(value) != true)) {
+                    this.CutsField = value;
+                    this.RaisePropertyChanged("Cuts");
+                }
             }
         }
         
@@ -329,6 +357,58 @@ namespace MinoRatingPlugin.minoRatingServer {
                 if ((this.LaptimeField.Equals(value) != true)) {
                     this.LaptimeField = value;
                     this.RaisePropertyChanged("Laptime");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public byte MaxGear {
+            get {
+                return this.MaxGearField;
+            }
+            set {
+                if ((this.MaxGearField.Equals(value) != true)) {
+                    this.MaxGearField = value;
+                    this.RaisePropertyChanged("MaxGear");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public float MaxVelocity {
+            get {
+                return this.MaxVelocityField;
+            }
+            set {
+                if ((this.MaxVelocityField.Equals(value) != true)) {
+                    this.MaxVelocityField = value;
+                    this.RaisePropertyChanged("MaxVelocity");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public byte MinGear {
+            get {
+                return this.MinGearField;
+            }
+            set {
+                if ((this.MinGearField.Equals(value) != true)) {
+                    this.MinGearField = value;
+                    this.RaisePropertyChanged("MinGear");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public float MinVelocity {
+            get {
+                return this.MinVelocityField;
+            }
+            set {
+                if ((this.MinVelocityField.Equals(value) != true)) {
+                    this.MinVelocityField = value;
+                    this.RaisePropertyChanged("MinVelocity");
                 }
             }
         }

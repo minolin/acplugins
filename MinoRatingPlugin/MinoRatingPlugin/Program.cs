@@ -178,10 +178,13 @@ namespace MinoRatingPlugin
             if (_consistencyReports.ContainsKey(driver) && _consistencyReports[driver] != null)
             {
                 PluginManager.Log("CR for driver available, will send");
+                _consistencyReports[driver].Cuts = msg.Cuts;
+                _consistencyReports[driver].Laptime = msg.Laptime;
+                _consistencyReports[driver].MaxVelocity = driver.TopSpeed;
                 HandleClientActions(LiveDataServer.LapCompletedConsistencySplits(CurrentSessionGuid, msg.CreationDate, msg.CarId, _consistencyReports[driver]));
             }
 
-            _consistencyReports[driver] = new ConsistencyReport() { carId = msg.CarId, LapStart = msg.CreationDate, SplitResolution = 10, Splits = new uint[0] };
+            _consistencyReports[driver] = new ConsistencyReport() { carId = msg.CarId, LapStart = msg.CreationDate, MinGear = 8, MinVelocity = 400, SplitResolution = 10, Splits = new uint[0] };
         }
 
 
@@ -374,14 +377,34 @@ namespace MinoRatingPlugin
                 var splits = cr.Splits.ToList();
                 var carUpdate = di.LastCarUpdate.Value;
 
-                var lastSplit = (int)(di.LastCarUpdate.Previous.Value.NormalizedSplinePosition * cr.SplitResolution);
-                var thisSplit = (int)(di.LastCarUpdate.Value.NormalizedSplinePosition * cr.SplitResolution);
+                if (carUpdate.Gear > 1 && cr.MinGear > carUpdate.Gear)
+                    cr.MinGear = carUpdate.Gear;
+                if (cr.MaxGear < carUpdate.Gear)
+                    cr.MaxGear = carUpdate.Gear;
+                if (di.CurrentSpeed < cr.MinVelocity)
+                    cr.MinVelocity = di.CurrentSpeed;
+                if (di.CurrentSpeed < cr.MinVelocity)
+                    cr.MinVelocity = di.CurrentSpeed;
 
-                if (lastSplit != thisSplit && lastSplit < 0.9)
+                float lastSplit = (int)(di.LastCarUpdate.Previous.Value.NormalizedSplinePosition * cr.SplitResolution);
+                lastSplit /= cr.SplitResolution;
+                float thisSplit = (int)(di.LastCarUpdate.Value.NormalizedSplinePosition * cr.SplitResolution);
+                thisSplit /= cr.SplitResolution;
+
+                if (lastSplit == 0.9f && thisSplit == 0f)
+                    Console.WriteLine("NewLap detected for " + di.DriverName + ". SplitCount: " + cr.Splits.Length);
+                else if (lastSplit > thisSplit)
+                { 
+                    Console.WriteLine("Aborted lap detected for " + di.DriverName);
+                    _consistencyReports.Remove(di);
+                }
+                if (lastSplit != thisSplit)
                 {
+                    Console.WriteLine(string.Format("LastSplit={0:f2}, ThisSplit={1:f2}, splines={2:f2}/{3:f2}", lastSplit, thisSplit, di.LastCarUpdate.Previous.Value.NormalizedSplinePosition, di.LastCarUpdate.Value.NormalizedSplinePosition));
                     // The SplinePos Split has been changed, so now we want to log the time.
                     // To be more precise we will try to recalculate the laptime in the exact transition
-                    splits.Add(AverageLaptimeBySplit(di.LastCarUpdate.Previous.Value, di.LastCarUpdate.Value));
+                    splits.Add(AverageLaptimeBySplit(cr.LapStart, di.LastCarUpdate.Previous.Value, di.LastCarUpdate.Value));
+                    Console.WriteLine("Added: " + splits.Last() + " (Count=" + splits.Count + ")");
                 }
 
                 cr.Splits = splits.ToArray();
@@ -390,19 +413,29 @@ namespace MinoRatingPlugin
             #endregion
         }
 
-        public uint AverageLaptimeBySplit(MsgCarUpdate tminus1, MsgCarUpdate t0)
+        public uint AverageLaptimeBySplit(DateTime lapStart, MsgCarUpdate tminus1, MsgCarUpdate t0)
         {
+            // We need to remove the failure that the 1s interval brings. Basically we want to know
+            // (or calculate) when the driver exactly was at the spline-split
+
+
             // Difference of the Splines
             var splineDiff = t0.NormalizedSplinePosition - tminus1.NormalizedSplinePosition;
             // Split
             float splineSplit = (int)(t0.NormalizedSplinePosition * 10);
             splineSplit /= 10;
-            // Upper ratio: 
+            
+            // Ratio: 
             var ratio = (t0.NormalizedSplinePosition - splineSplit) / splineDiff;
 
             // Timediff in MS
-            var timeDiff = t0.CreationDate.Subtract(tminus1.CreationDate).TotalMilliseconds;
-            return (uint)Math.Round(timeDiff * ratio, 0);
+            var timeDiff = 1000 - t0.CreationDate.Subtract(tminus1.CreationDate).TotalMilliseconds;
+            var timeOff = timeDiff * (1 - ratio);
+
+            var result = (uint)Math.Round(t0.CreationDate.Subtract(lapStart).TotalMilliseconds - timeOff);
+            string.Format("Spline={0:F3}, TimeOff={1:N0}ms, Result={2:N0}", t0.NormalizedSplinePosition, timeOff, result);
+
+            return result;
         }
 
         protected override void OnBulkCarUpdateFinished()
