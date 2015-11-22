@@ -179,11 +179,11 @@ namespace MinoRatingPlugin
             if (_consistencyReports.ContainsKey(driver) && _consistencyReports[driver] != null)
             {
                 PluginManager.Log("CR for driver available, will send");
-                _consistencyReports[driver].Cuts = msg.Cuts;
-                _consistencyReports[driver].Laptime = msg.Laptime;
-                _consistencyReports[driver].MaxVelocity = driver.TopSpeed;
-                HandleClientActions(LiveDataServer.LapCompletedConsistencySplits(CurrentSessionGuid, msg.CreationDate, msg.CarId, _consistencyReports[driver]));
+                var cr = _consistencyReports[driver];
                 _consistencyReports[driver] = null;
+                cr.Cuts = msg.Cuts;
+                cr.Laptime = msg.Laptime;
+                HandleClientActions(LiveDataServer.LapCompletedConsistencySplits(CurrentSessionGuid, msg.CreationDate, msg.CarId, cr));
             }
 
         }
@@ -403,21 +403,21 @@ namespace MinoRatingPlugin
                     cr.MaxGear = carUpdate.Gear;
                 if (di.CurrentSpeed < cr.MinVelocity)
                     cr.MinVelocity = di.CurrentSpeed;
-                if (di.CurrentSpeed < cr.MinVelocity)
-                    cr.MinVelocity = di.CurrentSpeed;
+                if (di.CurrentSpeed > cr.MaxVelocity)
+                    cr.MaxVelocity = di.CurrentSpeed;
 
                 float lastSplit = (int)(di.LastCarUpdate.Previous.Value.NormalizedSplinePosition * cr.SplitResolution);
                 lastSplit /= cr.SplitResolution;
                 float thisSplit = (int)(di.LastCarUpdate.Value.NormalizedSplinePosition * cr.SplitResolution);
                 thisSplit /= cr.SplitResolution;
 
-                if (lastSplit != thisSplit)
+                if (thisSplit > lastSplit)
                 {
-                    //PluginManager.Log(string.Format("LastSplit={0:f2}, ThisSplit={1:f2}, splines={2:f2}/{3:f2}", lastSplit, thisSplit, di.LastCarUpdate.Previous.Value.NormalizedSplinePosition, di.LastCarUpdate.Value.NormalizedSplinePosition));
+                    PluginManager.Log(string.Format("LastSplit={0:f2}, ThisSplit={1:f2}, splines={2:f2}/{3:f2}", lastSplit, thisSplit, di.LastCarUpdate.Previous.Value.NormalizedSplinePosition, di.LastCarUpdate.Value.NormalizedSplinePosition));
                     // The SplinePos Split has been changed, so now we want to log the time.
                     // To be more precise we will try to recalculate the laptime in the exact transition
                     splits.Add(AverageLaptimeBySplit(cr.LapStart, di.LastCarUpdate.Previous.Value, di.LastCarUpdate.Value));
-                    //PluginManager.Log("Added: " + splits.Last() + " (Count=" + splits.Count + ")");
+                    PluginManager.Log("Added: " + splits.Last() + " (Count=" + splits.Count + ")");
                 }
 
                 cr.Splits = splits.ToArray();
