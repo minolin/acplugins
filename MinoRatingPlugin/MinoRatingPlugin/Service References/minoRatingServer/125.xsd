@@ -35,9 +35,14 @@
   <xs:complexType name="Driver">
     <xs:sequence>
       <xs:element minOccurs="0" name="AsshatFactor" type="xs:decimal" />
+      <xs:element minOccurs="0" name="ConsistencyEarned" type="xs:decimal" />
+      <xs:element minOccurs="0" name="ConsistencyRating" type="xs:decimal" />
+      <xs:element minOccurs="0" name="ConsistencyRecord" nillable="true" type="tns:Consistency" />
       <xs:element minOccurs="0" name="ContactPoints" type="xs:decimal" />
+      <xs:element minOccurs="0" name="Contributor" nillable="true" type="xs:boolean" />
       <xs:element minOccurs="0" name="CreatedOn" type="xs:dateTime" />
       <xs:element minOccurs="0" name="CurrentSession" nillable="true" type="ser:guid" />
+      <xs:element minOccurs="0" name="Debugger" nillable="true" type="xs:boolean" />
       <xs:element minOccurs="0" name="DeletedContactPoints" type="xs:decimal" />
       <xs:element minOccurs="0" name="DeletedDistanceAttackKm" type="xs:decimal" />
       <xs:element minOccurs="0" name="DeletedDistanceCombatKm" type="xs:decimal" />
@@ -59,6 +64,23 @@
     </xs:sequence>
   </xs:complexType>
   <xs:element name="Driver" nillable="true" type="tns:Driver" />
+  <xs:complexType name="Consistency">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AvgConsistency" type="xs:decimal" />
+      <xs:element minOccurs="0" name="Car" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Created" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="Driver" nillable="true" type="tns:Driver" />
+      <xs:element minOccurs="0" name="Id" type="xs:long" />
+      <xs:element minOccurs="0" name="Laps" type="xs:int" />
+      <xs:element minOccurs="0" name="MaxConsistency" type="xs:decimal" />
+      <xs:element minOccurs="0" name="MinConsistency" type="xs:decimal" />
+      <xs:element minOccurs="0" name="Minutes" type="xs:decimal" />
+      <xs:element minOccurs="0" name="RawData" nillable="true" type="xs:base64Binary" />
+      <xs:element minOccurs="0" name="Score" type="xs:decimal" />
+      <xs:element minOccurs="0" name="Track" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Consistency" nillable="true" type="tns:Consistency" />
   <xs:simpleType name="Situation.StatusEnum">
     <xs:restriction base="xs:string">
       <xs:enumeration value="Initialized" />

@@ -49,6 +49,7 @@
   <xs:complexType name="ConsistencyReport">
     <xs:sequence>
       <xs:element minOccurs="0" name="Cuts" type="xs:unsignedByte" />
+      <xs:element minOccurs="0" name="IsInlap" type="xs:boolean" />
       <xs:element minOccurs="0" name="LapStart" type="xs:dateTime" />
       <xs:element minOccurs="0" name="Laptime" type="xs:unsignedInt" />
       <xs:element minOccurs="0" name="MaxGear" type="xs:unsignedByte" />

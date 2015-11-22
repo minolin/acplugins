@@ -316,4 +316,20 @@
       </xs:sequence>
     </xs:complexType>
   </xs:element>
+  <xs:element name="DriverBackToPits">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q43="http://schemas.microsoft.com/2003/10/Serialization/" minOccurs="0" name="sessionId" type="q43:guid" />
+        <xs:element minOccurs="0" name="created" type="xs:dateTime" />
+        <xs:element minOccurs="0" name="carId" type="xs:int" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="DriverBackToPitsResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q44="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" minOccurs="0" name="DriverBackToPitsResult" nillable="true" type="q44:ArrayOfPluginReaction" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
 </xs:schema>

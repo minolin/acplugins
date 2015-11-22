@@ -112,6 +112,12 @@
   <wsdl:message name="ILiveDataDump_GetSituation_OutputMessage">
     <wsdl:part name="parameters" element="tns:GetSituationResponse" />
   </wsdl:message>
+  <wsdl:message name="ILiveDataDump_DriverBackToPits_InputMessage">
+    <wsdl:part name="parameters" element="tns:DriverBackToPits" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_DriverBackToPits_OutputMessage">
+    <wsdl:part name="parameters" element="tns:DriverBackToPitsResponse" />
+  </wsdl:message>
   <wsdl:portType name="ILiveDataDump">
     <wsdl:operation name="NewSession">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/NewSession" message="tns:ILiveDataDump_NewSession_InputMessage" />
@@ -180,6 +186,10 @@
     <wsdl:operation name="GetSituation">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/GetSituation" message="tns:ILiveDataDump_GetSituation_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/GetSituationResponse" message="tns:ILiveDataDump_GetSituation_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="DriverBackToPits">
+      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/DriverBackToPits" message="tns:ILiveDataDump_DriverBackToPits_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/DriverBackToPitsResponse" message="tns:ILiveDataDump_DriverBackToPits_OutputMessage" />
     </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="BasicHttpBinding_ILiveDataDump" type="tns:ILiveDataDump">
@@ -330,6 +340,15 @@
     </wsdl:operation>
     <wsdl:operation name="GetSituation">
       <soap:operation soapAction="http://tempuri.org/ILiveDataDump/GetSituation" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DriverBackToPits">
+      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/DriverBackToPits" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>

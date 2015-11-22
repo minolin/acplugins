@@ -20,7 +20,7 @@ namespace MinoRatingPlugin
         public string TrustToken { get; set; }
         public Guid CurrentSessionGuid { get; set; }
         public DateTime CurrentSessionStartTime { get; set; }
-        public static Version PluginVersion = new Version(1, 3, 1, 0);
+        public static Version PluginVersion = new Version(1, 3, 1, 2);
 
         protected internal byte[] _fingerprint;
 
@@ -45,7 +45,7 @@ namespace MinoRatingPlugin
                 {
                     pluginManager.Log(ex);
                 }
-                catch (Exception){}
+                catch (Exception) { }
             }
         }
 
@@ -132,9 +132,10 @@ namespace MinoRatingPlugin
             for (byte i = 0; i < 36; i++)
                 PluginManager.RequestCarInfo(i);
 
-            CurrentSessionStartTime = msg.CreationDate.AddMilliseconds(msg.ElapsedMS*-1);
+            CurrentSessionStartTime = msg.CreationDate.AddMilliseconds(msg.ElapsedMS * -1);
 
             _distancesToReport.Clear();
+            _consistencyReports.Clear();
         }
 
         protected override void OnNewConnection(MsgNewConnection msg)
@@ -182,9 +183,9 @@ namespace MinoRatingPlugin
                 _consistencyReports[driver].Laptime = msg.Laptime;
                 _consistencyReports[driver].MaxVelocity = driver.TopSpeed;
                 HandleClientActions(LiveDataServer.LapCompletedConsistencySplits(CurrentSessionGuid, msg.CreationDate, msg.CarId, _consistencyReports[driver]));
+                _consistencyReports[driver] = null;
             }
 
-            _consistencyReports[driver] = new ConsistencyReport() { carId = msg.CarId, LapStart = msg.CreationDate, MinGear = 8, MinVelocity = 400, SplitResolution = 10, Splits = new uint[0] };
         }
 
 
@@ -197,7 +198,6 @@ namespace MinoRatingPlugin
             {
                 HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, msg.IsConnected, GetCurrentRaceTimeMS(msg)));
             }
-
         }
 
         protected override void OnChatMessage(MsgChat msg)
@@ -280,7 +280,7 @@ namespace MinoRatingPlugin
             try
             {
                 DriverInfo driver = null;
-                if(!PluginManager.TryGetDriverInfo(Convert.ToByte(carId), out driver))
+                if (!PluginManager.TryGetDriverInfo(Convert.ToByte(carId), out driver))
                     throw new Exception("Driver not found: " + carId);
 
                 DriverInfo otherDriver = null;
@@ -371,7 +371,27 @@ namespace MinoRatingPlugin
 
             #region Consistency
 
-            if (_consistencyReports.ContainsKey(di) && di.LastCarUpdate.List.Count > 1)
+            if (!_consistencyReports.ContainsKey(di))
+                _consistencyReports.Add(di, null);
+
+            if (di.LastCarUpdate.List.Count > 1 && TeleportedToPits(di))
+                if (TeleportedToPits(di))
+                {
+                    // This will invalidate the current lap,
+                    _consistencyReports[di] = null;
+                    // but we need to tell MR
+                    LiveDataServer.DriverBackToPits(CurrentSessionGuid, di.LastCarUpdate.Value.CreationDate, di.CarId);
+                }
+
+            if (di.LastCarUpdate.List.Count > 1 && _consistencyReports[di] == null)
+            {
+                // We need to create a new CR. Important: The current speed is an indicator wether this is an inlap 
+                var msgCarUpdate = di.LastCarUpdate.Value;
+                _consistencyReports[di] = new ConsistencyReport() { carId = msgCarUpdate.CarId, LapStart = msgCarUpdate.CreationDate, MinGear = msgCarUpdate.Gear, MaxGear = msgCarUpdate.Gear, MinVelocity = di.CurrentSpeed, MaxVelocity = di.CurrentSpeed, SplitResolution = 10, Splits = new uint[0] };
+                PluginManager.Log("new ConsistencyReport (minSpeed=" + di.CurrentSpeed + ")");
+            }
+
+            if (di.LastCarUpdate.List.Count > 1)
             {
                 var cr = _consistencyReports[di];
                 var splits = cr.Splits.ToList();
@@ -391,26 +411,41 @@ namespace MinoRatingPlugin
                 float thisSplit = (int)(di.LastCarUpdate.Value.NormalizedSplinePosition * cr.SplitResolution);
                 thisSplit /= cr.SplitResolution;
 
-                if (lastSplit == 0.9f && thisSplit == 0f)
-                    Console.WriteLine("NewLap detected for " + di.DriverName + ". SplitCount: " + cr.Splits.Length);
-                else if (lastSplit > thisSplit)
-                { 
-                    Console.WriteLine("Aborted lap detected for " + di.DriverName);
-                    _consistencyReports.Remove(di);
-                }
                 if (lastSplit != thisSplit)
                 {
-                    Console.WriteLine(string.Format("LastSplit={0:f2}, ThisSplit={1:f2}, splines={2:f2}/{3:f2}", lastSplit, thisSplit, di.LastCarUpdate.Previous.Value.NormalizedSplinePosition, di.LastCarUpdate.Value.NormalizedSplinePosition));
+                    //PluginManager.Log(string.Format("LastSplit={0:f2}, ThisSplit={1:f2}, splines={2:f2}/{3:f2}", lastSplit, thisSplit, di.LastCarUpdate.Previous.Value.NormalizedSplinePosition, di.LastCarUpdate.Value.NormalizedSplinePosition));
                     // The SplinePos Split has been changed, so now we want to log the time.
                     // To be more precise we will try to recalculate the laptime in the exact transition
                     splits.Add(AverageLaptimeBySplit(cr.LapStart, di.LastCarUpdate.Previous.Value, di.LastCarUpdate.Value));
-                    Console.WriteLine("Added: " + splits.Last() + " (Count=" + splits.Count + ")");
+                    //PluginManager.Log("Added: " + splits.Last() + " (Count=" + splits.Count + ")");
                 }
 
                 cr.Splits = splits.ToArray();
             }
 
             #endregion
+        }
+
+        private bool TeleportedToPits(DriverInfo di)
+        {
+            // Theory: if the car's velocity is zero in this and the last carUpdate, but there's some (significant) distance
+            // between the world positions - it has to be a teleport to the pits (manually).
+            // If only now is zero, the chances aren't bad that it was a penalty
+            if (di.LastCarUpdate != null && di.LastCarUpdate.Previous != null)
+            {
+                var now = di.LastCarUpdate.Value;
+                var last = di.LastCarUpdate.Previous.Value;
+
+                if (Math.Round(now.Velocity.Length(), 0) == 0 && Math.Round(last.Velocity.Length()) == 0)
+                {
+                    var distance = (last.WorldPosition - now.WorldPosition).Length();
+                    PluginManager.Log("Car is standing; Distance = " + distance + " (" + (distance > 3) + ")");
+                    if (distance > 3)
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         public uint AverageLaptimeBySplit(DateTime lapStart, MsgCarUpdate tminus1, MsgCarUpdate t0)
@@ -424,7 +459,7 @@ namespace MinoRatingPlugin
             // Split
             float splineSplit = (int)(t0.NormalizedSplinePosition * 10);
             splineSplit /= 10;
-            
+
             // Ratio: 
             var ratio = (t0.NormalizedSplinePosition - splineSplit) / splineDiff;
 

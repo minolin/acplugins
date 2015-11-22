@@ -286,6 +286,9 @@ namespace MinoRatingPlugin.minoRatingServer {
         private byte CutsField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private bool IsInlapField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
         private System.DateTime LapStartField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
@@ -331,6 +334,19 @@ namespace MinoRatingPlugin.minoRatingServer {
                 if ((this.CutsField.Equals(value) != true)) {
                     this.CutsField = value;
                     this.RaisePropertyChanged("Cuts");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public bool IsInlap {
+            get {
+                return this.IsInlapField;
+            }
+            set {
+                if ((this.IsInlapField.Equals(value) != true)) {
+                    this.IsInlapField = value;
+                    this.RaisePropertyChanged("IsInlap");
                 }
             }
         }
@@ -1076,13 +1092,28 @@ namespace MinoRatingPlugin.minoRatingServer {
         private decimal AsshatFactorField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private decimal ConsistencyEarnedField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private decimal ConsistencyRatingField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private MinoRatingPlugin.minoRatingServer.Consistency ConsistencyRecordField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
         private decimal ContactPointsField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.Nullable<bool> ContributorField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
         private System.DateTime CreatedOnField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
         private System.Nullable<System.Guid> CurrentSessionField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.Nullable<bool> DebuggerField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
         private decimal DeletedContactPointsField;
@@ -1162,6 +1193,45 @@ namespace MinoRatingPlugin.minoRatingServer {
         }
         
         [System.Runtime.Serialization.DataMemberAttribute()]
+        public decimal ConsistencyEarned {
+            get {
+                return this.ConsistencyEarnedField;
+            }
+            set {
+                if ((this.ConsistencyEarnedField.Equals(value) != true)) {
+                    this.ConsistencyEarnedField = value;
+                    this.RaisePropertyChanged("ConsistencyEarned");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public decimal ConsistencyRating {
+            get {
+                return this.ConsistencyRatingField;
+            }
+            set {
+                if ((this.ConsistencyRatingField.Equals(value) != true)) {
+                    this.ConsistencyRatingField = value;
+                    this.RaisePropertyChanged("ConsistencyRating");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public MinoRatingPlugin.minoRatingServer.Consistency ConsistencyRecord {
+            get {
+                return this.ConsistencyRecordField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.ConsistencyRecordField, value) != true)) {
+                    this.ConsistencyRecordField = value;
+                    this.RaisePropertyChanged("ConsistencyRecord");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
         public decimal ContactPoints {
             get {
                 return this.ContactPointsField;
@@ -1170,6 +1240,19 @@ namespace MinoRatingPlugin.minoRatingServer {
                 if ((this.ContactPointsField.Equals(value) != true)) {
                     this.ContactPointsField = value;
                     this.RaisePropertyChanged("ContactPoints");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.Nullable<bool> Contributor {
+            get {
+                return this.ContributorField;
+            }
+            set {
+                if ((this.ContributorField.Equals(value) != true)) {
+                    this.ContributorField = value;
+                    this.RaisePropertyChanged("Contributor");
                 }
             }
         }
@@ -1196,6 +1279,19 @@ namespace MinoRatingPlugin.minoRatingServer {
                 if ((this.CurrentSessionField.Equals(value) != true)) {
                     this.CurrentSessionField = value;
                     this.RaisePropertyChanged("CurrentSession");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.Nullable<bool> Debugger {
+            get {
+                return this.DebuggerField;
+            }
+            set {
+                if ((this.DebuggerField.Equals(value) != true)) {
+                    this.DebuggerField = value;
+                    this.RaisePropertyChanged("Debugger");
                 }
             }
         }
@@ -1444,6 +1540,227 @@ namespace MinoRatingPlugin.minoRatingServer {
         }
     }
     
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+    [System.Runtime.Serialization.DataContractAttribute(Name="Consistency", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Entities.Domain")]
+    [System.SerializableAttribute()]
+    public partial class Consistency : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
+        
+        [System.NonSerializedAttribute()]
+        private System.Runtime.Serialization.ExtensionDataObject extensionDataField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private decimal AvgConsistencyField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string CarField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.DateTime CreatedField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private MinoRatingPlugin.minoRatingServer.Driver DriverField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private long IdField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private int LapsField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private decimal MaxConsistencyField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private decimal MinConsistencyField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private decimal MinutesField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private byte[] RawDataField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private decimal ScoreField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string TrackField;
+        
+        [global::System.ComponentModel.BrowsableAttribute(false)]
+        public System.Runtime.Serialization.ExtensionDataObject ExtensionData {
+            get {
+                return this.extensionDataField;
+            }
+            set {
+                this.extensionDataField = value;
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public decimal AvgConsistency {
+            get {
+                return this.AvgConsistencyField;
+            }
+            set {
+                if ((this.AvgConsistencyField.Equals(value) != true)) {
+                    this.AvgConsistencyField = value;
+                    this.RaisePropertyChanged("AvgConsistency");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string Car {
+            get {
+                return this.CarField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.CarField, value) != true)) {
+                    this.CarField = value;
+                    this.RaisePropertyChanged("Car");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.DateTime Created {
+            get {
+                return this.CreatedField;
+            }
+            set {
+                if ((this.CreatedField.Equals(value) != true)) {
+                    this.CreatedField = value;
+                    this.RaisePropertyChanged("Created");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public MinoRatingPlugin.minoRatingServer.Driver Driver {
+            get {
+                return this.DriverField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.DriverField, value) != true)) {
+                    this.DriverField = value;
+                    this.RaisePropertyChanged("Driver");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public long Id {
+            get {
+                return this.IdField;
+            }
+            set {
+                if ((this.IdField.Equals(value) != true)) {
+                    this.IdField = value;
+                    this.RaisePropertyChanged("Id");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public int Laps {
+            get {
+                return this.LapsField;
+            }
+            set {
+                if ((this.LapsField.Equals(value) != true)) {
+                    this.LapsField = value;
+                    this.RaisePropertyChanged("Laps");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public decimal MaxConsistency {
+            get {
+                return this.MaxConsistencyField;
+            }
+            set {
+                if ((this.MaxConsistencyField.Equals(value) != true)) {
+                    this.MaxConsistencyField = value;
+                    this.RaisePropertyChanged("MaxConsistency");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public decimal MinConsistency {
+            get {
+                return this.MinConsistencyField;
+            }
+            set {
+                if ((this.MinConsistencyField.Equals(value) != true)) {
+                    this.MinConsistencyField = value;
+                    this.RaisePropertyChanged("MinConsistency");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public decimal Minutes {
+            get {
+                return this.MinutesField;
+            }
+            set {
+                if ((this.MinutesField.Equals(value) != true)) {
+                    this.MinutesField = value;
+                    this.RaisePropertyChanged("Minutes");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public byte[] RawData {
+            get {
+                return this.RawDataField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.RawDataField, value) != true)) {
+                    this.RawDataField = value;
+                    this.RaisePropertyChanged("RawData");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public decimal Score {
+            get {
+                return this.ScoreField;
+            }
+            set {
+                if ((this.ScoreField.Equals(value) != true)) {
+                    this.ScoreField = value;
+                    this.RaisePropertyChanged("Score");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string Track {
+            get {
+                return this.TrackField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.TrackField, value) != true)) {
+                    this.TrackField = value;
+                    this.RaisePropertyChanged("Track");
+                }
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
     [System.ServiceModel.ServiceContractAttribute(ConfigurationName="minoRatingServer.ILiveDataDump")]
     public interface ILiveDataDump {
@@ -1581,6 +1898,12 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/GetSituation", ReplyAction="http://tempuri.org/ILiveDataDump/GetSituationResponse")]
         System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.Situation> GetSituationAsync(string token, long id);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/DriverBackToPits", ReplyAction="http://tempuri.org/ILiveDataDump/DriverBackToPitsResponse")]
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] DriverBackToPits(System.Guid sessionId, System.DateTime created, int carId);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/DriverBackToPits", ReplyAction="http://tempuri.org/ILiveDataDump/DriverBackToPitsResponse")]
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> DriverBackToPitsAsync(System.Guid sessionId, System.DateTime created, int carId);
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
@@ -1776,6 +2099,14 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.Situation> GetSituationAsync(string token, long id) {
             return base.Channel.GetSituationAsync(token, id);
+        }
+        
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] DriverBackToPits(System.Guid sessionId, System.DateTime created, int carId) {
+            return base.Channel.DriverBackToPits(sessionId, created, carId);
+        }
+        
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> DriverBackToPitsAsync(System.Guid sessionId, System.DateTime created, int carId) {
+            return base.Channel.DriverBackToPitsAsync(sessionId, created, carId);
         }
     }
 }
