@@ -380,7 +380,7 @@ namespace MinoRatingPlugin
                     // This will invalidate the current lap,
                     _consistencyReports[di] = null;
                     // but we need to tell MR
-                    LiveDataServer.DriverBackToPits(CurrentSessionGuid, di.LastCarUpdate.Value.CreationDate, di.CarId);
+                    HandleClientActions(LiveDataServer.DriverBackToPits(CurrentSessionGuid, di.LastCarUpdate.Value.CreationDate, di.CarId));
                 }
 
             if (di.LastCarUpdate.List.Count > 1 && _consistencyReports[di] == null)
