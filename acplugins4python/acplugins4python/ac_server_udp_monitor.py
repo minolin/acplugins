@@ -110,7 +110,7 @@ class ACUdpMonitor:
                 else:
                     log=log_dbg
                 if self.intervals[pluginId] > 0:
-                    for carId in self.cu_history[pluginId].keys():
+                    for carId in list(self.cu_history[pluginId].keys()):
                         h = self.cu_history[pluginId][carId]
                         if h.count <= 10: continue
                         avgInterval = (h.lastSendTime - h.firstSendTime)/h.count*1000
