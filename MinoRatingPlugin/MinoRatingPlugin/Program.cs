@@ -20,7 +20,7 @@ namespace MinoRatingPlugin
         public string TrustToken { get; set; }
         public Guid CurrentSessionGuid { get; set; }
         public DateTime CurrentSessionStartTime { get; set; }
-        public static Version PluginVersion = new Version(1, 3, 1, 2);
+        public static Version PluginVersion = new Version(1, 3, 1, 4);
 
         protected internal byte[] _fingerprint;
 
@@ -418,7 +418,7 @@ namespace MinoRatingPlugin
                     // To be more precise we will try to recalculate the laptime in the exact transition
                     splits.Add(AverageLaptimeBySplit(cr.LapStart, di.LastCarUpdate.Previous.Value, di.LastCarUpdate.Value));
                     PluginManager.Log("Added: " + splits.Last() + " (Count=" + splits.Count + ")");
-                }
+               }
 
                 cr.Splits = splits.ToArray();
             }
