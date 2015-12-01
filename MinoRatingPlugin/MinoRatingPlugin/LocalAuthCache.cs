@@ -14,7 +14,8 @@ namespace MinoRatingPlugin
     public class LocalAuthCache
     {
         public DateTime LastAuthUpdate { get; set; } = new DateTime(2015, 01, 01);
-        private LiveDataDumpClient LiveDataServer { get; set; } = new LiveDataDumpClient(new BasicHttpBinding(), new EndpointAddress("http://plugin.minorating.com:805/minorating/12"));
+        const int MaxMessageSize = 65535 * 100;
+        private LiveDataDumpClient LiveDataServer { get; set; }
         AcServerPluginManager Log { get; set; }
         public bool Stop { get; set; }
         private int port;
@@ -27,6 +28,13 @@ namespace MinoRatingPlugin
         {
             this.port = httpPort;
             this.Log = log;
+
+            LiveDataServer = new LiveDataDumpClient(
+                new BasicHttpBinding()
+                {
+                    MaxReceivedMessageSize = MaxMessageSize,
+                    ReaderQuotas = new System.Xml.XmlDictionaryReaderQuotas() { MaxStringContentLength = MaxMessageSize }
+                }, new EndpointAddress("http://plugin.minorating.com:805/minorating/12"));
         }
 
 
@@ -36,17 +44,28 @@ namespace MinoRatingPlugin
             {
                 try
                 {
-                    
+
                     while (!Stop)
                     {
+                        var sw = System.Diagnostics.Stopwatch.StartNew();
+
+                        var dtBeforeUpd = DateTime.Now;
                         var result = LiveDataServer.GetAuthData("token", DateTime.Now, LastAuthUpdate);
+                        LastAuthUpdate = dtBeforeUpd;
+
+                        var timeGetAuthData = sw.Elapsed;
+                        sw.Restart();
+                        
                         lock (lockobj)
                         {
                             // Now we need to merge the new information
                             Merge(result);
                         }
 
-                        Thread.Sleep(1000 * 60 * 60); // One request per hours should be sufficient
+                        if (result.Count > 0)
+                            Log.Log("New Auth data: " + result.Count + ", downloaded in " + timeGetAuthData + ", local merge in " + sw.Elapsed);
+
+                        Thread.Sleep(1000 * 60 * 15); // One request per hours should be sufficient
                     }
                 }
                 catch (Exception ex)
@@ -100,7 +119,7 @@ namespace MinoRatingPlugin
                         // Get a response stream and write the response to it.
                         response.ContentLength64 = buffer.Length;
                         using (System.IO.Stream output = response.OutputStream)
-                        { 
+                        {
                             output.Write(buffer, 0, buffer.Length);
                         }
 
@@ -119,10 +138,25 @@ namespace MinoRatingPlugin
 
         private void Merge(Dictionary<string, string> delta)
         {
-            // TODO
+            // Easy part: Cache is empty:
+            lock (lockobj)
+            {
+                if (Cache == null)
+                    Cache = delta;
+                else
+                {
+                    foreach (var d in delta)
+                    {
+                        if (Cache.ContainsKey(d.Key))
+                            Cache[d.Key] = d.Value;
+                        else
+                            Cache.Add(d.Key, d.Value);
+                    }
+                }
+            }
         }
 
-        private string DoAuth(string targetgrade, string steamIdRequested)
+        public string DoAuth(string targetgrade, string steamIdRequested)
         {
             if (targetgrade.Contains("A") && !targetgrade.Contains("B"))
                 targetgrade = targetgrade.Replace("A", "AB");
@@ -133,6 +167,24 @@ namespace MinoRatingPlugin
             string grade = "N";
 
             Cache.TryGetValue(hash, out grade);
+
+            // Special case: Grade X would mean this was a SHA1-Collision, so we have to request that one live
+            if(grade == "X")
+            {
+                var request = WebRequest.Create("http://plugin.minorating.com:805/minodata/auth/" + targetgrade + "/?GUID=" + steamIdRequested);
+                using (var httpWebResponse = request.GetResponse() as HttpWebResponse)
+                {
+                    if (httpWebResponse != null)
+                    {
+                        using (var streamReader = new System.IO.StreamReader(httpWebResponse.GetResponseStream()))
+                        {
+                            return streamReader.ReadToEnd();
+                        }
+                    }
+                }
+
+                return "DENY|Internal AUTH server problem, please report this to the server admins";
+            }
 
             if (targetgrade.Contains(grade))
                 return "OK|Welcome!";

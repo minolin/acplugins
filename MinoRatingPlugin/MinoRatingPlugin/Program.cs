@@ -16,11 +16,26 @@ namespace MinoRatingPlugin
 {
     public class MinoratingPlugin : AcServerPlugin
     {
-        public LiveDataDumpClient LiveDataServer { get; set; }
+        private LiveDataDumpClient _LiveDataServer;
+        public LiveDataDumpClient LiveDataServer
+        {
+            get
+            {
+                LastPluginActivity = DateTime.Now;
+                return _LiveDataServer;
+            }
+            set
+            {
+                _LiveDataServer = value;
+            }
+        }
         public string TrustToken { get; set; }
         public Guid CurrentSessionGuid { get; set; }
         public DateTime CurrentSessionStartTime { get; set; }
-        public static Version PluginVersion = new Version(1, 3, 1, 4);
+
+        public DateTime LastPluginActivity { get; private set; }
+
+        public static Version PluginVersion = new Version(1, 4, 2, 0);
 
         protected internal byte[] _fingerprint;
 
@@ -32,22 +47,12 @@ namespace MinoRatingPlugin
             AcServerPluginManager pluginManager = null;
             try
             {
-                pluginManager = new AcServerPluginManager(new FileLogWriter("log", "minoplugin.txt") { CopyToConsole = true, LogWithTimestamp = true });
-
-                var authCachePort = System.Configuration.ConfigurationManager.AppSettings["local_auth_port"];
-                if (!string.IsNullOrEmpty(authCachePort))
-                {
-                    _authCache = new LocalAuthCache(int.Parse(authCachePort), pluginManager);
-                    _authCache.Run();
-                }
-                Console.ReadKey();
-
+                pluginManager = new AcServerPluginManager(new FileLogWriter("log", "minoplugin.txt") { CopyToConsole = true, LogWithTimestamp = true, }) { AcServerKeepAliveIntervalSeconds = 60 };
 
                 pluginManager.LoadInfoFromServerConfig();
                 pluginManager.AddPlugin(new MinoratingPlugin());
                 pluginManager.LoadPluginsFromAppConfig();
                 DriverInfo.MsgCarUpdateCacheSize = 10;
-
 
                 pluginManager.RunUntilAborted();
             }
@@ -84,6 +89,16 @@ namespace MinoRatingPlugin
                 PluginManager.Config.SetSetting("server_trust_token", TrustToken);
             }
             CurrentSessionGuid = Guid.Empty;
+
+            #region AUTH cache
+            var authCachePort = System.Configuration.ConfigurationManager.AppSettings["local_auth_port"];
+            if (!string.IsNullOrEmpty(authCachePort))
+            {
+                _authCache = new LocalAuthCache(int.Parse(authCachePort), PluginManager);
+                _authCache.Run();
+            }
+            #endregion
+
 
             ThreadPool.QueueUserWorkItem(o =>
             {
@@ -241,6 +256,12 @@ namespace MinoRatingPlugin
         protected override void OnClientLoaded(MsgClientLoaded msg)
         {
             HandleClientActions(LiveDataServer.RequestDriverLoaded(CurrentSessionGuid, msg.CarId));
+        }
+
+        protected override void OnAcServerTimeout()
+        {
+            PluginManager.Log("OnAcServerTimeout()");
+            LiveDataServer.EndSession(CurrentSessionGuid);
         }
 
         #endregion
@@ -621,6 +642,36 @@ namespace MinoRatingPlugin
             };
 
             return array;
+        }
+
+        private void StartAliveTimer()
+        {
+            ThreadPool.QueueUserWorkItem(o =>
+            {
+                while (true)
+                {
+                    // Sleeping for some seconds
+                    Thread.Sleep(1000 * 90);
+
+                    if (LastPluginActivity != DateTime.MinValue
+                        && LastPluginActivity.AddSeconds(1000 * 90) < DateTime.Now)
+                    {
+                        var driversHash = "";
+                        try
+                        {
+                            foreach (var d in PluginManager.GetDriverInfos().Where(x => x.IsConnected).OrderBy(x => x.CarId))
+                            {
+                                driversHash += d.DriverName;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            PluginManager.Log(ex);
+                        }
+                        LiveDataServer.Alive(CurrentSessionGuid, DateTime.Now, "" + driversHash.GetHashCode());
+                    }
+                }
+            });
         }
 
         #endregion

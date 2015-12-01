@@ -75,6 +75,8 @@ namespace acPlugins4net
 
         protected internal virtual void OnCarUpdate(DriverInfo driverInfo) { }
 
+        protected internal virtual void OnAcServerTimeout() { }
+
         #endregion handlers for events refined by PluginManager
     }
 }

@@ -84,6 +84,18 @@ namespace acPlugins4net
         public string AdminPassword { get; set; }
 
         public int ServerBlacklistMode { get; set; } = -1;
+
+        /// <summary>
+        /// Gives the last timestamp where the acServer was active, used for KeepAlive
+        /// </summary>
+        public DateTime LastServerActivity { get; private set; }
+
+        /// <summary>
+        /// Keep alive interval; if this is set to something > 0 the Plugin will 
+        /// monitor the server and send a ServerTimeout if it's missing
+        /// </summary>
+        public int AcServerKeepAliveIntervalSeconds { get; set; }
+
         #endregion
 
         #region session info stuff
@@ -197,11 +209,6 @@ namespace acPlugins4net
                     this.SessionReportHandlers.Add(reportHandler);
                 }
             }
-
-            // Let the admin override the protocol version - 1.3 has issues with the linux server
-            IgnoreRequiredProtocolVersion = Config.GetSetting("ignore_UPD_protocol_version") == "true";
-            if (IgnoreRequiredProtocolVersion)
-                Log("IgnoreRequiredProtocolVersion set to 'true', will ignore the message protocol version. Please disable this in case of trouble");
         }
 
         /// <summary>
@@ -734,6 +741,8 @@ namespace acPlugins4net
 
         private void MessageReceived(TimestampedBytes data)
         {
+            LastServerActivity = DateTime.Now;
+
             lock (lockObject)
             {
                 var msg = AcMessageParser.Parse(data);
@@ -849,6 +858,60 @@ namespace acPlugins4net
                     {
                         Log(ex);
                     }
+                }
+
+                // if the Keepalive monitor is configured, we'll start a endless loop
+                // that will try to determine a killed acServer 
+                if (AcServerKeepAliveIntervalSeconds > 0)
+                {
+                    ThreadPool.QueueUserWorkItem(o =>
+                    {
+                        while (true)
+                        {
+                            // Sleeping for some seconds
+                            Thread.Sleep(1000 * AcServerKeepAliveIntervalSeconds);
+
+                            // Everything is ok if we had either didn't see anything so far (server still off)
+                            // or we had server activity in the past <interval> econds.
+                            if (LastServerActivity != DateTime.MinValue 
+                                && LastServerActivity.AddSeconds(AcServerKeepAliveIntervalSeconds) < DateTime.Now)
+                            {
+                                // Now if the last Server Activity is older than our Keepalive interval
+                                // we'll initiate a version check - probably the cheapest way to detect
+                                // if the server is alive.
+                                // If there is a realtime interval set, this should only fire when the
+                                // server is empty and idleing around in a P/Q session. So some messages
+                                // won't hurt anybody.
+
+                                // Update: There is no Version Request? Damn. Then a session one?
+                                RequestSessionInfo(-1);
+
+                                // Then we'll give the server some time to answer this request, which
+                                // should set the date.
+                                Thread.Sleep(1500);
+
+                                // Still late?
+                                if(LastServerActivity.AddSeconds(AcServerKeepAliveIntervalSeconds) < DateTime.Now)
+                                {
+                                    // We'll go to the "server is dead" state so we won't repeat this until the next
+                                    // "real" timeout
+                                    LastServerActivity = DateTime.MinValue;
+
+                                    foreach (AcServerPlugin plugin in _plugins)
+                                    {
+                                        try
+                                        {
+                                            plugin.OnAcServerTimeout();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Log(ex);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
                 }
             }
             catch (Exception ex)
