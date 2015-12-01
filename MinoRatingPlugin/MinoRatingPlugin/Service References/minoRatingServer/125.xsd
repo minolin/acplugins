@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xs:schema xmlns:ser="http://schemas.microsoft.com/2003/10/Serialization/" xmlns:tns="http://schemas.datacontract.org/2004/07/MinoRating.Entities.Domain" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/MinoRating.Entities.Domain" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:import schemaLocation="http://localhost:805/minorating/12?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+  <xs:import schemaLocation="http://localhost:805/minorating/12?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/System" />
   <xs:complexType name="Situation">
     <xs:sequence>
       <xs:element minOccurs="0" name="Analysis" type="tns:Situation.AnalysisEnum" />
@@ -41,6 +42,7 @@
       <xs:element minOccurs="0" name="ContactPoints" type="xs:decimal" />
       <xs:element minOccurs="0" name="Contributor" nillable="true" type="xs:boolean" />
       <xs:element minOccurs="0" name="CreatedOn" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="CurrentDbSession" nillable="true" type="tns:T_Session" />
       <xs:element minOccurs="0" name="CurrentSession" nillable="true" type="ser:guid" />
       <xs:element minOccurs="0" name="Debugger" nillable="true" type="xs:boolean" />
       <xs:element minOccurs="0" name="DeletedContactPoints" type="xs:decimal" />
@@ -56,10 +58,12 @@
       <xs:element minOccurs="0" name="ELOBeta" type="xs:decimal" />
       <xs:element minOccurs="0" name="Grade" nillable="true" type="xs:string" />
       <xs:element minOccurs="0" name="IncidentsPerKm" type="xs:decimal" />
+      <xs:element minOccurs="0" name="LastGradeUpdate" type="xs:dateTime" />
       <xs:element minOccurs="0" name="LastName" nillable="true" type="xs:string" />
       <xs:element minOccurs="0" name="MassAccidents" type="xs:int" />
       <xs:element minOccurs="0" name="Name" nillable="true" type="xs:string" />
       <xs:element minOccurs="0" name="SessionsDriven" type="xs:int" />
+      <xs:element minOccurs="0" name="SteamHash" nillable="true" type="xs:string" />
       <xs:element minOccurs="0" name="SteamId" nillable="true" type="xs:string" />
     </xs:sequence>
   </xs:complexType>
@@ -81,6 +85,117 @@
     </xs:sequence>
   </xs:complexType>
   <xs:element name="Consistency" nillable="true" type="tns:Consistency" />
+  <xs:complexType name="T_Session">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="CarList" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="ClosedAt" nillable="true" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="CompleteDriverSessions" nillable="true" type="tns:ArrayOfT_DriverSession" />
+      <xs:element minOccurs="0" name="CreatedOn" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="FinishedOn" nillable="true" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="Id" type="xs:long" />
+      <xs:element minOccurs="0" name="LastActivity" nillable="true" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="LastLeaderboardEntry" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="MRBlocking" nillable="true" type="xs:string" />
+      <xs:element xmlns:q1="http://schemas.datacontract.org/2004/07/System" minOccurs="0" name="PluginVersion" nillable="true" type="q1:Version" />
+      <xs:element minOccurs="0" name="Server" nillable="true" type="tns:ReportingServer" />
+      <xs:element minOccurs="0" name="ServerIp" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="ServerName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="ServerTcpPort" type="xs:int" />
+      <xs:element minOccurs="0" name="SessionId" type="ser:guid" />
+      <xs:element minOccurs="0" name="Slots" nillable="true" type="tns:ArrayOfT_Slot" />
+      <xs:element minOccurs="0" name="TotalRaceLaps" type="xs:int" />
+      <xs:element minOccurs="0" name="TotalSessionTime" type="xs:int" />
+      <xs:element minOccurs="0" name="Track" nillable="true" type="tns:T_Track" />
+      <xs:element minOccurs="0" name="Type" type="xs:unsignedByte" />
+      <xs:element minOccurs="0" name="Waittime" type="xs:int" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="T_Session" nillable="true" type="tns:T_Session" />
+  <xs:complexType name="ArrayOfT_DriverSession">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="T_DriverSession" nillable="true" type="tns:T_DriverSession" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfT_DriverSession" nillable="true" type="tns:ArrayOfT_DriverSession" />
+  <xs:complexType name="T_DriverSession">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Id" type="xs:long" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="T_DriverSession" nillable="true" type="tns:T_DriverSession" />
+  <xs:complexType name="ReportingServer">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Created" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="Fingerprint" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="IP" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Id" type="xs:long" />
+      <xs:element minOccurs="0" name="KmReported" type="xs:long" />
+      <xs:element minOccurs="0" name="LapsReported" type="xs:int" />
+      <xs:element minOccurs="0" name="LastActivity" nillable="true" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="LastAliveSignal" nillable="true" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="LastDriverCount" type="xs:int" />
+      <xs:element minOccurs="0" name="LastUsedServername" nillable="true" type="xs:string" />
+      <xs:element xmlns:q2="http://schemas.datacontract.org/2004/07/System" minOccurs="0" name="PluginVersion" nillable="true" type="q2:Version" />
+      <xs:element minOccurs="0" name="Rating" type="xs:decimal" />
+      <xs:element minOccurs="0" name="Servername" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SessionsReported" type="xs:int" />
+      <xs:element minOccurs="0" name="SpecialServerRole" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Token" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ReportingServer" nillable="true" type="tns:ReportingServer" />
+  <xs:complexType name="ArrayOfT_Slot">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="T_Slot" nillable="true" type="tns:T_Slot" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfT_Slot" nillable="true" type="tns:ArrayOfT_Slot" />
+  <xs:complexType name="T_Slot">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Car" nillable="true" type="tns:T_Car" />
+      <xs:element minOccurs="0" name="Driver" nillable="true" type="tns:Driver" />
+      <xs:element minOccurs="0" name="Id" type="xs:long" />
+      <xs:element minOccurs="0" name="Session" nillable="true" type="tns:T_Session" />
+      <xs:element minOccurs="0" name="SlotNo" type="xs:unsignedByte" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="T_Slot" nillable="true" type="tns:T_Slot" />
+  <xs:complexType name="T_Car">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="CreatedOn" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="Model" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Status" type="tns:T_Car.CarStatus" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="T_Car" nillable="true" type="tns:T_Car" />
+  <xs:simpleType name="T_Car.CarStatus">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unknown" />
+      <xs:enumeration value="ClassSet" />
+      <xs:enumeration value="Details" />
+      <xs:enumeration value="Complete" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="T_Car.CarStatus" nillable="true" type="tns:T_Car.CarStatus" />
+  <xs:complexType name="T_Track">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="CreatedOn" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="Status" type="tns:T_Track.TrackStatus" />
+      <xs:element minOccurs="0" name="TrackId" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="T_Track" nillable="true" type="tns:T_Track" />
+  <xs:simpleType name="T_Track.TrackStatus">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unknown" />
+      <xs:enumeration value="BasicDescription" />
+      <xs:enumeration value="DetailedDescription" />
+      <xs:enumeration value="ReferenceLap" />
+      <xs:enumeration value="Splits" />
+      <xs:enumeration value="Complete" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="T_Track.TrackStatus" nillable="true" type="tns:T_Track.TrackStatus" />
   <xs:simpleType name="Situation.StatusEnum">
     <xs:restriction base="xs:string">
       <xs:enumeration value="Initialized" />

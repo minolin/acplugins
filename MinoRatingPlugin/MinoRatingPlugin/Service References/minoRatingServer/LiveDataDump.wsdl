@@ -4,12 +4,18 @@
     <xsd:schema targetNamespace="http://tempuri.org/Imports">
       <xsd:import schemaLocation="http://localhost:805/minorating/12?xsd=xsd0" namespace="http://tempuri.org/" />
       <xsd:import schemaLocation="http://localhost:805/minorating/12?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
-      <xsd:import schemaLocation="http://localhost:805/minorating/12?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/System" />
-      <xsd:import schemaLocation="http://localhost:805/minorating/12?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" />
+      <xsd:import schemaLocation="http://localhost:805/minorating/12?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" />
+      <xsd:import schemaLocation="http://localhost:805/minorating/12?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/System" />
       <xsd:import schemaLocation="http://localhost:805/minorating/12?xsd=xsd4" namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
       <xsd:import schemaLocation="http://localhost:805/minorating/12?xsd=xsd5" namespace="http://schemas.datacontract.org/2004/07/MinoRating.Entities.Domain" />
     </xsd:schema>
   </wsdl:types>
+  <wsdl:message name="ILiveDataDump_Alive_InputMessage">
+    <wsdl:part name="parameters" element="tns:Alive" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_Alive_OutputMessage">
+    <wsdl:part name="parameters" element="tns:AliveResponse" />
+  </wsdl:message>
   <wsdl:message name="ILiveDataDump_NewSession_InputMessage">
     <wsdl:part name="parameters" element="tns:NewSession" />
   </wsdl:message>
@@ -118,7 +124,17 @@
   <wsdl:message name="ILiveDataDump_DriverBackToPits_OutputMessage">
     <wsdl:part name="parameters" element="tns:DriverBackToPitsResponse" />
   </wsdl:message>
+  <wsdl:message name="ILiveDataDump_GetAuthData_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetAuthData" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_GetAuthData_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetAuthDataResponse" />
+  </wsdl:message>
   <wsdl:portType name="ILiveDataDump">
+    <wsdl:operation name="Alive">
+      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/Alive" message="tns:ILiveDataDump_Alive_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/AliveResponse" message="tns:ILiveDataDump_Alive_OutputMessage" />
+    </wsdl:operation>
     <wsdl:operation name="NewSession">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/NewSession" message="tns:ILiveDataDump_NewSession_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/NewSessionResponse" message="tns:ILiveDataDump_NewSession_OutputMessage" />
@@ -191,9 +207,22 @@
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/DriverBackToPits" message="tns:ILiveDataDump_DriverBackToPits_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/DriverBackToPitsResponse" message="tns:ILiveDataDump_DriverBackToPits_OutputMessage" />
     </wsdl:operation>
+    <wsdl:operation name="GetAuthData">
+      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/GetAuthData" message="tns:ILiveDataDump_GetAuthData_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/GetAuthDataResponse" message="tns:ILiveDataDump_GetAuthData_OutputMessage" />
+    </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="BasicHttpBinding_ILiveDataDump" type="tns:ILiveDataDump">
     <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="Alive">
+      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/Alive" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
     <wsdl:operation name="NewSession">
       <soap:operation soapAction="http://tempuri.org/ILiveDataDump/NewSession" style="document" />
       <wsdl:input>
@@ -349,6 +378,15 @@
     </wsdl:operation>
     <wsdl:operation name="DriverBackToPits">
       <soap:operation soapAction="http://tempuri.org/ILiveDataDump/DriverBackToPits" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetAuthData">
+      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/GetAuthData" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>

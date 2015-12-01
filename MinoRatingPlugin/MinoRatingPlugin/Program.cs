@@ -24,6 +24,7 @@ namespace MinoRatingPlugin
 
         protected internal byte[] _fingerprint;
 
+        private static LocalAuthCache _authCache = null;
 
         #region Init code
         static void Main(string[] args)
@@ -32,10 +33,22 @@ namespace MinoRatingPlugin
             try
             {
                 pluginManager = new AcServerPluginManager(new FileLogWriter("log", "minoplugin.txt") { CopyToConsole = true, LogWithTimestamp = true });
+
+                var authCachePort = System.Configuration.ConfigurationManager.AppSettings["local_auth_port"];
+                if (!string.IsNullOrEmpty(authCachePort))
+                {
+                    _authCache = new LocalAuthCache(int.Parse(authCachePort), pluginManager);
+                    _authCache.Run();
+                }
+                Console.ReadKey();
+
+
                 pluginManager.LoadInfoFromServerConfig();
                 pluginManager.AddPlugin(new MinoratingPlugin());
                 pluginManager.LoadPluginsFromAppConfig();
                 DriverInfo.MsgCarUpdateCacheSize = 10;
+
+
                 pluginManager.RunUntilAborted();
             }
             catch (Exception ex)
@@ -418,7 +431,7 @@ namespace MinoRatingPlugin
                     // To be more precise we will try to recalculate the laptime in the exact transition
                     splits.Add(AverageLaptimeBySplit(cr.LapStart, di.LastCarUpdate.Previous.Value, di.LastCarUpdate.Value));
                     PluginManager.Log("Added: " + splits.Last() + " (Count=" + splits.Count + ")");
-               }
+                }
 
                 cr.Splits = splits.ToArray();
             }

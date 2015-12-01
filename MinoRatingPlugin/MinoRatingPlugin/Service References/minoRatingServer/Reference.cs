@@ -1110,6 +1110,9 @@ namespace MinoRatingPlugin.minoRatingServer {
         private System.DateTime CreatedOnField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private MinoRatingPlugin.minoRatingServer.T_Session CurrentDbSessionField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
         private System.Nullable<System.Guid> CurrentSessionField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
@@ -1155,6 +1158,9 @@ namespace MinoRatingPlugin.minoRatingServer {
         private decimal IncidentsPerKmField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.DateTime LastGradeUpdateField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
         private string LastNameField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
@@ -1165,6 +1171,9 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
         private int SessionsDrivenField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string SteamHashField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
         private string SteamIdField;
@@ -1266,6 +1275,19 @@ namespace MinoRatingPlugin.minoRatingServer {
                 if ((this.CreatedOnField.Equals(value) != true)) {
                     this.CreatedOnField = value;
                     this.RaisePropertyChanged("CreatedOn");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public MinoRatingPlugin.minoRatingServer.T_Session CurrentDbSession {
+            get {
+                return this.CurrentDbSessionField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.CurrentDbSessionField, value) != true)) {
+                    this.CurrentDbSessionField = value;
+                    this.RaisePropertyChanged("CurrentDbSession");
                 }
             }
         }
@@ -1466,6 +1488,19 @@ namespace MinoRatingPlugin.minoRatingServer {
         }
         
         [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.DateTime LastGradeUpdate {
+            get {
+                return this.LastGradeUpdateField;
+            }
+            set {
+                if ((this.LastGradeUpdateField.Equals(value) != true)) {
+                    this.LastGradeUpdateField = value;
+                    this.RaisePropertyChanged("LastGradeUpdate");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
         public string LastName {
             get {
                 return this.LastNameField;
@@ -1513,6 +1548,19 @@ namespace MinoRatingPlugin.minoRatingServer {
                 if ((this.SessionsDrivenField.Equals(value) != true)) {
                     this.SessionsDrivenField = value;
                     this.RaisePropertyChanged("SessionsDriven");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string SteamHash {
+            get {
+                return this.SteamHashField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.SteamHashField, value) != true)) {
+                    this.SteamHashField = value;
+                    this.RaisePropertyChanged("SteamHash");
                 }
             }
         }
@@ -1761,9 +1809,1013 @@ namespace MinoRatingPlugin.minoRatingServer {
         }
     }
     
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+    [System.Runtime.Serialization.DataContractAttribute(Name="T_Session", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Entities.Domain")]
+    [System.SerializableAttribute()]
+    public partial class T_Session : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
+        
+        [System.NonSerializedAttribute()]
+        private System.Runtime.Serialization.ExtensionDataObject extensionDataField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string CarListField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.Nullable<System.DateTime> ClosedAtField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private MinoRatingPlugin.minoRatingServer.T_DriverSession[] CompleteDriverSessionsField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.DateTime CreatedOnField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.Nullable<System.DateTime> FinishedOnField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private long IdField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.Nullable<System.DateTime> LastActivityField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string LastLeaderboardEntryField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string MRBlockingField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.Version PluginVersionField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private MinoRatingPlugin.minoRatingServer.ReportingServer ServerField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string ServerIpField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string ServerNameField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private int ServerTcpPortField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.Guid SessionIdField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private MinoRatingPlugin.minoRatingServer.T_Slot[] SlotsField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private int TotalRaceLapsField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private int TotalSessionTimeField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private MinoRatingPlugin.minoRatingServer.T_Track TrackField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private byte TypeField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private int WaittimeField;
+        
+        [global::System.ComponentModel.BrowsableAttribute(false)]
+        public System.Runtime.Serialization.ExtensionDataObject ExtensionData {
+            get {
+                return this.extensionDataField;
+            }
+            set {
+                this.extensionDataField = value;
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string CarList {
+            get {
+                return this.CarListField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.CarListField, value) != true)) {
+                    this.CarListField = value;
+                    this.RaisePropertyChanged("CarList");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.Nullable<System.DateTime> ClosedAt {
+            get {
+                return this.ClosedAtField;
+            }
+            set {
+                if ((this.ClosedAtField.Equals(value) != true)) {
+                    this.ClosedAtField = value;
+                    this.RaisePropertyChanged("ClosedAt");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public MinoRatingPlugin.minoRatingServer.T_DriverSession[] CompleteDriverSessions {
+            get {
+                return this.CompleteDriverSessionsField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.CompleteDriverSessionsField, value) != true)) {
+                    this.CompleteDriverSessionsField = value;
+                    this.RaisePropertyChanged("CompleteDriverSessions");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.DateTime CreatedOn {
+            get {
+                return this.CreatedOnField;
+            }
+            set {
+                if ((this.CreatedOnField.Equals(value) != true)) {
+                    this.CreatedOnField = value;
+                    this.RaisePropertyChanged("CreatedOn");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.Nullable<System.DateTime> FinishedOn {
+            get {
+                return this.FinishedOnField;
+            }
+            set {
+                if ((this.FinishedOnField.Equals(value) != true)) {
+                    this.FinishedOnField = value;
+                    this.RaisePropertyChanged("FinishedOn");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public long Id {
+            get {
+                return this.IdField;
+            }
+            set {
+                if ((this.IdField.Equals(value) != true)) {
+                    this.IdField = value;
+                    this.RaisePropertyChanged("Id");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.Nullable<System.DateTime> LastActivity {
+            get {
+                return this.LastActivityField;
+            }
+            set {
+                if ((this.LastActivityField.Equals(value) != true)) {
+                    this.LastActivityField = value;
+                    this.RaisePropertyChanged("LastActivity");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string LastLeaderboardEntry {
+            get {
+                return this.LastLeaderboardEntryField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.LastLeaderboardEntryField, value) != true)) {
+                    this.LastLeaderboardEntryField = value;
+                    this.RaisePropertyChanged("LastLeaderboardEntry");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string MRBlocking {
+            get {
+                return this.MRBlockingField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.MRBlockingField, value) != true)) {
+                    this.MRBlockingField = value;
+                    this.RaisePropertyChanged("MRBlocking");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.Version PluginVersion {
+            get {
+                return this.PluginVersionField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.PluginVersionField, value) != true)) {
+                    this.PluginVersionField = value;
+                    this.RaisePropertyChanged("PluginVersion");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public MinoRatingPlugin.minoRatingServer.ReportingServer Server {
+            get {
+                return this.ServerField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.ServerField, value) != true)) {
+                    this.ServerField = value;
+                    this.RaisePropertyChanged("Server");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string ServerIp {
+            get {
+                return this.ServerIpField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.ServerIpField, value) != true)) {
+                    this.ServerIpField = value;
+                    this.RaisePropertyChanged("ServerIp");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string ServerName {
+            get {
+                return this.ServerNameField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.ServerNameField, value) != true)) {
+                    this.ServerNameField = value;
+                    this.RaisePropertyChanged("ServerName");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public int ServerTcpPort {
+            get {
+                return this.ServerTcpPortField;
+            }
+            set {
+                if ((this.ServerTcpPortField.Equals(value) != true)) {
+                    this.ServerTcpPortField = value;
+                    this.RaisePropertyChanged("ServerTcpPort");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.Guid SessionId {
+            get {
+                return this.SessionIdField;
+            }
+            set {
+                if ((this.SessionIdField.Equals(value) != true)) {
+                    this.SessionIdField = value;
+                    this.RaisePropertyChanged("SessionId");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public MinoRatingPlugin.minoRatingServer.T_Slot[] Slots {
+            get {
+                return this.SlotsField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.SlotsField, value) != true)) {
+                    this.SlotsField = value;
+                    this.RaisePropertyChanged("Slots");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public int TotalRaceLaps {
+            get {
+                return this.TotalRaceLapsField;
+            }
+            set {
+                if ((this.TotalRaceLapsField.Equals(value) != true)) {
+                    this.TotalRaceLapsField = value;
+                    this.RaisePropertyChanged("TotalRaceLaps");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public int TotalSessionTime {
+            get {
+                return this.TotalSessionTimeField;
+            }
+            set {
+                if ((this.TotalSessionTimeField.Equals(value) != true)) {
+                    this.TotalSessionTimeField = value;
+                    this.RaisePropertyChanged("TotalSessionTime");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public MinoRatingPlugin.minoRatingServer.T_Track Track {
+            get {
+                return this.TrackField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.TrackField, value) != true)) {
+                    this.TrackField = value;
+                    this.RaisePropertyChanged("Track");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public byte Type {
+            get {
+                return this.TypeField;
+            }
+            set {
+                if ((this.TypeField.Equals(value) != true)) {
+                    this.TypeField = value;
+                    this.RaisePropertyChanged("Type");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public int Waittime {
+            get {
+                return this.WaittimeField;
+            }
+            set {
+                if ((this.WaittimeField.Equals(value) != true)) {
+                    this.WaittimeField = value;
+                    this.RaisePropertyChanged("Waittime");
+                }
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+    [System.Runtime.Serialization.DataContractAttribute(Name="ReportingServer", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Entities.Domain")]
+    [System.SerializableAttribute()]
+    public partial class ReportingServer : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
+        
+        [System.NonSerializedAttribute()]
+        private System.Runtime.Serialization.ExtensionDataObject extensionDataField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.DateTime CreatedField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string FingerprintField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string IPField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private long IdField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private long KmReportedField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private int LapsReportedField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.Nullable<System.DateTime> LastActivityField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.Nullable<System.DateTime> LastAliveSignalField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private int LastDriverCountField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string LastUsedServernameField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.Version PluginVersionField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private decimal RatingField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string ServernameField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private int SessionsReportedField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string SpecialServerRoleField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string TokenField;
+        
+        [global::System.ComponentModel.BrowsableAttribute(false)]
+        public System.Runtime.Serialization.ExtensionDataObject ExtensionData {
+            get {
+                return this.extensionDataField;
+            }
+            set {
+                this.extensionDataField = value;
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.DateTime Created {
+            get {
+                return this.CreatedField;
+            }
+            set {
+                if ((this.CreatedField.Equals(value) != true)) {
+                    this.CreatedField = value;
+                    this.RaisePropertyChanged("Created");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string Fingerprint {
+            get {
+                return this.FingerprintField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.FingerprintField, value) != true)) {
+                    this.FingerprintField = value;
+                    this.RaisePropertyChanged("Fingerprint");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string IP {
+            get {
+                return this.IPField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.IPField, value) != true)) {
+                    this.IPField = value;
+                    this.RaisePropertyChanged("IP");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public long Id {
+            get {
+                return this.IdField;
+            }
+            set {
+                if ((this.IdField.Equals(value) != true)) {
+                    this.IdField = value;
+                    this.RaisePropertyChanged("Id");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public long KmReported {
+            get {
+                return this.KmReportedField;
+            }
+            set {
+                if ((this.KmReportedField.Equals(value) != true)) {
+                    this.KmReportedField = value;
+                    this.RaisePropertyChanged("KmReported");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public int LapsReported {
+            get {
+                return this.LapsReportedField;
+            }
+            set {
+                if ((this.LapsReportedField.Equals(value) != true)) {
+                    this.LapsReportedField = value;
+                    this.RaisePropertyChanged("LapsReported");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.Nullable<System.DateTime> LastActivity {
+            get {
+                return this.LastActivityField;
+            }
+            set {
+                if ((this.LastActivityField.Equals(value) != true)) {
+                    this.LastActivityField = value;
+                    this.RaisePropertyChanged("LastActivity");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.Nullable<System.DateTime> LastAliveSignal {
+            get {
+                return this.LastAliveSignalField;
+            }
+            set {
+                if ((this.LastAliveSignalField.Equals(value) != true)) {
+                    this.LastAliveSignalField = value;
+                    this.RaisePropertyChanged("LastAliveSignal");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public int LastDriverCount {
+            get {
+                return this.LastDriverCountField;
+            }
+            set {
+                if ((this.LastDriverCountField.Equals(value) != true)) {
+                    this.LastDriverCountField = value;
+                    this.RaisePropertyChanged("LastDriverCount");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string LastUsedServername {
+            get {
+                return this.LastUsedServernameField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.LastUsedServernameField, value) != true)) {
+                    this.LastUsedServernameField = value;
+                    this.RaisePropertyChanged("LastUsedServername");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.Version PluginVersion {
+            get {
+                return this.PluginVersionField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.PluginVersionField, value) != true)) {
+                    this.PluginVersionField = value;
+                    this.RaisePropertyChanged("PluginVersion");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public decimal Rating {
+            get {
+                return this.RatingField;
+            }
+            set {
+                if ((this.RatingField.Equals(value) != true)) {
+                    this.RatingField = value;
+                    this.RaisePropertyChanged("Rating");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string Servername {
+            get {
+                return this.ServernameField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.ServernameField, value) != true)) {
+                    this.ServernameField = value;
+                    this.RaisePropertyChanged("Servername");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public int SessionsReported {
+            get {
+                return this.SessionsReportedField;
+            }
+            set {
+                if ((this.SessionsReportedField.Equals(value) != true)) {
+                    this.SessionsReportedField = value;
+                    this.RaisePropertyChanged("SessionsReported");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string SpecialServerRole {
+            get {
+                return this.SpecialServerRoleField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.SpecialServerRoleField, value) != true)) {
+                    this.SpecialServerRoleField = value;
+                    this.RaisePropertyChanged("SpecialServerRole");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string Token {
+            get {
+                return this.TokenField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.TokenField, value) != true)) {
+                    this.TokenField = value;
+                    this.RaisePropertyChanged("Token");
+                }
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+    [System.Runtime.Serialization.DataContractAttribute(Name="T_Track", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Entities.Domain")]
+    [System.SerializableAttribute()]
+    public partial class T_Track : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
+        
+        [System.NonSerializedAttribute()]
+        private System.Runtime.Serialization.ExtensionDataObject extensionDataField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.DateTime CreatedOnField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private MinoRatingPlugin.minoRatingServer.T_Track.TrackStatus StatusField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string TrackIdField;
+        
+        [global::System.ComponentModel.BrowsableAttribute(false)]
+        public System.Runtime.Serialization.ExtensionDataObject ExtensionData {
+            get {
+                return this.extensionDataField;
+            }
+            set {
+                this.extensionDataField = value;
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.DateTime CreatedOn {
+            get {
+                return this.CreatedOnField;
+            }
+            set {
+                if ((this.CreatedOnField.Equals(value) != true)) {
+                    this.CreatedOnField = value;
+                    this.RaisePropertyChanged("CreatedOn");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public MinoRatingPlugin.minoRatingServer.T_Track.TrackStatus Status {
+            get {
+                return this.StatusField;
+            }
+            set {
+                if ((this.StatusField.Equals(value) != true)) {
+                    this.StatusField = value;
+                    this.RaisePropertyChanged("Status");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string TrackId {
+            get {
+                return this.TrackIdField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.TrackIdField, value) != true)) {
+                    this.TrackIdField = value;
+                    this.RaisePropertyChanged("TrackId");
+                }
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+        
+        [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+        [System.Runtime.Serialization.DataContractAttribute(Name="T_Track.TrackStatus", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Entities.Domain")]
+        public enum TrackStatus : int {
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            Unknown = 0,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            BasicDescription = 1,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            DetailedDescription = 2,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            ReferenceLap = 3,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            Splits = 4,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            Complete = 5,
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+    [System.Runtime.Serialization.DataContractAttribute(Name="T_DriverSession", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Entities.Domain")]
+    [System.SerializableAttribute()]
+    public partial class T_DriverSession : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
+        
+        [System.NonSerializedAttribute()]
+        private System.Runtime.Serialization.ExtensionDataObject extensionDataField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private long IdField;
+        
+        [global::System.ComponentModel.BrowsableAttribute(false)]
+        public System.Runtime.Serialization.ExtensionDataObject ExtensionData {
+            get {
+                return this.extensionDataField;
+            }
+            set {
+                this.extensionDataField = value;
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public long Id {
+            get {
+                return this.IdField;
+            }
+            set {
+                if ((this.IdField.Equals(value) != true)) {
+                    this.IdField = value;
+                    this.RaisePropertyChanged("Id");
+                }
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+    [System.Runtime.Serialization.DataContractAttribute(Name="T_Slot", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Entities.Domain")]
+    [System.SerializableAttribute()]
+    public partial class T_Slot : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
+        
+        [System.NonSerializedAttribute()]
+        private System.Runtime.Serialization.ExtensionDataObject extensionDataField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private MinoRatingPlugin.minoRatingServer.T_Car CarField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private MinoRatingPlugin.minoRatingServer.Driver DriverField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private long IdField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private MinoRatingPlugin.minoRatingServer.T_Session SessionField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private byte SlotNoField;
+        
+        [global::System.ComponentModel.BrowsableAttribute(false)]
+        public System.Runtime.Serialization.ExtensionDataObject ExtensionData {
+            get {
+                return this.extensionDataField;
+            }
+            set {
+                this.extensionDataField = value;
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public MinoRatingPlugin.minoRatingServer.T_Car Car {
+            get {
+                return this.CarField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.CarField, value) != true)) {
+                    this.CarField = value;
+                    this.RaisePropertyChanged("Car");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public MinoRatingPlugin.minoRatingServer.Driver Driver {
+            get {
+                return this.DriverField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.DriverField, value) != true)) {
+                    this.DriverField = value;
+                    this.RaisePropertyChanged("Driver");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public long Id {
+            get {
+                return this.IdField;
+            }
+            set {
+                if ((this.IdField.Equals(value) != true)) {
+                    this.IdField = value;
+                    this.RaisePropertyChanged("Id");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public MinoRatingPlugin.minoRatingServer.T_Session Session {
+            get {
+                return this.SessionField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.SessionField, value) != true)) {
+                    this.SessionField = value;
+                    this.RaisePropertyChanged("Session");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public byte SlotNo {
+            get {
+                return this.SlotNoField;
+            }
+            set {
+                if ((this.SlotNoField.Equals(value) != true)) {
+                    this.SlotNoField = value;
+                    this.RaisePropertyChanged("SlotNo");
+                }
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+    [System.Runtime.Serialization.DataContractAttribute(Name="T_Car", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Entities.Domain")]
+    [System.SerializableAttribute()]
+    public partial class T_Car : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
+        
+        [System.NonSerializedAttribute()]
+        private System.Runtime.Serialization.ExtensionDataObject extensionDataField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private System.DateTime CreatedOnField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string ModelField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private MinoRatingPlugin.minoRatingServer.T_Car.CarStatus StatusField;
+        
+        [global::System.ComponentModel.BrowsableAttribute(false)]
+        public System.Runtime.Serialization.ExtensionDataObject ExtensionData {
+            get {
+                return this.extensionDataField;
+            }
+            set {
+                this.extensionDataField = value;
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public System.DateTime CreatedOn {
+            get {
+                return this.CreatedOnField;
+            }
+            set {
+                if ((this.CreatedOnField.Equals(value) != true)) {
+                    this.CreatedOnField = value;
+                    this.RaisePropertyChanged("CreatedOn");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string Model {
+            get {
+                return this.ModelField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.ModelField, value) != true)) {
+                    this.ModelField = value;
+                    this.RaisePropertyChanged("Model");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public MinoRatingPlugin.minoRatingServer.T_Car.CarStatus Status {
+            get {
+                return this.StatusField;
+            }
+            set {
+                if ((this.StatusField.Equals(value) != true)) {
+                    this.StatusField = value;
+                    this.RaisePropertyChanged("Status");
+                }
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+        
+        [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+        [System.Runtime.Serialization.DataContractAttribute(Name="T_Car.CarStatus", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Entities.Domain")]
+        public enum CarStatus : int {
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            Unknown = 0,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            ClassSet = 1,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            Details = 2,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            Complete = 3,
+        }
+    }
+    
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
     [System.ServiceModel.ServiceContractAttribute(ConfigurationName="minoRatingServer.ILiveDataDump")]
     public interface ILiveDataDump {
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/Alive", ReplyAction="http://tempuri.org/ILiveDataDump/AliveResponse")]
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] Alive(System.Guid sessionId, System.DateTime created, string driversHash);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/Alive", ReplyAction="http://tempuri.org/ILiveDataDump/AliveResponse")]
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> AliveAsync(System.Guid sessionId, System.DateTime created, string driversHash);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/NewSession", ReplyAction="http://tempuri.org/ILiveDataDump/NewSessionResponse")]
         System.Guid NewSession(
@@ -1904,6 +2956,12 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/DriverBackToPits", ReplyAction="http://tempuri.org/ILiveDataDump/DriverBackToPitsResponse")]
         System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> DriverBackToPitsAsync(System.Guid sessionId, System.DateTime created, int carId);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/GetAuthData", ReplyAction="http://tempuri.org/ILiveDataDump/GetAuthDataResponse")]
+        System.Collections.Generic.Dictionary<string, string> GetAuthData(string token, System.DateTime currentPluginTime, System.DateTime lastPluginUpdate);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/GetAuthData", ReplyAction="http://tempuri.org/ILiveDataDump/GetAuthDataResponse")]
+        System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string>> GetAuthDataAsync(string token, System.DateTime currentPluginTime, System.DateTime lastPluginUpdate);
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
@@ -1931,6 +2989,14 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         public LiveDataDumpClient(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) : 
                 base(binding, remoteAddress) {
+        }
+        
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] Alive(System.Guid sessionId, System.DateTime created, string driversHash) {
+            return base.Channel.Alive(sessionId, created, driversHash);
+        }
+        
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> AliveAsync(System.Guid sessionId, System.DateTime created, string driversHash) {
+            return base.Channel.AliveAsync(sessionId, created, driversHash);
         }
         
         public System.Guid NewSession(
@@ -2107,6 +3173,14 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> DriverBackToPitsAsync(System.Guid sessionId, System.DateTime created, int carId) {
             return base.Channel.DriverBackToPitsAsync(sessionId, created, carId);
+        }
+        
+        public System.Collections.Generic.Dictionary<string, string> GetAuthData(string token, System.DateTime currentPluginTime, System.DateTime lastPluginUpdate) {
+            return base.Channel.GetAuthData(token, currentPluginTime, lastPluginUpdate);
+        }
+        
+        public System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string>> GetAuthDataAsync(string token, System.DateTime currentPluginTime, System.DateTime lastPluginUpdate) {
+            return base.Channel.GetAuthDataAsync(token, currentPluginTime, lastPluginUpdate);
         }
     }
 }
