@@ -64,6 +64,8 @@ namespace acPlugins4net.info
         public float CurrentSpeed { get; set; } // km/h
         [IgnoreDataMember]
         public float CurrentAcceleration { get; set; } // km/h
+        [IgnoreDataMember]
+        public DateTime CurrentLapStart { get; set; } = DateTime.Now;
         [DataMember]
         public float TopSpeed { get; set; } // km/h
         [DataMember]
@@ -236,6 +238,7 @@ namespace acPlugins4net.info
                     // probably warped to box
                     this.lapDistance = 0;
                     this.lapStartSplinePos = s > 0.5f ? s - 1.0f : s;
+                    this.CurrentLapStart = DateTime.Now;
                 }
             }
             this.lastPos = pos;
@@ -258,6 +261,7 @@ namespace acPlugins4net.info
             this.lapStartSplinePos = lastSplinePos - 1f;
             this.lapDistance = 0f;
             this.lastSplinePos = 0.0f;
+            this.CurrentLapStart = DateTime.Now;
 
             return lapLength;
         }
