@@ -161,6 +161,124 @@ namespace MinoRatingPlugin.minoRatingServer {
             
             [System.Runtime.Serialization.EnumMemberAttribute()]
             Ban = 6,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            RestartSession = 7,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            NextSession = 8,
+            
+            [System.Runtime.Serialization.EnumMemberAttribute()]
+            AdminCmd = 9,
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+    [System.Runtime.Serialization.DataContractAttribute(Name="TrackDefinition", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy")]
+    [System.SerializableAttribute()]
+    public partial class TrackDefinition : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
+        
+        [System.NonSerializedAttribute()]
+        private System.Runtime.Serialization.ExtensionDataObject extensionDataField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private float LengthField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private float[] PitAreaRectangleField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private float[] PitExitRectangleField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private float[] SplitsField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string TrackNameField;
+        
+        [global::System.ComponentModel.BrowsableAttribute(false)]
+        public System.Runtime.Serialization.ExtensionDataObject ExtensionData {
+            get {
+                return this.extensionDataField;
+            }
+            set {
+                this.extensionDataField = value;
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public float Length {
+            get {
+                return this.LengthField;
+            }
+            set {
+                if ((this.LengthField.Equals(value) != true)) {
+                    this.LengthField = value;
+                    this.RaisePropertyChanged("Length");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public float[] PitAreaRectangle {
+            get {
+                return this.PitAreaRectangleField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.PitAreaRectangleField, value) != true)) {
+                    this.PitAreaRectangleField = value;
+                    this.RaisePropertyChanged("PitAreaRectangle");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public float[] PitExitRectangle {
+            get {
+                return this.PitExitRectangleField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.PitExitRectangleField, value) != true)) {
+                    this.PitExitRectangleField = value;
+                    this.RaisePropertyChanged("PitExitRectangle");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public float[] Splits {
+            get {
+                return this.SplitsField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.SplitsField, value) != true)) {
+                    this.SplitsField = value;
+                    this.RaisePropertyChanged("Splits");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string TrackName {
+            get {
+                return this.TrackNameField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.TrackNameField, value) != true)) {
+                    this.TrackNameField = value;
+                    this.RaisePropertyChanged("TrackName");
+                }
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
         }
     }
     
@@ -502,6 +620,18 @@ namespace MinoRatingPlugin.minoRatingServer {
         [System.Runtime.Serialization.OptionalFieldAttribute()]
         private int OvertakesField;
         
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private float SplinePosCurrentField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private float SplinePosLastField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private uint SplinePosTimeCurrentField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private uint SplinePosTimeLastField;
+        
         [global::System.ComponentModel.BrowsableAttribute(false)]
         public System.Runtime.Serialization.ExtensionDataObject ExtensionData {
             get {
@@ -573,6 +703,58 @@ namespace MinoRatingPlugin.minoRatingServer {
                 if ((this.OvertakesField.Equals(value) != true)) {
                     this.OvertakesField = value;
                     this.RaisePropertyChanged("Overtakes");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public float SplinePosCurrent {
+            get {
+                return this.SplinePosCurrentField;
+            }
+            set {
+                if ((this.SplinePosCurrentField.Equals(value) != true)) {
+                    this.SplinePosCurrentField = value;
+                    this.RaisePropertyChanged("SplinePosCurrent");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public float SplinePosLast {
+            get {
+                return this.SplinePosLastField;
+            }
+            set {
+                if ((this.SplinePosLastField.Equals(value) != true)) {
+                    this.SplinePosLastField = value;
+                    this.RaisePropertyChanged("SplinePosLast");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public uint SplinePosTimeCurrent {
+            get {
+                return this.SplinePosTimeCurrentField;
+            }
+            set {
+                if ((this.SplinePosTimeCurrentField.Equals(value) != true)) {
+                    this.SplinePosTimeCurrentField = value;
+                    this.RaisePropertyChanged("SplinePosTimeCurrent");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public uint SplinePosTimeLast {
+            get {
+                return this.SplinePosTimeLastField;
+            }
+            set {
+                if ((this.SplinePosTimeLastField.Equals(value) != true)) {
+                    this.SplinePosTimeLastField = value;
+                    this.RaisePropertyChanged("SplinePosTimeLast");
                 }
             }
         }
@@ -2472,6 +2654,18 @@ namespace MinoRatingPlugin.minoRatingServer {
         private System.DateTime CreatedOnField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private float LengthInMetersField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string PitAreaRectangleField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string PitExitRectangleField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private string SplitsField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
         private MinoRatingPlugin.minoRatingServer.T_Track.TrackStatus StatusField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
@@ -2496,6 +2690,58 @@ namespace MinoRatingPlugin.minoRatingServer {
                 if ((this.CreatedOnField.Equals(value) != true)) {
                     this.CreatedOnField = value;
                     this.RaisePropertyChanged("CreatedOn");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public float LengthInMeters {
+            get {
+                return this.LengthInMetersField;
+            }
+            set {
+                if ((this.LengthInMetersField.Equals(value) != true)) {
+                    this.LengthInMetersField = value;
+                    this.RaisePropertyChanged("LengthInMeters");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string PitAreaRectangle {
+            get {
+                return this.PitAreaRectangleField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.PitAreaRectangleField, value) != true)) {
+                    this.PitAreaRectangleField = value;
+                    this.RaisePropertyChanged("PitAreaRectangle");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string PitExitRectangle {
+            get {
+                return this.PitExitRectangleField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.PitExitRectangleField, value) != true)) {
+                    this.PitExitRectangleField = value;
+                    this.RaisePropertyChanged("PitExitRectangle");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public string Splits {
+            get {
+                return this.SplitsField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.SplitsField, value) != true)) {
+                    this.SplitsField = value;
+                    this.RaisePropertyChanged("Splits");
                 }
             }
         }
@@ -2855,6 +3101,12 @@ namespace MinoRatingPlugin.minoRatingServer {
                     int sessionMassAccidentsToKick, 
                     int serverKickMode);
         
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/GetTrackDefinition", ReplyAction="http://tempuri.org/ILiveDataDump/GetTrackDefinitionResponse")]
+        MinoRatingPlugin.minoRatingServer.TrackDefinition GetTrackDefinition(System.Guid lastId, System.DateTime created);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/GetTrackDefinition", ReplyAction="http://tempuri.org/ILiveDataDump/GetTrackDefinitionResponse")]
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.TrackDefinition> GetTrackDefinitionAsync(System.Guid lastId, System.DateTime created);
+        
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/EndSession", ReplyAction="http://tempuri.org/ILiveDataDump/EndSessionResponse")]
         MinoRatingPlugin.minoRatingServer.PluginReaction[] EndSession(System.Guid lastId);
         
@@ -3037,6 +3289,14 @@ namespace MinoRatingPlugin.minoRatingServer {
                     int sessionMassAccidentsToKick, 
                     int serverKickMode) {
             return base.Channel.NewSessionAsync(lastId, servername, track, sessionType, laps, waittime, sessionDurationMinutes, ambient, road, elapsedMs, token, fingerprint, pluginVersion, sessionCollisionsToKick, sessionMassAccidentsToKick, serverKickMode);
+        }
+        
+        public MinoRatingPlugin.minoRatingServer.TrackDefinition GetTrackDefinition(System.Guid lastId, System.DateTime created) {
+            return base.Channel.GetTrackDefinition(lastId, created);
+        }
+        
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.TrackDefinition> GetTrackDefinitionAsync(System.Guid lastId, System.DateTime created) {
+            return base.Channel.GetTrackDefinitionAsync(lastId, created);
         }
         
         public MinoRatingPlugin.minoRatingServer.PluginReaction[] EndSession(System.Guid lastId) {

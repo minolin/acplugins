@@ -180,6 +180,10 @@
   <xs:complexType name="T_Track">
     <xs:sequence>
       <xs:element minOccurs="0" name="CreatedOn" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="LengthInMeters" type="xs:float" />
+      <xs:element minOccurs="0" name="PitAreaRectangle" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="PitExitRectangle" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Splits" nillable="true" type="xs:string" />
       <xs:element minOccurs="0" name="Status" type="tns:T_Track.TrackStatus" />
       <xs:element minOccurs="0" name="TrackId" nillable="true" type="xs:string" />
     </xs:sequence>

@@ -35,11 +35,13 @@ namespace MinoRatingPlugin
 
         public DateTime LastPluginActivity { get; private set; }
 
-        public static Version PluginVersion = new Version(1, 4, 2, 0);
+        public static Version PluginVersion = new Version(1, 4, 3, 0);
 
         protected internal byte[] _fingerprint;
 
         private static LocalAuthCache _authCache = null;
+
+        public TrackDefinition CurrentTrackDefinition { get; set; }
 
         #region Init code
         static void Main(string[] args)
@@ -164,6 +166,11 @@ namespace MinoRatingPlugin
 
             _distancesToReport.Clear();
             _consistencyReports.Clear();
+
+            PluginManager.Log("Request Track definition");
+            CurrentTrackDefinition = LiveDataServer.GetTrackDefinition(CurrentSessionGuid, msg.CreationDate);
+            PluginManager.Log("Definition for " + CurrentTrackDefinition + " has Splits: " + (CurrentTrackDefinition!=null ? "" + CurrentTrackDefinition.Splits : "is null!") );
+
         }
 
         protected override void OnNewConnection(MsgNewConnection msg)
@@ -199,7 +206,7 @@ namespace MinoRatingPlugin
                 PluginManager.Log("Error; car_id " + msg.CarId + " was not known by the PluginManager :(");
             else
             {
-                SendDistance(driver, true);
+                TrySendDistance(driver, true);
                 PluginManager.Log("LapCompleted by " + driver.DriverName + ": " + TimeSpan.FromMilliseconds(msg.Laptime));
                 HandleClientActions(LiveDataServer.LapCompleted(CurrentSessionGuid, msg.CreationDate, msg.CarId, driver.DriverGuid, msg.Laptime, msg.Cuts, msg.GripLevel, ConvertLB(msg.Leaderboard)));
             }
@@ -324,7 +331,7 @@ namespace MinoRatingPlugin
                 var driversCache = GetDriversCache(driver);
                 var otherDriversCache = GetDriversCache(otherDriver);
 
-                SendDistance(driver, true);
+                TrySendDistance(driver, true);
                 HandleClientActions(LiveDataServer.CollisionV2(CurrentSessionGuid, creationDate, carId, otherCarId, relativeVelocity, driver.LastSplinePosition, x1, z1, worldX, worldZ, driversCache.ToArray(), otherDriversCache.ToArray(), bagId));
                 PluginManager.Log("Did send this");
             }
@@ -367,7 +374,7 @@ namespace MinoRatingPlugin
 
             if (driverInfo != null)
             {
-                SendDistance(driverInfo, true);
+                TrySendDistance(driverInfo, true);
                 HandleClientActions(LiveDataServer.CollisionTreeEndedV2(CurrentSessionGuid, bag.First, bag.Second, bag.Count, bag.Started, bag.LastCollision));
             }
 
@@ -408,10 +415,11 @@ namespace MinoRatingPlugin
             if (!_consistencyReports.ContainsKey(di))
                 _consistencyReports.Add(di, null);
 
-            if (di.LastCarUpdate.List.Count > 1 && TeleportedToPits(di))
+            if (di.LastCarUpdate.List.Count > 1)
                 if (TeleportedToPits(di))
                 {
                     // This will invalidate the current lap,
+                    di.CurrentLapStart = DateTime.Now;
                     _consistencyReports[di] = null;
                     // but we need to tell MR
                     HandleClientActions(LiveDataServer.DriverBackToPits(CurrentSessionGuid, di.LastCarUpdate.Value.CreationDate, di.CarId));
@@ -514,28 +522,66 @@ namespace MinoRatingPlugin
             {
                 // We won't report it per-secod or whatever interval is set, so we need to group by
                 // sensible stuff - this needs to be tracked in the _reportedDistance
-                SendDistance(di);
+                TrySendDistance(di);
             }
         }
 
-        private void SendDistance(DriverInfo di, bool forced = false)
+        private void TrySendDistance(DriverInfo di, bool forced = false)
         {
             if (!_distancesToReport.ContainsKey(di))
                 _distancesToReport.Add(di, new MRDistanceHelper());
 
-            var distanceCached = _distancesToReport[di];
-            // Then we'll do it in different resolutions; the first meters are more important than the later ones
-            if (di.Distance > REGULAR_DISTANCE && distanceCached.MetersDriven > 2000 || forced) // After 2km, we'll just report in big chunks - or if forced
+            // New approach: We'll send the distance set as soon as a driver crosses a TrackDefinition.Split
+            #region legacy approach: fixed distance
+            if (CurrentTrackDefinition == null || CurrentTrackDefinition.Splits == null)
             {
-                PluginManager.Log(DateTime.Now.TimeOfDay.ToString() + "- Send DistanceDriven: " + di.CarId + ": " + distanceCached.MetersDriven);
-                HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached));
-                _distancesToReport[di] = new MRDistanceHelper();
+                var distanceCached = _distancesToReport[di];
+                // Then we'll do it in different resolutions; the first meters are more important than the later ones
+                if (di.Distance > REGULAR_DISTANCE && distanceCached.MetersDriven > 2000 || forced) // After 2km, we'll just report in big chunks - or if forced
+                {
+                    PluginManager.Log(DateTime.Now.TimeOfDay.ToString() + "- Send DistanceDriven: " + di.CarId + ": " + distanceCached.MetersDriven);
+                    HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached));
+                    _distancesToReport[di] = new MRDistanceHelper();
+                }
+                else if (di.Distance < REGULAR_DISTANCE && distanceCached.MetersDriven > 200) // 200m is about "left pits", so we'll report this until 
+                {
+                    PluginManager.Log(DateTime.Now.TimeOfDay.ToString() + "- Send DistanceDriven: " + di.CarId + ": " + distanceCached.MetersDriven);
+                    HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached));
+                    _distancesToReport[di] = new MRDistanceHelper();
+                }
             }
-            else if (di.Distance < REGULAR_DISTANCE && distanceCached.MetersDriven > 200) // 200m is about "left pits", so we'll report this until 
+            #endregion
+            else
             {
-                PluginManager.Log(DateTime.Now.TimeOfDay.ToString() + "- Send DistanceDriven: " + di.CarId + ": " + distanceCached.MetersDriven);
-                HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached));
-                _distancesToReport[di] = new MRDistanceHelper();
+                try
+                {
+                    if (di.LastCarUpdate.List.Count > 1)
+                    {
+                        var lastPos = di.LastCarUpdate.Previous.Value;
+                        var thisPos = di.LastCarUpdate.Value;
+
+                        foreach (var split in CurrentTrackDefinition.Splits)
+                        {
+                            if (lastPos.NormalizedSplinePosition < split && thisPos.NormalizedSplinePosition > split)
+                            {
+                                // Gotcha!
+                                var distanceCached = _distancesToReport[di];
+                                _distancesToReport[di] = new MRDistanceHelper();
+
+                                distanceCached.SplinePosCurrent = thisPos.NormalizedSplinePosition;
+                                distanceCached.SplinePosTimeCurrent = Convert.ToUInt32(thisPos.CreationDate.Subtract(di.CurrentLapStart).TotalMilliseconds);
+                                distanceCached.SplinePosLast = lastPos.NormalizedSplinePosition;
+                                distanceCached.SplinePosTimeLast = Convert.ToUInt32(lastPos.CreationDate.Subtract(di.CurrentLapStart).TotalMilliseconds);
+                                HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached));
+                                break;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    PluginManager.Log(ex);
+                }
             }
         }
 
@@ -592,20 +638,45 @@ namespace MinoRatingPlugin
 
 
                 PluginManager.Log("Action for car " + a.CarId + ": " + a.Reaction + " " + a.Text);
-                if (a.Reaction == PluginReaction.ReactionType.Whisper)
-                    PluginManager.SendChatMessage(a.CarId, a.Text);
-                else if (a.Reaction == PluginReaction.ReactionType.Broadcast)
-                    PluginManager.BroadcastChatMessage(a.Text);
-                else if (a.Reaction == PluginReaction.ReactionType.Kick)
+                switch (a.Reaction)
                 {
-                    // To be 100% sure we kick the right person we'll have to compare the steam id
-                    DriverInfo c;
-                    if (this.PluginManager.TryGetDriverInfo(a.CarId, out c))
-                        if (c.IsConnected && c.DriverGuid == a.SteamId)
+                    case PluginReaction.ReactionType.None:
+                        break;
+                    case PluginReaction.ReactionType.Whisper:
+                        PluginManager.SendChatMessage(a.CarId, a.Text);
+                        break;
+                    case PluginReaction.ReactionType.Broadcast:
+                        PluginManager.BroadcastChatMessage(a.Text);
+                        break;
+                    case PluginReaction.ReactionType.Ballast:
+                        break;
+                    case PluginReaction.ReactionType.Pit:
+                        break;
+                    case PluginReaction.ReactionType.Kick:
                         {
-                            PluginManager.BroadcastChatMessage("" + c.DriverName + " has been kicked by minorating.com");
-                            PluginManager.RequestKickDriverById(a.CarId);
+                            // To be 100% sure we kick the right person we'll have to compare the steam id
+                            DriverInfo c;
+                            if (this.PluginManager.TryGetDriverInfo(a.CarId, out c))
+                                if (c.IsConnected && c.DriverGuid == a.SteamId)
+                                {
+                                    PluginManager.BroadcastChatMessage("" + c.DriverName + " has been kicked by minorating.com");
+                                    PluginManager.RequestKickDriverById(a.CarId);
+                                }
                         }
+                        break;
+                    case PluginReaction.ReactionType.Ban:
+                        break;
+                    case PluginReaction.ReactionType.NextSession:
+                        PluginManager.NextSession();
+                        break;
+                    case PluginReaction.ReactionType.RestartSession:
+                        PluginManager.RestartSession();
+                        break;
+                    case PluginReaction.ReactionType.AdminCmd:
+                        PluginManager.AdminCommand(a.Text);
+                        break;
+                    default:
+                        break;
                 }
             }
             catch (Exception ex)

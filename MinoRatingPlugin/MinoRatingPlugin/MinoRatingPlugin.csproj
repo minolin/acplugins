@@ -109,6 +109,9 @@
     <None Include="Service References\minoRatingServer\MinoRatingPlugin.minoRatingServer.Situation.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
+    <None Include="Service References\minoRatingServer\MinoRatingPlugin.minoRatingServer.TrackDefinition.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
     <None Include="Service References\minoRatingServer\Reference.svcmap">
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>

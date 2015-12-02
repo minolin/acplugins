@@ -27,9 +27,22 @@
       <xs:enumeration value="Pit" />
       <xs:enumeration value="Kick" />
       <xs:enumeration value="Ban" />
+      <xs:enumeration value="RestartSession" />
+      <xs:enumeration value="NextSession" />
+      <xs:enumeration value="AdminCmd" />
     </xs:restriction>
   </xs:simpleType>
   <xs:element name="PluginReaction.ReactionType" nillable="true" type="tns:PluginReaction.ReactionType" />
+  <xs:complexType name="TrackDefinition">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Length" type="xs:float" />
+      <xs:element xmlns:q1="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="PitAreaRectangle" nillable="true" type="q1:ArrayOffloat" />
+      <xs:element xmlns:q2="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="PitExitRectangle" nillable="true" type="q2:ArrayOffloat" />
+      <xs:element xmlns:q3="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="Splits" nillable="true" type="q3:ArrayOffloat" />
+      <xs:element minOccurs="0" name="TrackName" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="TrackDefinition" nillable="true" type="tns:TrackDefinition" />
   <xs:complexType name="ArrayOfLeaderboardEntry">
     <xs:sequence>
       <xs:element minOccurs="0" maxOccurs="unbounded" name="LeaderboardEntry" nillable="true" type="tns:LeaderboardEntry" />
@@ -57,7 +70,7 @@
       <xs:element minOccurs="0" name="MinGear" type="xs:unsignedByte" />
       <xs:element minOccurs="0" name="MinVelocity" type="xs:float" />
       <xs:element minOccurs="0" name="SplitResolution" type="xs:unsignedByte" />
-      <xs:element xmlns:q1="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="Splits" nillable="true" type="q1:ArrayOfunsignedInt" />
+      <xs:element xmlns:q4="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="Splits" nillable="true" type="q4:ArrayOfunsignedInt" />
       <xs:element minOccurs="0" name="carId" type="xs:unsignedByte" />
     </xs:sequence>
   </xs:complexType>
@@ -69,6 +82,10 @@
       <xs:element minOccurs="0" name="MetersCombatRange" type="xs:float" />
       <xs:element minOccurs="0" name="MetersDriven" type="xs:float" />
       <xs:element minOccurs="0" name="Overtakes" type="xs:int" />
+      <xs:element minOccurs="0" name="SplinePosCurrent" type="xs:float" />
+      <xs:element minOccurs="0" name="SplinePosLast" type="xs:float" />
+      <xs:element minOccurs="0" name="SplinePosTimeCurrent" type="xs:unsignedInt" />
+      <xs:element minOccurs="0" name="SplinePosTimeLast" type="xs:unsignedInt" />
     </xs:sequence>
   </xs:complexType>
   <xs:element name="MRDistanceHelper" nillable="true" type="tns:MRDistanceHelper" />
@@ -84,8 +101,8 @@
       <xs:element minOccurs="0" name="EngineRPM" type="xs:unsignedShort" />
       <xs:element minOccurs="0" name="Gear" type="xs:unsignedByte" />
       <xs:element minOccurs="0" name="NormalizedSplinePosition" type="xs:float" />
-      <xs:element xmlns:q2="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="Velocity" nillable="true" type="q2:ArrayOffloat" />
-      <xs:element xmlns:q3="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="WorldPosition" nillable="true" type="q3:ArrayOffloat" />
+      <xs:element xmlns:q5="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="Velocity" nillable="true" type="q5:ArrayOffloat" />
+      <xs:element xmlns:q6="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="WorldPosition" nillable="true" type="q6:ArrayOffloat" />
     </xs:sequence>
   </xs:complexType>
   <xs:element name="CarUpdateHistory" nillable="true" type="tns:CarUpdateHistory" />
