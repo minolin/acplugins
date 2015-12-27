@@ -209,7 +209,7 @@ class LeaderboardEntry(GenericPacket):
 leSize = LeaderboardEntry().size()
 Leaderboard = GenericArrayParser('B', leSize,
     lambda x: tuple(LeaderboardEntry().from_buffer(x[(i*leSize):((i+1)*leSize)], 0)[1] for i in range(len(x)//leSize)),
-    lambda x: b"".join([lbe.to_buffer() for lbe in x]),
+    lambda x: b"".join([lbe.to_buffer()[:leSize] for lbe in x]),
 )
 class LapCompleted(GenericPacket):
     packetId = ACSP_LAP_COMPLETED
