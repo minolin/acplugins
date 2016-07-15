@@ -1,10 +1,11 @@
 # for uploading a new version to pypi, use this command:
+# set HOME=C:\Users\<username> (for .pypirc)
 # python setup.py sdist bdist_wininst upload
 
 from setuptools import setup
 
 plugin_version = "0.6"
-ac_version = "1.3.4"
+ac_version = "1.7"
 python_version = "3.3.x"
 
 setup(name='acplugins4python',
