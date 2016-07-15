@@ -204,7 +204,7 @@ class LeaderboardEntry(GenericPacket):
         ('carId', Uint8),
         ('lapTime', Uint32),
         ('laps', Uint16),
-        ('unknown', Uint8),
+        ('completed', Uint8),
     )
 
 leSize = LeaderboardEntry().size()
