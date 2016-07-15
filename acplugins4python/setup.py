@@ -3,7 +3,7 @@
 
 from setuptools import setup
 
-plugin_version = "0.5"
+plugin_version = "0.6"
 ac_version = "1.3.4"
 python_version = "3.3.x"
 
