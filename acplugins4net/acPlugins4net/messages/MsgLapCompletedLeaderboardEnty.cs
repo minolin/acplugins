@@ -12,6 +12,7 @@ namespace acPlugins4net.messages
         public byte CarId { get; set; }
         public uint Laptime { get; set; }
         public ushort Laps { get; set; }
+        public bool HasFinished { get; set; }
 
         public static MsgLapCompletedLeaderboardEnty FromBinaryReader(BinaryReader br)
         {
@@ -19,7 +20,8 @@ namespace acPlugins4net.messages
             {
                 CarId = br.ReadByte(),
                 Laptime = br.ReadUInt32(),
-                Laps = br.ReadUInt16()
+                Laps = br.ReadUInt16(),
+                HasFinished = br.ReadBoolean()
             };
         }
 
@@ -28,6 +30,7 @@ namespace acPlugins4net.messages
             bw.Write(CarId);
             bw.Write(Laptime);
             bw.Write(Laps);
+            bw.Write(HasFinished);
         }
     }
 }
