@@ -29,7 +29,6 @@
     <MetadataFile FileName="123.xsd" MetadataType="Schema" ID="ddee040f-e8f2-4a32-aded-12f384f1e46c" SourceId="1" SourceUrl="http://localhost:805/minorating/12?xsd=xsd1" />
     <MetadataFile FileName="LiveDataDump.wsdl" MetadataType="Wsdl" ID="74b97ba5-3d28-4d4d-adaa-2cb33837ffb2" SourceId="1" SourceUrl="http://localhost:805/minorating/12?wsdl" />
     <MetadataFile FileName="124.xsd" MetadataType="Schema" ID="90d5662b-3696-4fe6-92d1-d36853237beb" SourceId="1" SourceUrl="http://localhost:805/minorating/12?xsd=xsd4" />
-    <MetadataFile FileName="125.xsd" MetadataType="Schema" ID="8a82c35e-0063-4a62-951a-845550b4448e" SourceId="1" SourceUrl="http://localhost:805/minorating/12?xsd=xsd5" />
   </Metadata>
   <Extensions>
     <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />

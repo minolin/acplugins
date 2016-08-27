@@ -7,7 +7,6 @@
       <xsd:import schemaLocation="http://localhost:805/minorating/12?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy" />
       <xsd:import schemaLocation="http://localhost:805/minorating/12?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/System" />
       <xsd:import schemaLocation="http://localhost:805/minorating/12?xsd=xsd4" namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
-      <xsd:import schemaLocation="http://localhost:805/minorating/12?xsd=xsd5" namespace="http://schemas.datacontract.org/2004/07/MinoRating.Entities.Domain" />
     </xsd:schema>
   </wsdl:types>
   <wsdl:message name="ILiveDataDump_Alive_InputMessage">
@@ -21,6 +20,12 @@
   </wsdl:message>
   <wsdl:message name="ILiveDataDump_NewSession_OutputMessage">
     <wsdl:part name="parameters" element="tns:NewSessionResponse" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_NewSessionWithConfig_InputMessage">
+    <wsdl:part name="parameters" element="tns:NewSessionWithConfig" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_NewSessionWithConfig_OutputMessage">
+    <wsdl:part name="parameters" element="tns:NewSessionWithConfigResponse" />
   </wsdl:message>
   <wsdl:message name="ILiveDataDump_GetTrackDefinition_InputMessage">
     <wsdl:part name="parameters" element="tns:GetTrackDefinition" />
@@ -118,12 +123,6 @@
   <wsdl:message name="ILiveDataDump_GetPendingActions_OutputMessage">
     <wsdl:part name="parameters" element="tns:GetPendingActionsResponse" />
   </wsdl:message>
-  <wsdl:message name="ILiveDataDump_GetSituation_InputMessage">
-    <wsdl:part name="parameters" element="tns:GetSituation" />
-  </wsdl:message>
-  <wsdl:message name="ILiveDataDump_GetSituation_OutputMessage">
-    <wsdl:part name="parameters" element="tns:GetSituationResponse" />
-  </wsdl:message>
   <wsdl:message name="ILiveDataDump_DriverBackToPits_InputMessage">
     <wsdl:part name="parameters" element="tns:DriverBackToPits" />
   </wsdl:message>
@@ -144,6 +143,10 @@
     <wsdl:operation name="NewSession">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/NewSession" message="tns:ILiveDataDump_NewSession_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/NewSessionResponse" message="tns:ILiveDataDump_NewSession_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="NewSessionWithConfig">
+      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/NewSessionWithConfig" message="tns:ILiveDataDump_NewSessionWithConfig_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/NewSessionWithConfigResponse" message="tns:ILiveDataDump_NewSessionWithConfig_OutputMessage" />
     </wsdl:operation>
     <wsdl:operation name="GetTrackDefinition">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/GetTrackDefinition" message="tns:ILiveDataDump_GetTrackDefinition_InputMessage" />
@@ -209,10 +212,6 @@
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/GetPendingActions" message="tns:ILiveDataDump_GetPendingActions_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/GetPendingActionsResponse" message="tns:ILiveDataDump_GetPendingActions_OutputMessage" />
     </wsdl:operation>
-    <wsdl:operation name="GetSituation">
-      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/GetSituation" message="tns:ILiveDataDump_GetSituation_InputMessage" />
-      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/GetSituationResponse" message="tns:ILiveDataDump_GetSituation_OutputMessage" />
-    </wsdl:operation>
     <wsdl:operation name="DriverBackToPits">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/DriverBackToPits" message="tns:ILiveDataDump_DriverBackToPits_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/DriverBackToPitsResponse" message="tns:ILiveDataDump_DriverBackToPits_OutputMessage" />
@@ -235,6 +234,15 @@
     </wsdl:operation>
     <wsdl:operation name="NewSession">
       <soap:operation soapAction="http://tempuri.org/ILiveDataDump/NewSession" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="NewSessionWithConfig">
+      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/NewSessionWithConfig" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>
@@ -379,15 +387,6 @@
     </wsdl:operation>
     <wsdl:operation name="GetPendingActions">
       <soap:operation soapAction="http://tempuri.org/ILiveDataDump/GetPendingActions" style="document" />
-      <wsdl:input>
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output>
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="GetSituation">
-      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/GetSituation" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>

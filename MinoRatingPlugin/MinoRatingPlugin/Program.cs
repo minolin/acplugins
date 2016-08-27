@@ -35,7 +35,7 @@ namespace MinoRatingPlugin
 
         public DateTime LastPluginActivity { get; private set; }
 
-        public static Version PluginVersion = new Version(1, 4, 3, 0);
+        public static Version PluginVersion = new Version(2, 0, 0, 0);
 
         protected internal byte[] _fingerprint;
 
@@ -78,8 +78,8 @@ namespace MinoRatingPlugin
         {
             _fingerprint = Hash(PluginManager.Config.GetSetting("ac_server_directory") + PluginManager.RemotePort);
 
-#if DEBUG
-            LiveDataServer = new LiveDataDumpClient(new BasicHttpBinding(), new EndpointAddress("http://localhost:805/minorating"));
+#if DEB1UG
+            LiveDataServer = new LiveDataDumpClient(new BasicHttpBinding(), new EndpointAddress("http://localhost:805/minorating/12"));
 #else
             LiveDataServer = new LiveDataDumpClient(new BasicHttpBinding(), new EndpointAddress("http://plugin.minorating.com:805/minorating/12"));
 #endif
@@ -156,9 +156,12 @@ namespace MinoRatingPlugin
             PluginManager.Log("===============================");
             PluginManager.Log("===============================");
 
-            CurrentSessionGuid = LiveDataServer.NewSession(CurrentSessionGuid, msg.ServerName, msg.Track + "[" + msg.TrackConfig + "]"
+
+            var server_config_ini = GatherServerConfigIni();
+
+            CurrentSessionGuid = LiveDataServer.NewSessionWithConfig(CurrentSessionGuid, msg.ServerName, msg.Track + "[" + msg.TrackConfig + "]"
                 , msg.SessionType, msg.Laps, msg.WaitTime, msg.SessionDuration, msg.AmbientTemp, msg.RoadTemp, msg.ElapsedMS
-                , TrustToken, _fingerprint, PluginVersion, -1, -1, -1);
+                , TrustToken, _fingerprint, PluginVersion, -1, -1, -1, server_config_ini);
             for (byte i = 0; i < 36; i++)
                 PluginManager.RequestCarInfo(i);
 
@@ -167,15 +170,32 @@ namespace MinoRatingPlugin
             _distancesToReport.Clear();
             _consistencyReports.Clear();
 
-            PluginManager.Log("Request Track definition");
             CurrentTrackDefinition = LiveDataServer.GetTrackDefinition(CurrentSessionGuid, msg.CreationDate);
-            PluginManager.Log("Definition for " + CurrentTrackDefinition + " has Splits: " + (CurrentTrackDefinition!=null ? "" + CurrentTrackDefinition.Splits : "is null!") );
+        }
 
+        private string GatherServerConfigIni()
+        {
+            try
+            {
+                var acDirectory = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
+                if (string.IsNullOrEmpty(acDirectory)) // happens in Debug mode
+                    acDirectory = "";
+                var configFile = System.IO.Path.Combine(acDirectory, 
+                                                        System.Configuration.ConfigurationManager.AppSettings["ac_server_directory"],
+                                                        System.Configuration.ConfigurationManager.AppSettings["ac_cfg_directory"],
+                                                        "server_cfg.ini");
+
+                var lines = System.IO.File.ReadAllLines(configFile);
+                return string.Join(Environment.NewLine, lines.Where(x => !x.Contains("PASSWORD")));
+            }
+            catch (Exception ex)
+            {
+                return "EX: " + ex.Message;
+            }
         }
 
         protected override void OnNewConnection(MsgNewConnection msg)
         {
-            PluginManager.Log("OnNewConnection: " + msg.DriverName + "@" + msg.CarModel);
             HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, true, GetCurrentRaceTimeMS(msg)));
         }
 
@@ -194,26 +214,22 @@ namespace MinoRatingPlugin
 
         protected override void OnConnectionClosed(MsgConnectionClosed msg)
         {
-            PluginManager.Log("OnConnectionClosed: " + msg.DriverName + "@" + msg.CarModel);
             HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, "", "", "", false, GetCurrentRaceTimeMS(msg)));
         }
 
         protected override void OnLapCompleted(MsgLapCompleted msg)
         {
-            PluginManager.Log(DateTime.Now.TimeOfDay.ToString() + "- OnLapCompleted: " + msg.CarId + ": " + TimeSpan.FromMilliseconds(msg.Laptime));
             DriverInfo driver;
             if (!PluginManager.TryGetDriverInfo(msg.CarId, out driver))
                 PluginManager.Log("Error; car_id " + msg.CarId + " was not known by the PluginManager :(");
             else
             {
                 TrySendDistance(driver, true);
-                PluginManager.Log("LapCompleted by " + driver.DriverName + ": " + TimeSpan.FromMilliseconds(msg.Laptime));
                 HandleClientActions(LiveDataServer.LapCompleted(CurrentSessionGuid, msg.CreationDate, msg.CarId, driver.DriverGuid, msg.Laptime, msg.Cuts, msg.GripLevel, ConvertLB(msg.Leaderboard)));
             }
 
             if (_consistencyReports.ContainsKey(driver) && _consistencyReports[driver] != null)
             {
-                PluginManager.Log("CR for driver available, will send");
                 var cr = _consistencyReports[driver];
                 _consistencyReports[driver] = null;
                 cr.Cuts = msg.Cuts;
@@ -296,7 +312,6 @@ namespace MinoRatingPlugin
                             break;
                         }
                     }
-                    PluginManager.Log("" + DateTime.Now.TimeOfDay + " OnCollision (" + msg.CarId + "vs" + msg.OtherCarId + "), contantTrees.Count=" + contactTrees.Count + ", partOfATree=" + partOfATree);
 
                     if (!partOfATree)
                     {
@@ -308,11 +323,6 @@ namespace MinoRatingPlugin
                 }
 
                 TrySendCollision(CurrentSessionGuid, msg.CreationDate, msg.CarId, msg.OtherCarId, msg.RelativeVelocity, msg.RelativePosition.X, msg.RelativePosition.Z, msg.WorldPosition.X, msg.WorldPosition.Z, bagId);
-            }
-            else
-            {
-                PluginManager.Log("Collision occured!!! " + msg.CarId + " vs. wall");
-                TrySendCollision(CurrentSessionGuid, msg.CreationDate, msg.CarId, -1, msg.RelativeVelocity, msg.RelativePosition.X, msg.RelativePosition.Z, msg.WorldPosition.X, msg.WorldPosition.Z, -1);
             }
         }
 
@@ -333,7 +343,6 @@ namespace MinoRatingPlugin
 
                 TrySendDistance(driver, true);
                 HandleClientActions(LiveDataServer.CollisionV2(CurrentSessionGuid, creationDate, carId, otherCarId, relativeVelocity, driver.LastSplinePosition, x1, z1, worldX, worldZ, driversCache.ToArray(), otherDriversCache.ToArray(), bagId));
-                PluginManager.Log("Did send this");
             }
             catch (Exception ex)
             {
@@ -430,7 +439,6 @@ namespace MinoRatingPlugin
                 // We need to create a new CR. Important: The current speed is an indicator wether this is an inlap 
                 var msgCarUpdate = di.LastCarUpdate.Value;
                 _consistencyReports[di] = new ConsistencyReport() { carId = msgCarUpdate.CarId, LapStart = msgCarUpdate.CreationDate, MinGear = msgCarUpdate.Gear, MaxGear = msgCarUpdate.Gear, MinVelocity = di.CurrentSpeed, MaxVelocity = di.CurrentSpeed, SplitResolution = 10, Splits = new uint[0] };
-                PluginManager.Log("new ConsistencyReport (minSpeed=" + di.CurrentSpeed + ")");
             }
 
             if (di.LastCarUpdate.List.Count > 1)
@@ -455,11 +463,9 @@ namespace MinoRatingPlugin
 
                 if (thisSplit > lastSplit)
                 {
-                    PluginManager.Log(string.Format("LastSplit={0:f2}, ThisSplit={1:f2}, splines={2:f2}/{3:f2}", lastSplit, thisSplit, di.LastCarUpdate.Previous.Value.NormalizedSplinePosition, di.LastCarUpdate.Value.NormalizedSplinePosition));
                     // The SplinePos Split has been changed, so now we want to log the time.
                     // To be more precise we will try to recalculate the laptime in the exact transition
                     splits.Add(AverageLaptimeBySplit(cr.LapStart, di.LastCarUpdate.Previous.Value, di.LastCarUpdate.Value));
-                    PluginManager.Log("Added: " + splits.Last() + " (Count=" + splits.Count + ")");
                 }
 
                 cr.Splits = splits.ToArray();
@@ -481,7 +487,7 @@ namespace MinoRatingPlugin
                 if (Math.Round(now.Velocity.Length(), 0) == 0 && Math.Round(last.Velocity.Length()) == 0)
                 {
                     var distance = (last.WorldPosition - now.WorldPosition).Length();
-                    PluginManager.Log("Car is standing; Distance = " + distance + " (" + (distance > 3) + ")");
+                    //PluginManager.Log("Car is standing; Distance = " + distance + " (" + (distance > 3) + ")");
                     if (distance > 3)
                         return true;
                 }
@@ -539,13 +545,11 @@ namespace MinoRatingPlugin
                 // Then we'll do it in different resolutions; the first meters are more important than the later ones
                 if (di.Distance > REGULAR_DISTANCE && distanceCached.MetersDriven > 2000 || forced) // After 2km, we'll just report in big chunks - or if forced
                 {
-                    PluginManager.Log(DateTime.Now.TimeOfDay.ToString() + "- Send DistanceDriven: " + di.CarId + ": " + distanceCached.MetersDriven);
                     HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached));
                     _distancesToReport[di] = new MRDistanceHelper();
                 }
                 else if (di.Distance < REGULAR_DISTANCE && distanceCached.MetersDriven > 200) // 200m is about "left pits", so we'll report this until 
                 {
-                    PluginManager.Log(DateTime.Now.TimeOfDay.ToString() + "- Send DistanceDriven: " + di.CarId + ": " + distanceCached.MetersDriven);
                     HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached));
                     _distancesToReport[di] = new MRDistanceHelper();
                 }
@@ -555,7 +559,7 @@ namespace MinoRatingPlugin
             {
                 try
                 {
-                    if (di.LastCarUpdate.List.Count > 1)
+                    if (di.LastCarUpdate != null && di.LastCarUpdate.List.Count > 1)
                     {
                         var lastPos = di.LastCarUpdate.Previous.Value;
                         var thisPos = di.LastCarUpdate.Value;
@@ -569,9 +573,9 @@ namespace MinoRatingPlugin
                                 _distancesToReport[di] = new MRDistanceHelper();
 
                                 distanceCached.SplinePosCurrent = thisPos.NormalizedSplinePosition;
-                                distanceCached.SplinePosTimeCurrent = Convert.ToUInt32(thisPos.CreationDate.Subtract(di.CurrentLapStart).TotalMilliseconds);
+                                distanceCached.SplinePosTimeCurrent = Convert.ToInt32(thisPos.CreationDate.Subtract(di.CurrentLapStart).TotalMilliseconds);
                                 distanceCached.SplinePosLast = lastPos.NormalizedSplinePosition;
-                                distanceCached.SplinePosTimeLast = Convert.ToUInt32(lastPos.CreationDate.Subtract(di.CurrentLapStart).TotalMilliseconds);
+                                distanceCached.SplinePosTimeLast = Convert.ToInt32(lastPos.CreationDate.Subtract(di.CurrentLapStart).TotalMilliseconds);
                                 HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached));
                                 break;
                             }
@@ -713,6 +717,11 @@ namespace MinoRatingPlugin
             };
 
             return array;
+        }
+
+        protected override void OnAcServerAlive()
+        {
+            HandleClientActions(_LiveDataServer.Alive(this.CurrentSessionGuid, DateTime.Now, null));
         }
 
         private void StartAliveTimer()
