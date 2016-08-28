@@ -35,7 +35,7 @@ namespace MinoRatingPlugin
 
         public DateTime LastPluginActivity { get; private set; }
 
-        public static Version PluginVersion = new Version(2, 0, 0, 0);
+        public static Version PluginVersion = new Version(2, 1, 0, 0);
 
         protected internal byte[] _fingerprint;
 
@@ -168,7 +168,6 @@ namespace MinoRatingPlugin
             CurrentSessionStartTime = msg.CreationDate.AddMilliseconds(msg.ElapsedMS * -1);
 
             _distancesToReport.Clear();
-            _consistencyReports.Clear();
 
             CurrentTrackDefinition = LiveDataServer.GetTrackDefinition(CurrentSessionGuid, msg.CreationDate);
         }
@@ -227,18 +226,7 @@ namespace MinoRatingPlugin
                 TrySendDistance(driver, true);
                 HandleClientActions(LiveDataServer.LapCompleted(CurrentSessionGuid, msg.CreationDate, msg.CarId, driver.DriverGuid, msg.Laptime, msg.Cuts, msg.GripLevel, ConvertLB(msg.Leaderboard)));
             }
-
-            if (_consistencyReports.ContainsKey(driver) && _consistencyReports[driver] != null)
-            {
-                var cr = _consistencyReports[driver];
-                _consistencyReports[driver] = null;
-                cr.Cuts = msg.Cuts;
-                cr.Laptime = msg.Laptime;
-                HandleClientActions(LiveDataServer.LapCompletedConsistencySplits(CurrentSessionGuid, msg.CreationDate, msg.CarId, cr));
-            }
-
         }
-
 
         protected override void OnCarInfo(MsgCarInfo msg)
         {
@@ -294,59 +282,26 @@ namespace MinoRatingPlugin
 
         protected override void OnCollision(MsgClientEvent msg)
         {
+            // Contact handling is now done by the backend completely - that is we just report any 
+            // collision with another car
             if (msg.Subtype == (byte)ACSProtocol.MessageType.ACSP_CE_COLLISION_WITH_CAR)
             {
-                // TODO: Messy code. Needs rewrite as soon as I know where I'm heading.
-                // We'll check if the contact partners are part of an contact tree
-                bool partOfATree = false;
-                int bagId = -1;
-                lock (contactTrees)
-                {
-                    foreach (var ct in contactTrees)
-                    {
-                        // If both can't be put into the contact tree, we'll treat this as new
-                        if (ct.TryAdd(msg.CarId, msg.OtherCarId))
-                        {
-                            partOfATree = true;
-                            bagId = ct.BagId;
-                            break;
-                        }
-                    }
-
-                    if (!partOfATree)
-                    {
-                        // Then we'll start a new one
-                        var newBag = CollisionBag.StartNew(msg.CarId, msg.OtherCarId, EvaluateContactTree, PluginManager);
-                        contactTrees.Add(newBag);
-                        bagId = newBag.BagId;
-                    }
-                }
-
-                TrySendCollision(CurrentSessionGuid, msg.CreationDate, msg.CarId, msg.OtherCarId, msg.RelativeVelocity, msg.RelativePosition.X, msg.RelativePosition.Z, msg.WorldPosition.X, msg.WorldPosition.Z, bagId);
-            }
-        }
-
-        private void TrySendCollision(Guid currentSessionGuid, DateTime creationDate, int carId, int otherCarId, float relativeVelocity, float x1, float z1, float worldX, float worldZ, int bagId)
-        {
-            try
-            {
                 DriverInfo driver = null;
-                if (!PluginManager.TryGetDriverInfo(Convert.ToByte(carId), out driver))
-                    throw new Exception("Driver not found: " + carId);
+                if (!PluginManager.TryGetDriverInfo(Convert.ToByte(msg.CarId), out driver))
+                    throw new Exception("Driver not found: " + msg.CarId);
 
                 DriverInfo otherDriver = null;
-                if (!PluginManager.TryGetDriverInfo(Convert.ToByte(otherCarId), out otherDriver))
-                    throw new Exception("(Other) Driver not found: " + otherCarId);
+                if (!PluginManager.TryGetDriverInfo(Convert.ToByte(msg.OtherCarId), out otherDriver))
+                    throw new Exception("(Other) Driver not found: " + msg.OtherCarId);
 
                 var driversCache = GetDriversCache(driver);
                 var otherDriversCache = GetDriversCache(otherDriver);
 
+                var driversDistance = _distancesToReport[driver];
+                _distancesToReport[driver] = new MRDistanceHelper();
+
                 TrySendDistance(driver, true);
-                HandleClientActions(LiveDataServer.CollisionV2(CurrentSessionGuid, creationDate, carId, otherCarId, relativeVelocity, driver.LastSplinePosition, x1, z1, worldX, worldZ, driversCache.ToArray(), otherDriversCache.ToArray(), bagId));
-            }
-            catch (Exception ex)
-            {
-                PluginManager.Log(ex);
+                HandleClientActions(LiveDataServer.CollisionV21(CurrentSessionGuid, msg.CreationDate, msg.CarId, msg.OtherCarId, msg.RelativeVelocity, driver.LastSplinePosition, driversCache.ToArray(), otherDriversCache.ToArray(), driversDistance));
             }
         }
 
@@ -372,28 +327,11 @@ namespace MinoRatingPlugin
             return driversCache;
         }
 
-        private void EvaluateContactTree(CollisionBag bag)
-        {
-            lock (contactTrees)
-                contactTrees.Remove(bag);
-
-            DriverInfo driverInfo = null;
-            if (!PluginManager.TryGetDriverInfo(Convert.ToByte(bag.First), out driverInfo))
-                return;
-
-            if (driverInfo != null)
-            {
-                TrySendDistance(driverInfo, true);
-                HandleClientActions(LiveDataServer.CollisionTreeEndedV2(CurrentSessionGuid, bag.First, bag.Second, bag.Count, bag.Started, bag.LastCollision));
-            }
-
-        }
         #endregion
 
         #region Distance driven & behaviour analysis
 
         private Dictionary<DriverInfo, MRDistanceHelper> _distancesToReport = new Dictionary<DriverInfo, MRDistanceHelper>();
-        private Dictionary<DriverInfo, ConsistencyReport> _consistencyReports = new Dictionary<DriverInfo, ConsistencyReport>();
 
         protected override void OnCarUpdate(DriverInfo di)
         {
@@ -417,60 +355,6 @@ namespace MinoRatingPlugin
                 else if (di.CurrentDistanceToClosestCar < 20)
                     dh.MetersAttackRange += di.LastDistanceTraveled;
             }
-            #endregion
-
-            #region Consistency
-
-            if (!_consistencyReports.ContainsKey(di))
-                _consistencyReports.Add(di, null);
-
-            if (di.LastCarUpdate.List.Count > 1)
-                if (TeleportedToPits(di))
-                {
-                    // This will invalidate the current lap,
-                    di.CurrentLapStart = DateTime.Now;
-                    _consistencyReports[di] = null;
-                    // but we need to tell MR
-                    HandleClientActions(LiveDataServer.DriverBackToPits(CurrentSessionGuid, di.LastCarUpdate.Value.CreationDate, di.CarId));
-                }
-
-            if (di.LastCarUpdate.List.Count > 1 && _consistencyReports[di] == null)
-            {
-                // We need to create a new CR. Important: The current speed is an indicator wether this is an inlap 
-                var msgCarUpdate = di.LastCarUpdate.Value;
-                _consistencyReports[di] = new ConsistencyReport() { carId = msgCarUpdate.CarId, LapStart = msgCarUpdate.CreationDate, MinGear = msgCarUpdate.Gear, MaxGear = msgCarUpdate.Gear, MinVelocity = di.CurrentSpeed, MaxVelocity = di.CurrentSpeed, SplitResolution = 10, Splits = new uint[0] };
-            }
-
-            if (di.LastCarUpdate.List.Count > 1)
-            {
-                var cr = _consistencyReports[di];
-                var splits = cr.Splits.ToList();
-                var carUpdate = di.LastCarUpdate.Value;
-
-                if (carUpdate.Gear > 1 && cr.MinGear > carUpdate.Gear)
-                    cr.MinGear = carUpdate.Gear;
-                if (cr.MaxGear < carUpdate.Gear)
-                    cr.MaxGear = carUpdate.Gear;
-                if (di.CurrentSpeed < cr.MinVelocity)
-                    cr.MinVelocity = di.CurrentSpeed;
-                if (di.CurrentSpeed > cr.MaxVelocity)
-                    cr.MaxVelocity = di.CurrentSpeed;
-
-                float lastSplit = (int)(di.LastCarUpdate.Previous.Value.NormalizedSplinePosition * cr.SplitResolution);
-                lastSplit /= cr.SplitResolution;
-                float thisSplit = (int)(di.LastCarUpdate.Value.NormalizedSplinePosition * cr.SplitResolution);
-                thisSplit /= cr.SplitResolution;
-
-                if (thisSplit > lastSplit)
-                {
-                    // The SplinePos Split has been changed, so now we want to log the time.
-                    // To be more precise we will try to recalculate the laptime in the exact transition
-                    splits.Add(AverageLaptimeBySplit(cr.LapStart, di.LastCarUpdate.Previous.Value, di.LastCarUpdate.Value));
-                }
-
-                cr.Splits = splits.ToArray();
-            }
-
             #endregion
         }
 
