@@ -77,6 +77,8 @@ namespace acPlugins4net
 
         protected internal virtual void OnAcServerTimeout() { }
 
+        protected internal virtual void OnAcServerAlive() { }
+
         #endregion handlers for events refined by PluginManager
     }
 }

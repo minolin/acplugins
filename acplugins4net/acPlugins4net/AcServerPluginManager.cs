@@ -909,6 +909,22 @@ namespace acPlugins4net
                                         }
                                     }
                                 }
+                                else
+                                {
+                                    // No? That means the server was silent for more than the KeepAlive range, but is still responsive
+                                    // May be weird, but some plugins need to know this
+                                    foreach (AcServerPlugin plugin in _plugins)
+                                    {
+                                        try
+                                        {
+                                            plugin.OnAcServerAlive();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Log(ex);
+                                        }
+                                    }
+                                }
                             }
                         }
                     });
