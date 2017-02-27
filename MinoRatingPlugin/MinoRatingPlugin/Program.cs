@@ -35,7 +35,7 @@ namespace MinoRatingPlugin
 
         public DateTime LastPluginActivity { get; private set; }
 
-        public static Version PluginVersion = new Version(2, 1, 0, 0);
+        public static Version PluginVersion = new Version(2, 2, 0, 0);
 
         protected internal byte[] _fingerprint;
 
@@ -301,7 +301,7 @@ namespace MinoRatingPlugin
                 _distancesToReport[driver] = new MRDistanceHelper();
 
                 TrySendDistance(driver, true);
-                HandleClientActions(LiveDataServer.CollisionV21(CurrentSessionGuid, msg.CreationDate, msg.CarId, msg.OtherCarId, msg.RelativeVelocity, driver.LastSplinePosition, driversCache.ToArray(), otherDriversCache.ToArray(), driversDistance));
+                HandleClientActions(LiveDataServer.CollisionV22(CurrentSessionGuid, msg.CreationDate, msg.CarId, msg.OtherCarId, msg.RelativeVelocity, driver.LastSplinePosition, msg.RelativePosition.X, msg.RelativePosition.Z, msg.WorldPosition.X, msg.WorldPosition.Z, driversCache.ToArray(), otherDriversCache.ToArray(), driversDistance));
             }
         }
 
