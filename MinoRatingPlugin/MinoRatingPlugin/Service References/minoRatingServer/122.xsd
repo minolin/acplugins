@@ -36,6 +36,7 @@
   <xs:complexType name="TrackDefinition">
     <xs:sequence>
       <xs:element minOccurs="0" name="Length" type="xs:float" />
+      <xs:element minOccurs="0" name="Lines" nillable="true" type="tns:ArrayOfTrackDefinitionLine" />
       <xs:element xmlns:q1="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="PitAreaRectangle" nillable="true" type="q1:ArrayOffloat" />
       <xs:element xmlns:q2="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="PitExitRectangle" nillable="true" type="q2:ArrayOffloat" />
       <xs:element xmlns:q3="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="Splits" nillable="true" type="q3:ArrayOffloat" />
@@ -43,6 +44,25 @@
     </xs:sequence>
   </xs:complexType>
   <xs:element name="TrackDefinition" nillable="true" type="tns:TrackDefinition" />
+  <xs:complexType name="ArrayOfTrackDefinitionLine">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="TrackDefinitionLine" nillable="true" type="tns:TrackDefinitionLine" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfTrackDefinitionLine" nillable="true" type="tns:ArrayOfTrackDefinitionLine" />
+  <xs:complexType name="TrackDefinitionLine">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="FromSpline" type="xs:float" />
+      <xs:element minOccurs="0" name="FromX" type="xs:float" />
+      <xs:element minOccurs="0" name="FromZ" type="xs:float" />
+      <xs:element minOccurs="0" name="LineId" type="xs:long" />
+      <xs:element minOccurs="0" name="ToSpline" type="xs:float" />
+      <xs:element minOccurs="0" name="ToX" type="xs:float" />
+      <xs:element minOccurs="0" name="ToZ" type="xs:float" />
+      <xs:element minOccurs="0" name="Type" type="xs:int" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="TrackDefinitionLine" nillable="true" type="tns:TrackDefinitionLine" />
   <xs:complexType name="ArrayOfLeaderboardEntry">
     <xs:sequence>
       <xs:element minOccurs="0" maxOccurs="unbounded" name="LeaderboardEntry" nillable="true" type="tns:LeaderboardEntry" />
@@ -53,6 +73,7 @@
     <xs:sequence>
       <xs:element minOccurs="0" name="CarId" type="xs:int" />
       <xs:element minOccurs="0" name="DriverId" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="HasFinished" type="xs:boolean" />
       <xs:element minOccurs="0" name="LapsDriven" type="xs:int" />
       <xs:element minOccurs="0" name="Rank" type="xs:int" />
       <xs:element minOccurs="0" name="Time" type="xs:unsignedInt" />

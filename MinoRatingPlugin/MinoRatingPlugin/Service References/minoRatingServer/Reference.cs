@@ -186,6 +186,9 @@ namespace MinoRatingPlugin.minoRatingServer {
         private float LengthField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private MinoRatingPlugin.minoRatingServer.TrackDefinitionLine[] LinesField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
         private float[] PitAreaRectangleField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
@@ -216,6 +219,19 @@ namespace MinoRatingPlugin.minoRatingServer {
                 if ((this.LengthField.Equals(value) != true)) {
                     this.LengthField = value;
                     this.RaisePropertyChanged("Length");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public MinoRatingPlugin.minoRatingServer.TrackDefinitionLine[] Lines {
+            get {
+                return this.LinesField;
+            }
+            set {
+                if ((object.ReferenceEquals(this.LinesField, value) != true)) {
+                    this.LinesField = value;
+                    this.RaisePropertyChanged("Lines");
                 }
             }
         }
@@ -284,6 +300,163 @@ namespace MinoRatingPlugin.minoRatingServer {
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+    [System.Runtime.Serialization.DataContractAttribute(Name="TrackDefinitionLine", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy")]
+    [System.SerializableAttribute()]
+    public partial class TrackDefinitionLine : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
+        
+        [System.NonSerializedAttribute()]
+        private System.Runtime.Serialization.ExtensionDataObject extensionDataField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private float FromSplineField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private float FromXField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private float FromZField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private long LineIdField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private float ToSplineField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private float ToXField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private float ToZField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private int TypeField;
+        
+        [global::System.ComponentModel.BrowsableAttribute(false)]
+        public System.Runtime.Serialization.ExtensionDataObject ExtensionData {
+            get {
+                return this.extensionDataField;
+            }
+            set {
+                this.extensionDataField = value;
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public float FromSpline {
+            get {
+                return this.FromSplineField;
+            }
+            set {
+                if ((this.FromSplineField.Equals(value) != true)) {
+                    this.FromSplineField = value;
+                    this.RaisePropertyChanged("FromSpline");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public float FromX {
+            get {
+                return this.FromXField;
+            }
+            set {
+                if ((this.FromXField.Equals(value) != true)) {
+                    this.FromXField = value;
+                    this.RaisePropertyChanged("FromX");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public float FromZ {
+            get {
+                return this.FromZField;
+            }
+            set {
+                if ((this.FromZField.Equals(value) != true)) {
+                    this.FromZField = value;
+                    this.RaisePropertyChanged("FromZ");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public long LineId {
+            get {
+                return this.LineIdField;
+            }
+            set {
+                if ((this.LineIdField.Equals(value) != true)) {
+                    this.LineIdField = value;
+                    this.RaisePropertyChanged("LineId");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public float ToSpline {
+            get {
+                return this.ToSplineField;
+            }
+            set {
+                if ((this.ToSplineField.Equals(value) != true)) {
+                    this.ToSplineField = value;
+                    this.RaisePropertyChanged("ToSpline");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public float ToX {
+            get {
+                return this.ToXField;
+            }
+            set {
+                if ((this.ToXField.Equals(value) != true)) {
+                    this.ToXField = value;
+                    this.RaisePropertyChanged("ToX");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public float ToZ {
+            get {
+                return this.ToZField;
+            }
+            set {
+                if ((this.ToZField.Equals(value) != true)) {
+                    this.ToZField = value;
+                    this.RaisePropertyChanged("ToZ");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public int Type {
+            get {
+                return this.TypeField;
+            }
+            set {
+                if ((this.TypeField.Equals(value) != true)) {
+                    this.TypeField = value;
+                    this.RaisePropertyChanged("Type");
+                }
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="LeaderboardEntry", Namespace="http://schemas.datacontract.org/2004/07/MinoRating.Core.proxy")]
     [System.SerializableAttribute()]
     public partial class LeaderboardEntry : object, System.Runtime.Serialization.IExtensibleDataObject, System.ComponentModel.INotifyPropertyChanged {
@@ -296,6 +469,9 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
         private string DriverIdField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private bool HasFinishedField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
         private int LapsDrivenField;
@@ -338,6 +514,19 @@ namespace MinoRatingPlugin.minoRatingServer {
                 if ((object.ReferenceEquals(this.DriverIdField, value) != true)) {
                     this.DriverIdField = value;
                     this.RaisePropertyChanged("DriverId");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public bool HasFinished {
+            get {
+                return this.HasFinishedField;
+            }
+            set {
+                if ((this.HasFinishedField.Equals(value) != true)) {
+                    this.HasFinishedField = value;
+                    this.RaisePropertyChanged("HasFinished");
                 }
             }
         }
@@ -1033,6 +1222,12 @@ namespace MinoRatingPlugin.minoRatingServer {
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/GetTrackDefinition", ReplyAction="http://tempuri.org/ILiveDataDump/GetTrackDefinitionResponse")]
         System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.TrackDefinition> GetTrackDefinitionAsync(System.Guid lastId, System.DateTime created);
         
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/GetTrackDefinitionByName", ReplyAction="http://tempuri.org/ILiveDataDump/GetTrackDefinitionByNameResponse")]
+        MinoRatingPlugin.minoRatingServer.TrackDefinition GetTrackDefinitionByName(string trackId);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/GetTrackDefinitionByName", ReplyAction="http://tempuri.org/ILiveDataDump/GetTrackDefinitionByNameResponse")]
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.TrackDefinition> GetTrackDefinitionByNameAsync(string trackId);
+        
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/EndSession", ReplyAction="http://tempuri.org/ILiveDataDump/EndSessionResponse")]
         MinoRatingPlugin.minoRatingServer.PluginReaction[] EndSession(System.Guid lastId);
         
@@ -1146,6 +1341,24 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/GetAuthData", ReplyAction="http://tempuri.org/ILiveDataDump/GetAuthDataResponse")]
         System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string>> GetAuthDataAsync(string token, System.DateTime currentPluginTime, System.DateTime lastPluginUpdate);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/LineCrossed", ReplyAction="http://tempuri.org/ILiveDataDump/LineCrossedResponse")]
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] LineCrossed(System.Guid sessionId, int car, long lineId, float speed, float acceleration, float minVelocity10s, float distanceToNextCar, float[] worldpositions);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/LineCrossed", ReplyAction="http://tempuri.org/ILiveDataDump/LineCrossedResponse")]
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> LineCrossedAsync(System.Guid sessionId, int car, long lineId, float speed, float acceleration, float minVelocity10s, float distanceToNextCar, float[] worldpositions);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/CreateTrackLine", ReplyAction="http://tempuri.org/ILiveDataDump/CreateTrackLineResponse")]
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] CreateTrackLine(System.Guid sessionId, byte carId, float fromSpline, float toSpline, float x1, float y1, float x2, float y2, string hint, int type);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/CreateTrackLine", ReplyAction="http://tempuri.org/ILiveDataDump/CreateTrackLineResponse")]
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> CreateTrackLineAsync(System.Guid sessionId, byte carId, float fromSpline, float toSpline, float x1, float y1, float x2, float y2, string hint, int type);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/UpdateTrackDefinition", ReplyAction="http://tempuri.org/ILiveDataDump/UpdateTrackDefinitionResponse")]
+        string UpdateTrackDefinition(string trackid, float trackLengthMeters, string secret);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/UpdateTrackDefinition", ReplyAction="http://tempuri.org/ILiveDataDump/UpdateTrackDefinitionResponse")]
+        System.Threading.Tasks.Task<string> UpdateTrackDefinitionAsync(string trackid, float trackLengthMeters, string secret);
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
@@ -1271,6 +1484,14 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.TrackDefinition> GetTrackDefinitionAsync(System.Guid lastId, System.DateTime created) {
             return base.Channel.GetTrackDefinitionAsync(lastId, created);
+        }
+        
+        public MinoRatingPlugin.minoRatingServer.TrackDefinition GetTrackDefinitionByName(string trackId) {
+            return base.Channel.GetTrackDefinitionByName(trackId);
+        }
+        
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.TrackDefinition> GetTrackDefinitionByNameAsync(string trackId) {
+            return base.Channel.GetTrackDefinitionByNameAsync(trackId);
         }
         
         public MinoRatingPlugin.minoRatingServer.PluginReaction[] EndSession(System.Guid lastId) {
@@ -1423,6 +1644,30 @@ namespace MinoRatingPlugin.minoRatingServer {
         
         public System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string>> GetAuthDataAsync(string token, System.DateTime currentPluginTime, System.DateTime lastPluginUpdate) {
             return base.Channel.GetAuthDataAsync(token, currentPluginTime, lastPluginUpdate);
+        }
+        
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] LineCrossed(System.Guid sessionId, int car, long lineId, float speed, float acceleration, float minVelocity10s, float distanceToNextCar, float[] worldpositions) {
+            return base.Channel.LineCrossed(sessionId, car, lineId, speed, acceleration, minVelocity10s, distanceToNextCar, worldpositions);
+        }
+        
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> LineCrossedAsync(System.Guid sessionId, int car, long lineId, float speed, float acceleration, float minVelocity10s, float distanceToNextCar, float[] worldpositions) {
+            return base.Channel.LineCrossedAsync(sessionId, car, lineId, speed, acceleration, minVelocity10s, distanceToNextCar, worldpositions);
+        }
+        
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] CreateTrackLine(System.Guid sessionId, byte carId, float fromSpline, float toSpline, float x1, float y1, float x2, float y2, string hint, int type) {
+            return base.Channel.CreateTrackLine(sessionId, carId, fromSpline, toSpline, x1, y1, x2, y2, hint, type);
+        }
+        
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> CreateTrackLineAsync(System.Guid sessionId, byte carId, float fromSpline, float toSpline, float x1, float y1, float x2, float y2, string hint, int type) {
+            return base.Channel.CreateTrackLineAsync(sessionId, carId, fromSpline, toSpline, x1, y1, x2, y2, hint, type);
+        }
+        
+        public string UpdateTrackDefinition(string trackid, float trackLengthMeters, string secret) {
+            return base.Channel.UpdateTrackDefinition(trackid, trackLengthMeters, secret);
+        }
+        
+        public System.Threading.Tasks.Task<string> UpdateTrackDefinitionAsync(string trackid, float trackLengthMeters, string secret) {
+            return base.Channel.UpdateTrackDefinitionAsync(trackid, trackLengthMeters, secret);
         }
     }
 }

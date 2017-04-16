@@ -11,39 +11,28 @@ using acPlugins4net.kunos;
 using acPlugins4net.helpers;
 using System.ServiceModel;
 using acPlugins4net.info;
+using System.Windows;
 
 namespace MinoRatingPlugin
 {
     public class MinoratingPlugin : AcServerPlugin
     {
-        private LiveDataDumpClient _LiveDataServer;
-        public LiveDataDumpClient LiveDataServer
-        {
-            get
-            {
-                LastPluginActivity = DateTime.Now;
-                return _LiveDataServer;
-            }
-            set
-            {
-                _LiveDataServer = value;
-            }
-        }
+        public BackendMessageQueue MRBackend { get; set; }
+
         public string TrustToken { get; set; }
-        public Guid CurrentSessionGuid { get; set; }
         public DateTime CurrentSessionStartTime { get; set; }
 
-        public DateTime LastPluginActivity { get; private set; }
-
-        public static Version PluginVersion = new Version(2, 2, 0, 0);
+        public static Version PluginVersion = new Version(2, 3, 0, 0);
 
         protected internal byte[] _fingerprint;
 
         private static LocalAuthCache _authCache = null;
 
         public TrackDefinition CurrentTrackDefinition { get; set; }
+        public Rect? PitExitRectangle { get; set; }
 
         #region Init code
+
         static void Main(string[] args)
         {
             AcServerPluginManager pluginManager = null;
@@ -54,7 +43,7 @@ namespace MinoRatingPlugin
                 pluginManager.LoadInfoFromServerConfig();
                 pluginManager.AddPlugin(new MinoratingPlugin());
                 pluginManager.LoadPluginsFromAppConfig();
-                DriverInfo.MsgCarUpdateCacheSize = 10;
+                DriverInfo.MsgCarUpdateCacheSize = 100;
 
                 pluginManager.RunUntilAborted();
             }
@@ -78,53 +67,19 @@ namespace MinoRatingPlugin
         {
             _fingerprint = Hash(PluginManager.Config.GetSetting("ac_server_directory") + PluginManager.RemotePort);
 
-#if DEB1UG
-            LiveDataServer = new LiveDataDumpClient(new BasicHttpBinding(), new EndpointAddress("http://localhost:805/minorating/12"));
-#else
-            LiveDataServer = new LiveDataDumpClient(new BasicHttpBinding(), new EndpointAddress("http://plugin.minorating.com:805/minorating/12"));
-#endif
+            MRBackend = new BackendMessageQueue(PluginManager);
 
-            TrustToken = PluginManager.Config.GetSetting("server_trust_token");
-            if (string.IsNullOrEmpty(TrustToken))
-            {
-                TrustToken = Guid.NewGuid().ToString();
-                PluginManager.Config.SetSetting("server_trust_token", TrustToken);
-            }
-            CurrentSessionGuid = Guid.Empty;
 
             #region AUTH cache
+
             var authCachePort = System.Configuration.ConfigurationManager.AppSettings["local_auth_port"];
             if (!string.IsNullOrEmpty(authCachePort))
             {
                 _authCache = new LocalAuthCache(int.Parse(authCachePort), PluginManager);
                 _authCache.Run();
             }
+
             #endregion
-
-
-            ThreadPool.QueueUserWorkItem(o =>
-            {
-                try
-                {
-                    PluginManager.Log("Plugin Version " + PluginVersion);
-                    var serverVersion = LiveDataServer.GetVersion();
-                    PluginManager.Log("Connection to server with version: " + serverVersion);
-
-                    if (serverVersion.Major > PluginVersion.Major)
-                    {
-                        PluginManager.Log("================================");
-                        PluginManager.Log("================================");
-                        PluginManager.Log("Version mismatch, minorating.com requires a newer version (" + serverVersion + " vs. " + PluginVersion + ")");
-                        Environment.Exit(2);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    PluginManager.Log("Error connecting to the remote server :(");
-                    PluginManager.Log(ex);
-                    Environment.Exit(1);
-                }
-            });
 
             // Let's have a look if the acServer is already running
             try
@@ -143,77 +98,68 @@ namespace MinoRatingPlugin
 
         protected override void OnSessionInfo(MsgSessionInfo msg)
         {
-
-            if (msg.Type == ACSProtocol.MessageType.ACSP_NEW_SESSION || CurrentSessionGuid == Guid.Empty)
+            if (msg.Type == ACSProtocol.MessageType.ACSP_NEW_SESSION || MRBackend.CurrentSessionGuid == Guid.Empty)
                 OnNewSession(msg);
         }
 
         protected override void OnNewSession(MsgSessionInfo msg)
         {
+            PluginManager.EnableRealtimeReport(100);
             PluginManager.Log("===============================");
             PluginManager.Log("===============================");
             PluginManager.Log("OnNewSession: " + msg.Name + "@" + msg.ServerName);
             PluginManager.Log("===============================");
             PluginManager.Log("===============================");
 
-
             var server_config_ini = GatherServerConfigIni();
+            var trackId = msg.Track + "[" + msg.TrackConfig + "]";
 
-            CurrentSessionGuid = LiveDataServer.NewSessionWithConfig(CurrentSessionGuid, msg.ServerName, msg.Track + "[" + msg.TrackConfig + "]"
+            MRBackend.NewSessionWithConfigAsync(msg.ServerName, trackId
                 , msg.SessionType, msg.Laps, msg.WaitTime, msg.SessionDuration, msg.AmbientTemp, msg.RoadTemp, msg.ElapsedMS
                 , TrustToken, _fingerprint, PluginVersion, -1, -1, -1, server_config_ini);
-            for (byte i = 0; i < 36; i++)
+
+            var maxDrivers = TryParseMaxDrivers(server_config_ini);
+            PluginManager.Log($"Max drivers: {maxDrivers}");
+
+            for (byte i = 0; i < maxDrivers; i++)
                 PluginManager.RequestCarInfo(i);
 
             CurrentSessionStartTime = msg.CreationDate.AddMilliseconds(msg.ElapsedMS * -1);
 
             _distancesToReport.Clear();
 
-            CurrentTrackDefinition = LiveDataServer.GetTrackDefinition(CurrentSessionGuid, msg.CreationDate);
+            if (trackId != CurrentTrackDefinition?.TrackName)
+                ReloadTrackDefinition(trackId);
         }
 
-        private string GatherServerConfigIni()
+        private void ReloadTrackDefinition(string trackId = null)
         {
-            try
-            {
-                var acDirectory = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
-                if (string.IsNullOrEmpty(acDirectory)) // happens in Debug mode
-                    acDirectory = "";
-                var configFile = System.IO.Path.Combine(acDirectory, 
-                                                        System.Configuration.ConfigurationManager.AppSettings["ac_server_directory"],
-                                                        System.Configuration.ConfigurationManager.AppSettings["ac_cfg_directory"],
-                                                        "server_cfg.ini");
+            if (trackId == null)
+                trackId = CurrentTrackDefinition?.TrackName;
 
-                var lines = System.IO.File.ReadAllLines(configFile);
-                return string.Join(Environment.NewLine, lines.Where(x => !x.Contains("PASSWORD")));
-            }
-            catch (Exception ex)
+            if (trackId != null)
             {
-                return "EX: " + ex.Message;
+                CurrentTrackDefinition = MRBackend.GetTrackDefinition(trackId);
+                CreatePitExitRectangle();
+                PluginManager.Log($"Pit exit rectangle created: {PitExitRectangle}");
+                PluginManager.Log($"Track Lines parsed: {CurrentTrackDefinition?.Lines?.Length ?? 0}");
             }
         }
 
         protected override void OnNewConnection(MsgNewConnection msg)
         {
-            HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, true, GetCurrentRaceTimeMS(msg)));
-        }
-
-        private int GetCurrentRaceTimeMS(PluginMessage msg)
-        {
-            if (CurrentSessionStartTime == DateTime.MinValue)
-                return 0;
-            return (int)Math.Round((msg.CreationDate - CurrentSessionStartTime).TotalMilliseconds);
+            MRBackend.RandomCarInfoAsync(msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, true, GetCurrentRaceTimeMS(msg));
         }
 
         protected override void OnSessionEnded(MsgSessionEnded msg)
         {
             PluginManager.Log("Session ended");
-            HandleClientActions(LiveDataServer.EndSession(CurrentSessionGuid));
+            MRBackend.EndSessionAsync();
         }
 
         protected override void OnConnectionClosed(MsgConnectionClosed msg)
         {
-            HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, "", "", "", false, GetCurrentRaceTimeMS(msg)));
+            MRBackend.RandomCarInfoAsync(msg.CarId, "", "", "", false, GetCurrentRaceTimeMS(msg));
         }
 
         protected override void OnLapCompleted(MsgLapCompleted msg)
@@ -223,8 +169,9 @@ namespace MinoRatingPlugin
                 PluginManager.Log("Error; car_id " + msg.CarId + " was not known by the PluginManager :(");
             else
             {
+                driver.IsOnOutlap = false;
                 TrySendDistance(driver, true);
-                HandleClientActions(LiveDataServer.LapCompleted(CurrentSessionGuid, msg.CreationDate, msg.CarId, driver.DriverGuid, msg.Laptime, msg.Cuts, msg.GripLevel, ConvertLB(msg.Leaderboard)));
+                MRBackend.LapCompletedAsync(msg.CreationDate, msg.CarId, driver.DriverGuid, msg.Laptime, msg.Cuts, msg.GripLevel, ConvertLB(msg.Leaderboard));
             }
         }
 
@@ -235,7 +182,7 @@ namespace MinoRatingPlugin
             // To prevent a bug in communication we will only send when the Car IsConnected - discos only via the corresponding event please.
             if (msg.IsConnected)
             {
-                HandleClientActions(LiveDataServer.RandomCarInfo(CurrentSessionGuid, msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, msg.IsConnected, GetCurrentRaceTimeMS(msg)));
+                MRBackend.RandomCarInfoAsync(msg.CarId, msg.CarModel, msg.DriverName, msg.DriverGuid, msg.IsConnected, GetCurrentRaceTimeMS(msg));
             }
         }
 
@@ -253,9 +200,103 @@ namespace MinoRatingPlugin
                     case "/minorating":
                         {
                             if (split.Length == 1) // only /mr 
-                                HandleClientActions(LiveDataServer.RequestDriverRating(CurrentSessionGuid, msg.CarId));
+                                MRBackend.RequestDriverRatingAsync(msg.CarId);
                             else
-                                HandleClientActions(LiveDataServer.RequestMRCommandAdminInfo(CurrentSessionGuid, msg.CarId, PluginManager.GetDriverInfo(msg.CarId).IsAdmin, split));
+                                MRBackend.RequestMRCommandAdminInfoAsync(msg.CarId, PluginManager.GetDriverInfo(msg.CarId).IsAdmin, split);
+                        }
+                        break;
+                    case "/mrpoint":
+                        {
+                            string text;
+                            DriverInfo driver = null;
+                            if (!PluginManager.TryGetDriverInfo(Convert.ToByte(msg.CarId), out driver))
+                                text = "Driver not found: " + msg.CarId;
+                            else if (driver?.LastCarUpdate?.Value == null)
+                                text = "Something's wrong";
+                            else
+                            {
+                                var upd = driver?.LastCarUpdate?.Value;
+
+                                text = $"Spl:{upd.NormalizedSplinePosition:F5}|X={upd.WorldPosition.X:F5}|Z={upd.WorldPosition.Z:F5}";
+                            }
+
+                            PluginManager.SendChatMessage(msg.CarId, text);
+                        }
+                        break;
+                    case "/mrinfo":
+                        {
+                            PluginManager.SendChatMessage(msg.CarId, $"Track id: {CurrentTrackDefinition?.TrackName}, length ={CurrentTrackDefinition?.Length:N0}");
+                            PluginManager.SendChatMessage(msg.CarId, $"Pit exit: {PitExitRectangle?.X}");
+                        }
+                        break;
+                    case "/mrtrackreload":
+                        {
+                            CurrentTrackDefinition = MRBackend.GetTrackDefinition(CurrentTrackDefinition.TrackName);
+                            CreatePitExitRectangle();
+                            PluginManager.SendChatMessage(msg.CarId, $"Track reloaded");
+                        }
+                        break;
+                    case "/mrtl1":
+                        {
+                            string text;
+                            DriverInfo driver = null;
+                            if (!PluginManager.TryGetDriverInfo(Convert.ToByte(msg.CarId), out driver))
+                                text = "Driver not found: " + msg.CarId;
+                            else if (driver?.LastCarUpdate?.Value == null)
+                                text = "Something's wrong";
+                            else
+                            {
+                                _AdminAddTrackLineStart = driver?.LastCarUpdate?.Value;
+                                text = $"Start set: {_AdminAddTrackLineStart}";
+                            }
+
+                            PluginManager.SendChatMessage(msg.CarId, text);
+                        }
+                        break;
+                    case "/mrtl2":
+                        {
+                            Console.WriteLine("TrackLine 2");
+                            string text = null;
+                            int type = 2; // pit exit = 1, default is line = 2
+                            DriverInfo driver = null;
+                            if (_AdminAddTrackLineStart == null)
+                                text = "No start set";
+                            else if (!PluginManager.TryGetDriverInfo(Convert.ToByte(msg.CarId), out driver))
+                                text = "Driver not found: " + msg.CarId;
+                            else if (driver?.LastCarUpdate?.Value == null)
+                                text = "Something's wrong";
+                            else if (split.Length < 2 || string.IsNullOrEmpty(split[1]))
+                                text = "No hint set";
+                            else
+                            {
+                                if (split.Length == 3)
+                                    type = int.Parse(split[2]);
+
+                                try
+                                {
+                                    var startPoint = _AdminAddTrackLineStart;
+                                    var endPoint = driver?.LastCarUpdate?.Value;
+                                    MRBackend.CreateTrackLine(msg.CarId,
+                                                              startPoint.NormalizedSplinePosition,
+                                                              endPoint.NormalizedSplinePosition,
+                                                              startPoint.WorldPosition.X,
+                                                              startPoint.WorldPosition.Z,
+                                                              endPoint.WorldPosition.X,
+                                                              endPoint.WorldPosition.Z,
+                                                              split[1],
+                                                              type);
+                                    Console.WriteLine($"Message sent, type {type}");
+                                    ReloadTrackDefinition();
+                                    PluginManager.SendChatMessage(msg.CarId, "Track reloaded");
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"Exception in TrackLine2: {ex.ToString()}");
+                                }
+                            }
+
+                            if (!string.IsNullOrEmpty(text))
+                                PluginManager.SendChatMessage(msg.CarId, text);
                         }
                         break;
                     default:
@@ -264,20 +305,26 @@ namespace MinoRatingPlugin
             }
         }
 
+        /// <summary>
+        /// Little helper for an admin command that expresses Minolin's laziness. Do not use it
+        /// </summary>
+        MsgCarUpdate _AdminAddTrackLineStart = null;
+
         protected override void OnClientLoaded(MsgClientLoaded msg)
         {
-            HandleClientActions(LiveDataServer.RequestDriverLoaded(CurrentSessionGuid, msg.CarId));
+            MRBackend.RequestDriverLoadedAsync(msg.CarId);
         }
 
         protected override void OnAcServerTimeout()
         {
             PluginManager.Log("OnAcServerTimeout()");
-            LiveDataServer.EndSession(CurrentSessionGuid);
+            MRBackend.EndSessionAsync();
         }
 
         #endregion
 
         #region Contact handling
+
         private List<CollisionBag> contactTrees = new List<CollisionBag>();
 
         protected override void OnCollision(MsgClientEvent msg)
@@ -301,7 +348,7 @@ namespace MinoRatingPlugin
                 _distancesToReport[driver] = new MRDistanceHelper();
 
                 TrySendDistance(driver, true);
-                HandleClientActions(LiveDataServer.CollisionV22(CurrentSessionGuid, msg.CreationDate, msg.CarId, msg.OtherCarId, msg.RelativeVelocity, driver.LastSplinePosition, msg.RelativePosition.X, msg.RelativePosition.Z, msg.WorldPosition.X, msg.WorldPosition.Z, driversCache.ToArray(), otherDriversCache.ToArray(), driversDistance));
+                MRBackend.CollisionAsyncV22(msg.CreationDate, msg.CarId, msg.OtherCarId, msg.RelativeVelocity, driver.LastSplinePosition, msg.RelativePosition.X, msg.RelativePosition.Z, msg.WorldPosition.X, msg.WorldPosition.Z, driversCache.ToArray(), otherDriversCache.ToArray(), driversDistance);
             }
         }
 
@@ -339,7 +386,6 @@ namespace MinoRatingPlugin
             if (!_distancesToReport.ContainsKey(di))
                 _distancesToReport.Add(di, new MRDistanceHelper());
 
-
             var dh = _distancesToReport[di];
             // Generally, the meters driven are stored
             dh.MetersDriven += di.LastDistanceTraveled;
@@ -356,6 +402,78 @@ namespace MinoRatingPlugin
                     dh.MetersAttackRange += di.LastDistanceTraveled;
             }
             #endregion
+
+            #region Outlap detection
+
+            if (!di.IsOnOutlap && PitExitRectangle.HasValue)
+            {
+                di.IsOnOutlap = PitExitRectangle.Value.Contains(new System.Windows.Point(di.LastPosition.X, di.LastPosition.Z));
+                if (di.IsOnOutlap)
+                    PluginManager.SendChatMessage(di.CarId, "Now on outlap");
+            }
+
+            #endregion
+
+            #region Line crossing
+
+            try
+            {
+                if (CurrentTrackDefinition?.Lines != null && di.LastCarUpdate?.Previous != null)
+                    // For performance we'll just calc the lines that are between the corresponding SplinePosition frame
+                    foreach (var l in CurrentTrackDefinition.Lines.Where(x => x.FromSpline <= di.LastSplinePosition && x.ToSpline >= di.LastSplinePosition))
+                    {
+                        var isIntersecting = IsIntersecting(l, di.LastCarUpdate);
+                        //PluginManager.BroadcastChatMessage($"{l.LineId}: {isIntersecting}");
+
+                        // We are between the focus zone for this (l)ine. Did we cross it?
+                        if (isIntersecting)
+                        {
+                            // That's worth a message to the backend then!
+                            var driversCache = GetDriversCache(di);
+                            var minVelocityLast10s = driversCache.Min(x => new Vector3f(x.Velocity[0], 0, x.Velocity[1]).Length() * 3.6f);
+                            //Console.WriteLine($"Car {di.CarId} crossed line {l.LineId} with {di.CurrentSpeed:F0}kph (min {minVelocityLast10s:F0}kph)");
+                            MRBackend.LineCrossedAsync(di.CarId, l.LineId, di.CurrentSpeed, di.CurrentAcceleration, minVelocityLast10s, di.CurrentDistanceToClosestCar, new float[0]);
+                        }
+                    }
+            }
+            catch (Exception ex)
+            {
+                PluginManager.Log(ex);
+            }
+
+            #endregion
+        }
+
+        /// <summary>
+        /// Calculates if and where the given line was crossed 
+        /// </summary>
+        /// <param name="trackDefinitionLine"></param>
+        /// <param name="lastCarUpdate"></param>
+        /// <returns></returns>
+        bool IsIntersecting(TrackDefinitionLine trackDefinitionLine, LinkedListNode<MsgCarUpdate> lastCarUpdate)
+        {
+            var lastPos = lastCarUpdate.Value.WorldPosition;
+            var prevPos = lastCarUpdate.Previous.Value.WorldPosition;
+
+            return IsIntersecting(new Point(trackDefinitionLine.FromX, trackDefinitionLine.FromZ),
+                                  new Point(trackDefinitionLine.ToX, trackDefinitionLine.ToZ),
+                                  new Point(prevPos.X, prevPos.Z),
+                                  new Point(lastPos.X, lastPos.Z));
+        }
+
+        bool IsIntersecting(Point a, Point b, Point c, Point d)
+        {
+            float denominator = ((b.X - a.X) * (d.Y - c.Y)) - ((b.Y - a.Y) * (d.X - c.X));
+            float numerator1 = ((a.Y - c.Y) * (d.X - c.X)) - ((a.X - c.X) * (d.Y - c.Y));
+            float numerator2 = ((a.Y - c.Y) * (b.X - a.X)) - ((a.X - c.X) * (b.Y - a.Y));
+
+            // Detect coincident lines (has a problem, read below)
+            if (denominator == 0) return numerator1 == 0 && numerator2 == 0;
+
+            float r = numerator1 / denominator;
+            float s = numerator2 / denominator;
+
+            return (r >= 0 && r <= 1) && (s >= 0 && s <= 1);
         }
 
         private bool TeleportedToPits(DriverInfo di)
@@ -429,12 +547,12 @@ namespace MinoRatingPlugin
                 // Then we'll do it in different resolutions; the first meters are more important than the later ones
                 if (di.Distance > REGULAR_DISTANCE && distanceCached.MetersDriven > 2000 || forced) // After 2km, we'll just report in big chunks - or if forced
                 {
-                    HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached));
+                    MRBackend.DistanceDrivenAsync(di.CarId, distanceCached);
                     _distancesToReport[di] = new MRDistanceHelper();
                 }
                 else if (di.Distance < REGULAR_DISTANCE && distanceCached.MetersDriven > 200) // 200m is about "left pits", so we'll report this until 
                 {
-                    HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached));
+                    MRBackend.DistanceDrivenAsync(di.CarId, distanceCached);
                     _distancesToReport[di] = new MRDistanceHelper();
                 }
             }
@@ -460,7 +578,7 @@ namespace MinoRatingPlugin
                                 distanceCached.SplinePosTimeCurrent = Convert.ToInt32(thisPos.CreationDate.Subtract(di.CurrentLapStart).TotalMilliseconds);
                                 distanceCached.SplinePosLast = lastPos.NormalizedSplinePosition;
                                 distanceCached.SplinePosTimeLast = Convert.ToInt32(lastPos.CreationDate.Subtract(di.CurrentLapStart).TotalMilliseconds);
-                                HandleClientActions(LiveDataServer.DistanceDriven(CurrentSessionGuid, di.CarId, distanceCached));
+                                MRBackend.DistanceDrivenAsync(di.CarId, distanceCached);
                                 break;
                             }
                         }
@@ -478,98 +596,59 @@ namespace MinoRatingPlugin
         #endregion
 
         #region Helpers & stuff
-        private void HandleClientActions(PluginReactionCollection actions)
-        {
-            if (actions == null)
-                throw new ArgumentNullException("PluginReactionCollection actions", "Looks like the server didn't create an empty PluginReaction array");
 
-            HandleClientActions(actions.Reactions);
-        }
-        private void HandleClientActions(PluginReaction[] actions)
+        int TryParseMaxDrivers(string server_Config_Ini)
         {
-            if (actions == null)
-                throw new ArgumentNullException("PluginReaction[] actions", "Looks like the server didn't create an empty PluginReaction array");
+            var line = server_Config_Ini.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault(x => x.StartsWith("MAX_CLIENTS="));
+            if (string.IsNullOrEmpty(line))
+                return 36;
 
-            foreach (var a in actions)
+            var value = line.Replace("MAX_CLIENTS=", "").Trim();
+
+            try
             {
-                if (string.IsNullOrEmpty(a.Text))
-                    a.Text = "";
-
-                if (a.Delay == 0)
-                {
-                    ExecuteAction(a);
-                }
-                else
-                {
-                    ThreadPool.QueueUserWorkItem(o =>
-                    {
-                        Thread.Sleep(a.Delay);
-                        ExecuteAction(a);
-                    });
-                }
+                return Convert.ToInt32(value);
+            }
+            catch
+            {
+                return 36;
             }
         }
 
-        private void ExecuteAction(PluginReaction a)
+        private void CreatePitExitRectangle()
+        {
+            if (CurrentTrackDefinition?.PitExitRectangle == null || CurrentTrackDefinition.PitExitRectangle.Count() != 4)
+            {
+                PitExitRectangle = null;
+            }
+            else
+            {
+                var per = CurrentTrackDefinition.PitExitRectangle;
+                PitExitRectangle = new Rect(Math.Min(per[0], per[2]),
+                                            Math.Min(per[1], per[3]),
+                                            Math.Abs(per[0] - per[2]),
+                                            Math.Abs(per[1] - per[3]));
+            }
+        }
+
+        private string GatherServerConfigIni()
         {
             try
             {
-                // DEBUG TIME
-                /*
-                if(a.SteamId != "76561198021090310")
-                {
-                    if (string.IsNullOrEmpty(a.SteamId))
-                        Console.WriteLine("No steam Id for action with text: " + a.Text);
+                var acDirectory = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
+                if (string.IsNullOrEmpty(acDirectory)) // happens in Debug mode
+                    acDirectory = "";
+                var configFile = System.IO.Path.Combine(acDirectory,
+                                                        System.Configuration.ConfigurationManager.AppSettings["ac_server_directory"],
+                                                        System.Configuration.ConfigurationManager.AppSettings["ac_cfg_directory"],
+                                                        "server_cfg.ini");
 
-                    return;
-                }*/
-
-
-                PluginManager.Log("Action for car " + a.CarId + ": " + a.Reaction + " " + a.Text);
-                switch (a.Reaction)
-                {
-                    case PluginReaction.ReactionType.None:
-                        break;
-                    case PluginReaction.ReactionType.Whisper:
-                        PluginManager.SendChatMessage(a.CarId, a.Text);
-                        break;
-                    case PluginReaction.ReactionType.Broadcast:
-                        PluginManager.BroadcastChatMessage(a.Text);
-                        break;
-                    case PluginReaction.ReactionType.Ballast:
-                        break;
-                    case PluginReaction.ReactionType.Pit:
-                        break;
-                    case PluginReaction.ReactionType.Kick:
-                        {
-                            // To be 100% sure we kick the right person we'll have to compare the steam id
-                            DriverInfo c;
-                            if (this.PluginManager.TryGetDriverInfo(a.CarId, out c))
-                                if (c.IsConnected && c.DriverGuid == a.SteamId)
-                                {
-                                    PluginManager.BroadcastChatMessage("" + c.DriverName + " has been kicked by minorating.com");
-                                    PluginManager.RequestKickDriverById(a.CarId);
-                                }
-                        }
-                        break;
-                    case PluginReaction.ReactionType.Ban:
-                        break;
-                    case PluginReaction.ReactionType.NextSession:
-                        PluginManager.NextSession();
-                        break;
-                    case PluginReaction.ReactionType.RestartSession:
-                        PluginManager.RestartSession();
-                        break;
-                    case PluginReaction.ReactionType.AdminCmd:
-                        PluginManager.AdminCommand(a.Text);
-                        break;
-                    default:
-                        break;
-                }
+                var lines = System.IO.File.ReadAllLines(configFile);
+                return string.Join(Environment.NewLine, lines.Where(x => !x.Contains("PASSWORD")));
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Execute action: Error for car " + a.CarId + "/" + a.Text + ": " + ex.Message);
+                return "EX: " + ex.Message;
             }
         }
 
@@ -596,16 +675,42 @@ namespace MinoRatingPlugin
                     CarId = leaderboard[i].CarId,
                     DriverId = steamId,
                     LapsDriven = leaderboard[i].Laps,
-                    Time = leaderboard[i].Laptime
+                    Time = leaderboard[i].Laptime,
+                    HasFinished = leaderboard[i].HasFinished,
                 };
             };
 
             return array;
         }
 
+        private string GetConnectedDriversHash()
+        {
+            var driversHash = "";
+            try
+            {
+                foreach (var d in PluginManager.GetDriverInfos().Where(x => x.IsConnected).OrderBy(x => x.CarId))
+                {
+                    driversHash += d.DriverName;
+                }
+            }
+            catch (Exception ex)
+            {
+                PluginManager.Log(ex);
+            }
+
+            return "" + driversHash.GetHashCode();
+        }
+
+        private int GetCurrentRaceTimeMS(PluginMessage msg)
+        {
+            if (CurrentSessionStartTime == DateTime.MinValue)
+                return 0;
+            return (int)Math.Round((msg.CreationDate - CurrentSessionStartTime).TotalMilliseconds);
+        }
+
         protected override void OnAcServerAlive()
         {
-            HandleClientActions(_LiveDataServer.Alive(this.CurrentSessionGuid, DateTime.Now, null));
+            MRBackend.SendAlive(GetConnectedDriversHash());
         }
 
         private void StartAliveTimer()
@@ -617,22 +722,10 @@ namespace MinoRatingPlugin
                     // Sleeping for some seconds
                     Thread.Sleep(1000 * 90);
 
-                    if (LastPluginActivity != DateTime.MinValue
-                        && LastPluginActivity.AddSeconds(1000 * 90) < DateTime.Now)
+                    if (MRBackend.LastPluginActivity != DateTime.MinValue
+                        && MRBackend.LastPluginActivity.AddSeconds(1000 * 90) < DateTime.Now)
                     {
-                        var driversHash = "";
-                        try
-                        {
-                            foreach (var d in PluginManager.GetDriverInfos().Where(x => x.IsConnected).OrderBy(x => x.CarId))
-                            {
-                                driversHash += d.DriverName;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            PluginManager.Log(ex);
-                        }
-                        LiveDataServer.Alive(CurrentSessionGuid, DateTime.Now, "" + driversHash.GetHashCode());
+                        MRBackend.SendAlive(GetConnectedDriversHash());
                     }
                 }
             });

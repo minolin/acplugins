@@ -74,6 +74,12 @@ namespace acPlugins4net.info
         public float EndSplinePos { get; set; } = -1f;
         [DataMember]
         public bool IsAdmin { get; set; }
+        /// <summary>
+        /// IMPORTANT: Is not automatically set! The plugin is responsible to determine this as we have no official
+        /// way to do so by now. Just a field your plugin CAN use if you gather the information.
+        /// </summary>
+        [DataMember]
+        public bool IsOnOutlap { get; set; }
 
         public bool IsConnected
         {

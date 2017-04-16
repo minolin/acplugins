@@ -33,6 +33,12 @@
   <wsdl:message name="ILiveDataDump_GetTrackDefinition_OutputMessage">
     <wsdl:part name="parameters" element="tns:GetTrackDefinitionResponse" />
   </wsdl:message>
+  <wsdl:message name="ILiveDataDump_GetTrackDefinitionByName_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetTrackDefinitionByName" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_GetTrackDefinitionByName_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetTrackDefinitionByNameResponse" />
+  </wsdl:message>
   <wsdl:message name="ILiveDataDump_EndSession_InputMessage">
     <wsdl:part name="parameters" element="tns:EndSession" />
   </wsdl:message>
@@ -147,6 +153,24 @@
   <wsdl:message name="ILiveDataDump_GetAuthData_OutputMessage">
     <wsdl:part name="parameters" element="tns:GetAuthDataResponse" />
   </wsdl:message>
+  <wsdl:message name="ILiveDataDump_LineCrossed_InputMessage">
+    <wsdl:part name="parameters" element="tns:LineCrossed" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_LineCrossed_OutputMessage">
+    <wsdl:part name="parameters" element="tns:LineCrossedResponse" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_CreateTrackLine_InputMessage">
+    <wsdl:part name="parameters" element="tns:CreateTrackLine" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_CreateTrackLine_OutputMessage">
+    <wsdl:part name="parameters" element="tns:CreateTrackLineResponse" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_UpdateTrackDefinition_InputMessage">
+    <wsdl:part name="parameters" element="tns:UpdateTrackDefinition" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_UpdateTrackDefinition_OutputMessage">
+    <wsdl:part name="parameters" element="tns:UpdateTrackDefinitionResponse" />
+  </wsdl:message>
   <wsdl:portType name="ILiveDataDump">
     <wsdl:operation name="Alive">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/Alive" message="tns:ILiveDataDump_Alive_InputMessage" />
@@ -163,6 +187,10 @@
     <wsdl:operation name="GetTrackDefinition">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/GetTrackDefinition" message="tns:ILiveDataDump_GetTrackDefinition_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/GetTrackDefinitionResponse" message="tns:ILiveDataDump_GetTrackDefinition_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="GetTrackDefinitionByName">
+      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/GetTrackDefinitionByName" message="tns:ILiveDataDump_GetTrackDefinitionByName_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/GetTrackDefinitionByNameResponse" message="tns:ILiveDataDump_GetTrackDefinitionByName_OutputMessage" />
     </wsdl:operation>
     <wsdl:operation name="EndSession">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/EndSession" message="tns:ILiveDataDump_EndSession_InputMessage" />
@@ -240,6 +268,18 @@
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/GetAuthData" message="tns:ILiveDataDump_GetAuthData_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/GetAuthDataResponse" message="tns:ILiveDataDump_GetAuthData_OutputMessage" />
     </wsdl:operation>
+    <wsdl:operation name="LineCrossed">
+      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/LineCrossed" message="tns:ILiveDataDump_LineCrossed_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/LineCrossedResponse" message="tns:ILiveDataDump_LineCrossed_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="CreateTrackLine">
+      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/CreateTrackLine" message="tns:ILiveDataDump_CreateTrackLine_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/CreateTrackLineResponse" message="tns:ILiveDataDump_CreateTrackLine_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="UpdateTrackDefinition">
+      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/UpdateTrackDefinition" message="tns:ILiveDataDump_UpdateTrackDefinition_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/UpdateTrackDefinitionResponse" message="tns:ILiveDataDump_UpdateTrackDefinition_OutputMessage" />
+    </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="BasicHttpBinding_ILiveDataDump" type="tns:ILiveDataDump">
     <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
@@ -272,6 +312,15 @@
     </wsdl:operation>
     <wsdl:operation name="GetTrackDefinition">
       <soap:operation soapAction="http://tempuri.org/ILiveDataDump/GetTrackDefinition" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetTrackDefinitionByName">
+      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/GetTrackDefinitionByName" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>
@@ -443,6 +492,33 @@
     </wsdl:operation>
     <wsdl:operation name="GetAuthData">
       <soap:operation soapAction="http://tempuri.org/ILiveDataDump/GetAuthData" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="LineCrossed">
+      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/LineCrossed" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CreateTrackLine">
+      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/CreateTrackLine" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateTrackDefinition">
+      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/UpdateTrackDefinition" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>
