@@ -19,6 +19,7 @@ namespace MinoRatingPlugin
         public string TrustToken { get; set; }
         public Guid CurrentSessionGuid { get; set; }
         public DateTime LastPluginActivity { get; private set; }
+        public DateTime LastBackendActivity { get; private set; }
 
         #region Init stuff; only one time in the process lifecycle
 
@@ -80,7 +81,9 @@ namespace MinoRatingPlugin
 
         public TrackDefinition GetTrackDefinition(string currentTrack)
         {
-            return _mrserver.GetTrackDefinitionByName(currentTrack);
+            var trackDefinition = _mrserver.GetTrackDefinitionByName(currentTrack);
+            LastBackendActivity = DateTime.Now;
+            return trackDefinition;
         }
 
         public void CreateTrackLine(byte carId, float fromSpline, float toSpline, float x1, float y1, float x2, float y2, string hint, int type)
@@ -96,7 +99,7 @@ namespace MinoRatingPlugin
         public void NewSessionWithConfigAsync(string serverName, string track, byte sessionType, ushort laps, ushort waitTime, ushort sessionDuration, byte ambientTemp, byte roadTemp, int elapsedMS, string trustToken, byte[] fingerpint, Version pluginVersion, int sessionCollisionsToKick, int sessionMassAccidentsToKick, int serverKickMode, string server_Config_Ini)
         {
             CurrentSessionGuid = Guid.NewGuid();
-            EnqueueBackendMessage(() => 
+            EnqueueBackendMessage(() =>
             {
                 _mrserver.NewSessionWithConfig(CurrentSessionGuid, serverName, track, sessionType, laps, waitTime, sessionDuration, ambientTemp, roadTemp, elapsedMS, trustToken, fingerpint, pluginVersion, sessionCollisionsToKick, sessionMassAccidentsToKick, serverKickMode, server_Config_Ini);
                 return new PluginReaction[0];
@@ -106,6 +109,11 @@ namespace MinoRatingPlugin
         public void EndSessionAsync()
         {
             _mrserver.EndSession(CurrentSessionGuid);
+        }
+
+        public void DriverBackToPitsAsync(byte carId, DateTime created)
+        {
+            EnqueueBackendMessage(() => { return _mrserver.DriverBackToPits(CurrentSessionGuid, created, carId); });
         }
 
         public void RandomCarInfoAsync(byte carId, string carModel, string driverName, string driverGuid, bool isConnected, int currentRaceTimeMS)
@@ -125,7 +133,7 @@ namespace MinoRatingPlugin
 
         public void RequestMRCommandAdminInfoAsync(byte carId, bool isAdmin, string[] str)
         {
-            EnqueueBackendMessage(() => { return _mrserver.RequestDriverRating(CurrentSessionGuid, carId); });
+            EnqueueBackendMessage(() => { return _mrserver.RequestMRCommandAdminInfo(CurrentSessionGuid, carId, isAdmin, str); });
         }
 
         public void RequestDriverLoadedAsync(byte carId)
@@ -135,12 +143,12 @@ namespace MinoRatingPlugin
 
         public void CollisionAsyncV22(DateTime creationDate, byte carId, byte otherCarId, float relativeVelocity, float lastSplinePosition, float relativeX, float relativeZ, float worldX, float worldZ, CarUpdateHistory[] historyCar, CarUpdateHistory[] historyOtherCar, MRDistanceHelper distanceCar)
         {
-            EnqueueBackendMessage(() => { return _mrserver.CollisionV22(CurrentSessionGuid, creationDate, carId, otherCarId, relativeVelocity, lastSplinePosition, relativeX, relativeZ, worldX, worldZ, historyCar, historyOtherCar, distanceCar).Reactions; });
+            EnqueueBackendMessage(() => { return _mrserver.CollisionV24(CurrentSessionGuid, creationDate, carId, otherCarId, relativeVelocity, lastSplinePosition, relativeX, relativeZ, worldX, worldZ, historyCar, historyOtherCar, distanceCar); });
         }
 
-        public void LineCrossedAsync(byte carId, long lineId, float currentSpeed, float currentAcceleration, float minVelocity10s, float currentDistanceToClosestCar, float[] worldpositions)
+        public void LineCrossedAsync(byte carId, long lineId, float currentSpeed, float currentAcceleration, float minVelocity10s, float maxVelocity10s, float currentDistanceToClosestCar, float[] worldpositions)
         {
-            EnqueueBackendMessage(() => { return _mrserver.LineCrossed(CurrentSessionGuid, carId, lineId, currentSpeed, currentAcceleration, minVelocity10s, currentDistanceToClosestCar, worldpositions); });
+            EnqueueBackendMessage(() => { return _mrserver.LineCrossed(CurrentSessionGuid, carId, lineId, currentSpeed, currentAcceleration, minVelocity10s, maxVelocity10s, currentDistanceToClosestCar, worldpositions); });
         }
 
         public void DistanceDrivenAsync(byte carId, MRDistanceHelper distanceDriven)
@@ -152,20 +160,17 @@ namespace MinoRatingPlugin
 
         void EnqueueBackendMessage(Func<PluginReaction[]> action)
         {
+            LastPluginActivity = DateTime.Now;
             // Quick&Dirty: Direct execution
-            var reaction = action();
-            HandleClientActions(reaction);
+
+            ThreadPool.QueueUserWorkItem(o =>
+            {
+                var reaction = action();
+                HandleClientActions(reaction);
+            });
         }
 
         #region Handle Plugin Actions
-
-        private void HandleClientActions(PluginReactionCollection actions)
-        {
-            if (actions == null)
-                throw new ArgumentNullException("PluginReactionCollection actions", "Looks like the server didn't create an empty PluginReaction array");
-
-            HandleClientActions(actions.Reactions);
-        }
 
         private void HandleClientActions(PluginReaction[] actions)
         {
@@ -192,55 +197,65 @@ namespace MinoRatingPlugin
             }
         }
 
+        private static object _executeLock = new object();
+
         private void ExecuteAction(PluginReaction a)
         {
-            try
+            if (a == null)
+                return;
+
+            LastBackendActivity = DateTime.Now;
+
+            lock (_executeLock)
             {
-                PluginManager.Log("Action for car " + a.CarId + ": " + a.Reaction + " " + a.Text);
-                switch (a.Reaction)
+                try
                 {
-                    case PluginReaction.ReactionType.None:
-                        break;
-                    case PluginReaction.ReactionType.Whisper:
-                        PluginManager.SendChatMessage(a.CarId, a.Text);
-                        break;
-                    case PluginReaction.ReactionType.Broadcast:
-                        PluginManager.BroadcastChatMessage(a.Text);
-                        break;
-                    case PluginReaction.ReactionType.Ballast:
-                        break;
-                    case PluginReaction.ReactionType.Pit:
-                        break;
-                    case PluginReaction.ReactionType.Kick:
-                        {
-                            // To be 100% sure we kick the right person we'll have to compare the steam id
-                            DriverInfo c;
-                            if (this.PluginManager.TryGetDriverInfo(a.CarId, out c))
-                                if (c.IsConnected && c.DriverGuid == a.SteamId)
-                                {
-                                    PluginManager.BroadcastChatMessage("" + c.DriverName + " has been kicked by minorating.com");
-                                    PluginManager.RequestKickDriverById(a.CarId);
-                                }
-                        }
-                        break;
-                    case PluginReaction.ReactionType.Ban:
-                        break;
-                    case PluginReaction.ReactionType.NextSession:
-                        PluginManager.NextSession();
-                        break;
-                    case PluginReaction.ReactionType.RestartSession:
-                        PluginManager.RestartSession();
-                        break;
-                    case PluginReaction.ReactionType.AdminCmd:
-                        PluginManager.AdminCommand(a.Text);
-                        break;
-                    default:
-                        break;
+                    PluginManager.Log("Action for car " + a.CarId + ": " + a.Reaction + " " + a.Text);
+                    switch (a.Reaction)
+                    {
+                        case PluginReaction.ReactionType.None:
+                            break;
+                        case PluginReaction.ReactionType.Whisper:
+                            PluginManager.SendChatMessage(a.CarId, a.Text);
+                            break;
+                        case PluginReaction.ReactionType.Broadcast:
+                            PluginManager.BroadcastChatMessage(a.Text);
+                            break;
+                        case PluginReaction.ReactionType.Ballast:
+                            break;
+                        case PluginReaction.ReactionType.Pit:
+                            break;
+                        case PluginReaction.ReactionType.Kick:
+                            {
+                                // To be 100% sure we kick the right person we'll have to compare the steam id
+                                DriverInfo c;
+                                if (this.PluginManager.TryGetDriverInfo(a.CarId, out c))
+                                    if (c.IsConnected && c.DriverGuid == a.SteamId)
+                                    {
+                                        PluginManager.BroadcastChatMessage("" + c.DriverName + " has been kicked by minorating.com");
+                                        PluginManager.RequestKickDriverById(a.CarId);
+                                    }
+                            }
+                            break;
+                        case PluginReaction.ReactionType.Ban:
+                            break;
+                        case PluginReaction.ReactionType.NextSession:
+                            PluginManager.NextSession();
+                            break;
+                        case PluginReaction.ReactionType.RestartSession:
+                            PluginManager.RestartSession();
+                            break;
+                        case PluginReaction.ReactionType.AdminCmd:
+                            PluginManager.AdminCommand(a.Text);
+                            break;
+                        default:
+                            break;
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Execute action: Error for car " + a.CarId + "/" + a.Text + ": " + ex.Message);
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Execute action: Error for car " + a.CarId + "/" + a.Text + ": " + ex.Message);
+                }
             }
         }
 

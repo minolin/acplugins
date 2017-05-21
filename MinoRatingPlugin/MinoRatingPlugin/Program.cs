@@ -22,7 +22,7 @@ namespace MinoRatingPlugin
         public string TrustToken { get; set; }
         public DateTime CurrentSessionStartTime { get; set; }
 
-        public static Version PluginVersion = new Version(2, 3, 0, 0);
+        public static Version PluginVersion = new Version(2, 4, 0, 0);
 
         protected internal byte[] _fingerprint;
 
@@ -61,6 +61,22 @@ namespace MinoRatingPlugin
         protected internal byte[] Hash(string s)
         {
             return new System.Security.Cryptography.MD5CryptoServiceProvider().ComputeHash(Encoding.Default.GetBytes(Environment.MachineName + s));
+        }
+
+        protected override bool OnCommandEntered(string cmd)
+        {
+            if (cmd == "status")
+            {
+                Console.WriteLine("Plugin status:");
+                Console.WriteLine($"\tCurrentSession:\t{MRBackend.CurrentSessionGuid}");
+                Console.WriteLine($"\tCurrentTrack:\t{CurrentTrackDefinition?.TrackName}");
+                Console.WriteLine($"\tLastMsgSent:\t{(DateTime.Now - MRBackend.LastPluginActivity).TotalSeconds:F3}s");
+                Console.WriteLine($"\tLastMsgReceived:\t{(DateTime.Now - PluginManager.LastServerActivity).TotalSeconds:F3}s");
+            }
+            else
+                return false;
+
+            return true;
         }
 
         protected override void OnInit()
@@ -341,8 +357,8 @@ namespace MinoRatingPlugin
                 if (!PluginManager.TryGetDriverInfo(Convert.ToByte(msg.OtherCarId), out otherDriver))
                     throw new Exception("(Other) Driver not found: " + msg.OtherCarId);
 
-                var driversCache = GetDriversCache(driver);
-                var otherDriversCache = GetDriversCache(otherDriver);
+                var driversCache = GetDriversCache(driver, 980);
+                var otherDriversCache = GetDriversCache(otherDriver, 980);
 
                 var driversDistance = _distancesToReport[driver];
                 _distancesToReport[driver] = new MRDistanceHelper();
@@ -352,22 +368,28 @@ namespace MinoRatingPlugin
             }
         }
 
-        private List<CarUpdateHistory> GetDriversCache(DriverInfo driver)
+        private List<CarUpdateHistory> GetDriversCache(DriverInfo driver, int maxInterval)
         {
             List<CarUpdateHistory> driversCache = new List<CarUpdateHistory>();
             var node = driver.LastCarUpdate;
-            while (node != null && node.Value != null && driversCache.Count < 6)
+            while (node != null && node.Value != null)
             {
                 var carUpdate = node.Value;
-                driversCache.Add(new CarUpdateHistory()
+                var lastInserted = driversCache.LastOrDefault();
+
+                if (lastInserted == null
+                    || Math.Abs((lastInserted.Created - carUpdate.CreationDate).TotalMilliseconds) > maxInterval)
                 {
-                    Created = carUpdate.CreationDate,
-                    NormalizedSplinePosition = carUpdate.NormalizedSplinePosition,
-                    EngineRPM = carUpdate.EngineRPM,
-                    Gear = carUpdate.Gear,
-                    Velocity = new float[] { carUpdate.Velocity.X, carUpdate.Velocity.Z },
-                    WorldPosition = new float[] { carUpdate.WorldPosition.X, carUpdate.WorldPosition.Z }
-                });
+                    driversCache.Add(new CarUpdateHistory()
+                    {
+                        Created = carUpdate.CreationDate,
+                        NormalizedSplinePosition = carUpdate.NormalizedSplinePosition,
+                        EngineRPM = carUpdate.EngineRPM,
+                        Gear = carUpdate.Gear,
+                        Velocity = new float[] { carUpdate.Velocity.X, carUpdate.Velocity.Z },
+                        WorldPosition = new float[] { carUpdate.WorldPosition.X, carUpdate.WorldPosition.Z }
+                    });
+                }
 
                 node = node.Previous;
             }
@@ -409,8 +431,19 @@ namespace MinoRatingPlugin
             {
                 di.IsOnOutlap = PitExitRectangle.Value.Contains(new System.Windows.Point(di.LastPosition.X, di.LastPosition.Z));
                 if (di.IsOnOutlap)
-                    PluginManager.SendChatMessage(di.CarId, "Now on outlap");
+                {
+                    MRBackend.DriverBackToPitsAsync(di.CarId, DateTime.Now);
+                }
             }
+
+            #endregion
+
+            #region teleported to pits detection
+
+            if (TeleportedToPits(di))
+                // Special trick: If we assume a teleport, we set the outlap to false
+                // so the outlap detection above can trigger again
+                di.IsOnOutlap = false;
 
             #endregion
 
@@ -429,10 +462,18 @@ namespace MinoRatingPlugin
                         if (isIntersecting)
                         {
                             // That's worth a message to the backend then!
-                            var driversCache = GetDriversCache(di);
-                            var minVelocityLast10s = driversCache.Min(x => new Vector3f(x.Velocity[0], 0, x.Velocity[1]).Length() * 3.6f);
-                            //Console.WriteLine($"Car {di.CarId} crossed line {l.LineId} with {di.CurrentSpeed:F0}kph (min {minVelocityLast10s:F0}kph)");
-                            MRBackend.LineCrossedAsync(di.CarId, l.LineId, di.CurrentSpeed, di.CurrentAcceleration, minVelocityLast10s, di.CurrentDistanceToClosestCar, new float[0]);
+                            // Just need the min and max velocity of the latest entries
+                            var driversCache = GetDriversCache(di, 98);
+                            var driversVelocities = driversCache.Select(x => new Vector3f(x.Velocity[0], 0, x.Velocity[1]).Length() * 3.6f);
+
+                            var worldPositions = new List<float>();
+                            foreach (var item in driversCache.Select(x => x.WorldPosition))
+                                worldPositions.AddRange(item);
+
+                            var distanceToNextCar = di.CurrentDistanceToClosestCar;
+                            if (distanceToNextCar == 0) // = no other cars around
+                                distanceToNextCar = 99999;
+                            MRBackend.LineCrossedAsync(di.CarId, l.LineId, di.CurrentSpeed, di.CurrentAcceleration, driversVelocities.Min(), driversVelocities.Max(), distanceToNextCar, new float[0]);
                         }
                     }
             }
@@ -719,13 +760,20 @@ namespace MinoRatingPlugin
             {
                 while (true)
                 {
-                    // Sleeping for some seconds
-                    Thread.Sleep(1000 * 90);
-
-                    if (MRBackend.LastPluginActivity != DateTime.MinValue
-                        && MRBackend.LastPluginActivity.AddSeconds(1000 * 90) < DateTime.Now)
+                    try
                     {
-                        MRBackend.SendAlive(GetConnectedDriversHash());
+                        // Sleeping for some seconds
+                        Thread.Sleep(1000 * 90);
+
+                        if (MRBackend.LastPluginActivity != DateTime.MinValue
+                            && MRBackend.LastPluginActivity.AddSeconds(1000 * 90) < DateTime.Now)
+                        {
+                            MRBackend.SendAlive(GetConnectedDriversHash());
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        PluginManager.Log(ex);
                     }
                 }
             });

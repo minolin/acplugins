@@ -1276,6 +1276,12 @@ namespace MinoRatingPlugin.minoRatingServer {
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/CollisionV22", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionV22Response")]
         System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReactionCollection> CollisionV22Async(System.Guid sessionId, System.DateTime created, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float worldX, float worldZ, MinoRatingPlugin.minoRatingServer.CarUpdateHistory[] historyCar, MinoRatingPlugin.minoRatingServer.CarUpdateHistory[] historyOtherCar, MinoRatingPlugin.minoRatingServer.MRDistanceHelper distanceCar);
         
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/CollisionV24", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionV24Response")]
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] CollisionV24(System.Guid sessionId, System.DateTime created, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float worldX, float worldZ, MinoRatingPlugin.minoRatingServer.CarUpdateHistory[] historyCar, MinoRatingPlugin.minoRatingServer.CarUpdateHistory[] historyOtherCar, MinoRatingPlugin.minoRatingServer.MRDistanceHelper distanceCar);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/CollisionV24", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionV24Response")]
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> CollisionV24Async(System.Guid sessionId, System.DateTime created, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float worldX, float worldZ, MinoRatingPlugin.minoRatingServer.CarUpdateHistory[] historyCar, MinoRatingPlugin.minoRatingServer.CarUpdateHistory[] historyOtherCar, MinoRatingPlugin.minoRatingServer.MRDistanceHelper distanceCar);
+        
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/CollisionTreeEnded", ReplyAction="http://tempuri.org/ILiveDataDump/CollisionTreeEndedResponse")]
         MinoRatingPlugin.minoRatingServer.PluginReaction[] CollisionTreeEnded(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended);
         
@@ -1343,10 +1349,10 @@ namespace MinoRatingPlugin.minoRatingServer {
         System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, string>> GetAuthDataAsync(string token, System.DateTime currentPluginTime, System.DateTime lastPluginUpdate);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/LineCrossed", ReplyAction="http://tempuri.org/ILiveDataDump/LineCrossedResponse")]
-        MinoRatingPlugin.minoRatingServer.PluginReaction[] LineCrossed(System.Guid sessionId, int car, long lineId, float speed, float acceleration, float minVelocity10s, float distanceToNextCar, float[] worldpositions);
+        MinoRatingPlugin.minoRatingServer.PluginReaction[] LineCrossed(System.Guid sessionId, int car, long lineId, float speed, float acceleration, float minVelocity10s, float maxVelocity10s, float distanceToNextCar, float[] worldpositions);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/LineCrossed", ReplyAction="http://tempuri.org/ILiveDataDump/LineCrossedResponse")]
-        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> LineCrossedAsync(System.Guid sessionId, int car, long lineId, float speed, float acceleration, float minVelocity10s, float distanceToNextCar, float[] worldpositions);
+        System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> LineCrossedAsync(System.Guid sessionId, int car, long lineId, float speed, float acceleration, float minVelocity10s, float maxVelocity10s, float distanceToNextCar, float[] worldpositions);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/ILiveDataDump/CreateTrackLine", ReplyAction="http://tempuri.org/ILiveDataDump/CreateTrackLineResponse")]
         MinoRatingPlugin.minoRatingServer.PluginReaction[] CreateTrackLine(System.Guid sessionId, byte carId, float fromSpline, float toSpline, float x1, float y1, float x2, float y2, string hint, int type);
@@ -1558,6 +1564,14 @@ namespace MinoRatingPlugin.minoRatingServer {
             return base.Channel.CollisionV22Async(sessionId, created, car, otherCar, speed, splinepos, relativeX, relativeZ, worldX, worldZ, historyCar, historyOtherCar, distanceCar);
         }
         
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] CollisionV24(System.Guid sessionId, System.DateTime created, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float worldX, float worldZ, MinoRatingPlugin.minoRatingServer.CarUpdateHistory[] historyCar, MinoRatingPlugin.minoRatingServer.CarUpdateHistory[] historyOtherCar, MinoRatingPlugin.minoRatingServer.MRDistanceHelper distanceCar) {
+            return base.Channel.CollisionV24(sessionId, created, car, otherCar, speed, splinepos, relativeX, relativeZ, worldX, worldZ, historyCar, historyOtherCar, distanceCar);
+        }
+        
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> CollisionV24Async(System.Guid sessionId, System.DateTime created, int car, int otherCar, float speed, float splinepos, float relativeX, float relativeZ, float worldX, float worldZ, MinoRatingPlugin.minoRatingServer.CarUpdateHistory[] historyCar, MinoRatingPlugin.minoRatingServer.CarUpdateHistory[] historyOtherCar, MinoRatingPlugin.minoRatingServer.MRDistanceHelper distanceCar) {
+            return base.Channel.CollisionV24Async(sessionId, created, car, otherCar, speed, splinepos, relativeX, relativeZ, worldX, worldZ, historyCar, historyOtherCar, distanceCar);
+        }
+        
         public MinoRatingPlugin.minoRatingServer.PluginReaction[] CollisionTreeEnded(System.Guid sessionId, int car, int otherCar, int count, System.DateTime started, System.DateTime ended) {
             return base.Channel.CollisionTreeEnded(sessionId, car, otherCar, count, started, ended);
         }
@@ -1646,12 +1660,12 @@ namespace MinoRatingPlugin.minoRatingServer {
             return base.Channel.GetAuthDataAsync(token, currentPluginTime, lastPluginUpdate);
         }
         
-        public MinoRatingPlugin.minoRatingServer.PluginReaction[] LineCrossed(System.Guid sessionId, int car, long lineId, float speed, float acceleration, float minVelocity10s, float distanceToNextCar, float[] worldpositions) {
-            return base.Channel.LineCrossed(sessionId, car, lineId, speed, acceleration, minVelocity10s, distanceToNextCar, worldpositions);
+        public MinoRatingPlugin.minoRatingServer.PluginReaction[] LineCrossed(System.Guid sessionId, int car, long lineId, float speed, float acceleration, float minVelocity10s, float maxVelocity10s, float distanceToNextCar, float[] worldpositions) {
+            return base.Channel.LineCrossed(sessionId, car, lineId, speed, acceleration, minVelocity10s, maxVelocity10s, distanceToNextCar, worldpositions);
         }
         
-        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> LineCrossedAsync(System.Guid sessionId, int car, long lineId, float speed, float acceleration, float minVelocity10s, float distanceToNextCar, float[] worldpositions) {
-            return base.Channel.LineCrossedAsync(sessionId, car, lineId, speed, acceleration, minVelocity10s, distanceToNextCar, worldpositions);
+        public System.Threading.Tasks.Task<MinoRatingPlugin.minoRatingServer.PluginReaction[]> LineCrossedAsync(System.Guid sessionId, int car, long lineId, float speed, float acceleration, float minVelocity10s, float maxVelocity10s, float distanceToNextCar, float[] worldpositions) {
+            return base.Channel.LineCrossedAsync(sessionId, car, lineId, speed, acceleration, minVelocity10s, maxVelocity10s, distanceToNextCar, worldpositions);
         }
         
         public MinoRatingPlugin.minoRatingServer.PluginReaction[] CreateTrackLine(System.Guid sessionId, byte carId, float fromSpline, float toSpline, float x1, float y1, float x2, float y2, string hint, int type) {

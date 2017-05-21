@@ -160,7 +160,7 @@ namespace acPlugins4net.info
 
         /// <summary>
         /// Expresses the distance in meters to the nearest car, either in front or back, ignoring positions.
-        /// Zero if there is new other (moving) car
+        /// Zero if there is no other (moving) car
         /// </summary>
         [IgnoreDataMember]
         public float CurrentDistanceToClosestCar { get; set; }

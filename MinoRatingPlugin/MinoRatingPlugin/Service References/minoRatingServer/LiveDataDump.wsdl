@@ -87,6 +87,12 @@
   <wsdl:message name="ILiveDataDump_CollisionV22_OutputMessage">
     <wsdl:part name="parameters" element="tns:CollisionV22Response" />
   </wsdl:message>
+  <wsdl:message name="ILiveDataDump_CollisionV24_InputMessage">
+    <wsdl:part name="parameters" element="tns:CollisionV24" />
+  </wsdl:message>
+  <wsdl:message name="ILiveDataDump_CollisionV24_OutputMessage">
+    <wsdl:part name="parameters" element="tns:CollisionV24Response" />
+  </wsdl:message>
   <wsdl:message name="ILiveDataDump_CollisionTreeEnded_InputMessage">
     <wsdl:part name="parameters" element="tns:CollisionTreeEnded" />
   </wsdl:message>
@@ -223,6 +229,10 @@
     <wsdl:operation name="CollisionV22">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/CollisionV22" message="tns:ILiveDataDump_CollisionV22_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/CollisionV22Response" message="tns:ILiveDataDump_CollisionV22_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="CollisionV24">
+      <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/CollisionV24" message="tns:ILiveDataDump_CollisionV24_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ILiveDataDump/CollisionV24Response" message="tns:ILiveDataDump_CollisionV24_OutputMessage" />
     </wsdl:operation>
     <wsdl:operation name="CollisionTreeEnded">
       <wsdl:input wsaw:Action="http://tempuri.org/ILiveDataDump/CollisionTreeEnded" message="tns:ILiveDataDump_CollisionTreeEnded_InputMessage" />
@@ -393,6 +403,15 @@
     </wsdl:operation>
     <wsdl:operation name="CollisionV22">
       <soap:operation soapAction="http://tempuri.org/ILiveDataDump/CollisionV22" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CollisionV24">
+      <soap:operation soapAction="http://tempuri.org/ILiveDataDump/CollisionV24" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>
