@@ -158,6 +158,8 @@ namespace MinoRatingPlugin
 
         #endregion
 
+        private static object _executeLock = new object();
+
         void EnqueueBackendMessage(Func<PluginReaction[]> action)
         {
             LastPluginActivity = DateTime.Now;
@@ -165,8 +167,17 @@ namespace MinoRatingPlugin
 
             ThreadPool.QueueUserWorkItem(o =>
             {
-                var reaction = action();
-                HandleClientActions(reaction);
+                try
+                {
+                    lock (_executeLock)
+                    {
+                        var reaction = action();
+                        HandleClientActions(reaction);
+                    }
+                }
+                finally
+                {
+                }
             });
         }
 
@@ -197,17 +208,12 @@ namespace MinoRatingPlugin
             }
         }
 
-        private static object _executeLock = new object();
-
         private void ExecuteAction(PluginReaction a)
         {
             if (a == null)
                 return;
 
             LastBackendActivity = DateTime.Now;
-
-            lock (_executeLock)
-            {
                 try
                 {
                     PluginManager.Log("Action for car " + a.CarId + ": " + a.Reaction + " " + a.Text);
@@ -256,7 +262,6 @@ namespace MinoRatingPlugin
                 {
                     Console.WriteLine("Execute action: Error for car " + a.CarId + "/" + a.Text + ": " + ex.Message);
                 }
-            }
         }
 
         #endregion
