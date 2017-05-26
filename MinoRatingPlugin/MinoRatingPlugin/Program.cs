@@ -22,7 +22,7 @@ namespace MinoRatingPlugin
         public string TrustToken { get; set; }
         public DateTime CurrentSessionStartTime { get; set; }
 
-        public static Version PluginVersion = new Version(2, 4, 0, 0);
+        public static Version PluginVersion = new Version(2, 4, 1, 0);
 
         protected internal byte[] _fingerprint;
 
@@ -752,31 +752,6 @@ namespace MinoRatingPlugin
         protected override void OnAcServerAlive()
         {
             MRBackend.SendAlive(GetConnectedDriversHash());
-        }
-
-        private void StartAliveTimer()
-        {
-            ThreadPool.QueueUserWorkItem(o =>
-            {
-                while (true)
-                {
-                    try
-                    {
-                        // Sleeping for some seconds
-                        Thread.Sleep(1000 * 90);
-
-                        if (MRBackend.LastPluginActivity != DateTime.MinValue
-                            && MRBackend.LastPluginActivity.AddSeconds(1000 * 90) < DateTime.Now)
-                        {
-                            MRBackend.SendAlive(GetConnectedDriversHash());
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        PluginManager.Log(ex);
-                    }
-                }
-            });
         }
 
         #endregion

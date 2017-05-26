@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using acPlugins4net;
 using System.ServiceModel;
 using System.Threading;
@@ -101,14 +102,16 @@ namespace MinoRatingPlugin
             CurrentSessionGuid = Guid.NewGuid();
             EnqueueBackendMessage(() =>
             {
-                _mrserver.NewSessionWithConfig(CurrentSessionGuid, serverName, track, sessionType, laps, waitTime, sessionDuration, ambientTemp, roadTemp, elapsedMS, trustToken, fingerpint, pluginVersion, sessionCollisionsToKick, sessionMassAccidentsToKick, serverKickMode, server_Config_Ini);
+                var backendGuid = _mrserver.NewSessionWithConfig(CurrentSessionGuid, serverName, track, sessionType, laps, waitTime, sessionDuration, ambientTemp, roadTemp, elapsedMS, trustToken, fingerpint, pluginVersion, sessionCollisionsToKick, sessionMassAccidentsToKick, serverKickMode, server_Config_Ini);
+                if(backendGuid != CurrentSessionGuid)
+                    System.Console.WriteLine($"Backend did not acknowledge the Guid: {backendGuid} vs. {CurrentSessionGuid}");
                 return new PluginReaction[0];
             });
         }
 
         public void EndSessionAsync()
         {
-            _mrserver.EndSession(CurrentSessionGuid);
+            EnqueueBackendMessage(() => { return _mrserver.EndSession(CurrentSessionGuid); });
         }
 
         public void DriverBackToPitsAsync(byte carId, DateTime created)
@@ -160,10 +163,12 @@ namespace MinoRatingPlugin
 
         private static object _executeLock = new object();
 
-        void EnqueueBackendMessage(Func<PluginReaction[]> action)
+        void EnqueueBackendMessage(Func<PluginReaction[]> action, [CallerMemberName] string callingFunction = null)
         {
             LastPluginActivity = DateTime.Now;
             // Quick&Dirty: Direct execution
+
+            string caller = callingFunction;
 
             ThreadPool.QueueUserWorkItem(o =>
             {
@@ -175,8 +180,9 @@ namespace MinoRatingPlugin
                         HandleClientActions(reaction);
                     }
                 }
-                finally
+                catch(Exception ex)
                 {
+                    Console.WriteLine($"BackendMessage fail: {caller}");
                 }
             });
         }
