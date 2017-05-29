@@ -212,7 +212,7 @@ namespace acPlugins4net.info
 
             // Determine the current acceleration in Kph/s (only valid if the update interval is 1s)
             var lastSpeed = lastVel.Length() * 3.6f;
-            CurrentAcceleration = CurrentSpeed - lastSpeed;
+            CurrentAcceleration = (CurrentSpeed - lastSpeed) * 1000 / realtimeUpdateInterval;
 
             int currTime = Environment.TickCount & Int32.MaxValue; // see https://msdn.microsoft.com/de-de/library/system.environment.tickcount%28v=vs.110%29.aspx
             int elapsedSinceLastUpdate = currTime - this.lastTime;
