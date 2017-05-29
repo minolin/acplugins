@@ -22,7 +22,7 @@ namespace MinoRatingPlugin
         public string TrustToken { get; set; }
         public DateTime CurrentSessionStartTime { get; set; }
 
-        public static Version PluginVersion = new Version(2, 4, 1, 0);
+        public static Version PluginVersion = new Version(2, 4, 2, 0);
 
         protected internal byte[] _fingerprint;
 
@@ -473,7 +473,7 @@ namespace MinoRatingPlugin
                             var distanceToNextCar = di.CurrentDistanceToClosestCar;
                             if (distanceToNextCar == 0) // = no other cars around
                                 distanceToNextCar = 99999;
-                            MRBackend.LineCrossedAsync(di.CarId, l.LineId, di.CurrentSpeed, di.CurrentAcceleration, driversVelocities.Min(), driversVelocities.Max(), distanceToNextCar, new float[0]);
+                            MRBackend.LineCrossedAsync(di.CarId, l.LineId, di.CurrentSpeed, di.CurrentAcceleration, driversVelocities.Min(), driversVelocities.Max(), distanceToNextCar, worldPositions.ToArray());
                         }
                     }
             }
